@@ -60,6 +60,7 @@ void Topic_notify(Topic* topic, void * data, int datasize, Exception *e){
 		Exception_throw(e, BAD_ARGUMENT, "Topic_notify topic is null");
 		return;
 	}
+	PLATFORM_ENTER_CRITICAL();
 	topic->data = data;
 	topic->datasize = datasize;
 	for(i = 0; i < topic->listsize; i++){
@@ -68,10 +69,12 @@ void Topic_notify(Topic* topic, void * data, int datasize, Exception *e){
 			// inserts into the topic pool
 			Task_addTopic(t, topic->id, topic->name, topic->data, topic->datasize, e);
 			catch(e){
+				PLATFORM_EXIT_CRITICAL();
 				return;
 			}
 		}
 	}
+	PLATFORM_EXIT_CRITICAL();
 }
 
 //------------------------------------------------------------------------------------

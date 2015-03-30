@@ -28,6 +28,19 @@
 #define PLATFORM_TIMER_STOP(callback_handler)
 //extern void PLATFORM_TIMER_STOP(void* handler);
 
+/** \def PLATFORM_ENTER_CRITICAL
+ *  \brief PLATFORM_ENTER_CRITICAL disables all interrupts to enter into a critical section
+ */
+#define PLATFORM_ENTER_CRITICAL()
+//extern void PLATFORM_ENTER_CRITICAL(void);
+
+/** \def PLATFORM_EXIT_CRITICAL
+ *  \brief PLATFORM_EXIT_CRITICAL re-enables all interrupts to exit from a critical section
+ */
+#define PLATFORM_EXIT_CRITICAL()
+//extern void PLATFORM_EXIT_CRITICAL(void);
+
+
 #if defined(PLATFORM_KL05Z)
 #include "common.h"
 #include <stdint.h>

@@ -9,7 +9,7 @@
 #include "../topics/MyTopic.h"
 
 static int counter;
-static Exception e = Exception_ALLOC();
+static Exception e = Exception_INIT();
 
 //------------------------------------------------------------------------------------
 void Publisher_init(PublisherTaskPtr t){

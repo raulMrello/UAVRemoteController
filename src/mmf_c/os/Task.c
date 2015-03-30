@@ -58,13 +58,6 @@ char Task_isReady(Task* t, Exception *e);
  */
 void Task_setReady(Task* t, int evt, Exception *e);
 
-/** \fn Task_setRunning
- *  \brief Sets a task running
- *  \param t Task
- *  \param e Exception code (0: success)
- */
-void Task_setRunning(Task* t, Exception *e);
-
 /** \fn Task_setStop
  *  \brief Sets a task stopped
  *  \param t Task
@@ -88,7 +81,6 @@ int Task_prio(Task* t, Exception *e);
  */
 void Task_execCb(Task* t, Exception *e);
 
-
 /** \fn Task_addTopic
  *  \brief Adds a new topic update to the topic pool
  *  \param t Task
@@ -99,6 +91,14 @@ void Task_execCb(Task* t, Exception *e);
  *  \param e Exception code (0: success)
  */
 void Task_addTopic(Task*t, int id, const char * name, void *data, int datasize, Exception *e);
+
+/** \fn Task_addTopic
+ *  \brief Adds a new topic update to the topic pool
+ *  \param t Task
+ *  \param td Topic data extracted from topic fifo pool
+ *  \param e Exception code (0: success)
+ */
+void Task_popTopic(Task*t, TopicData *td, Exception *e);
 
 //------------------------------------------------------------------------------------
 //-- PRIVATE MEMBERS -----------------------------------------------------------------
@@ -131,6 +131,7 @@ void Task_initialize(	Task* task,
 		return; 
 	}
 	task->status = STOPPED;
+	task->isSuspended = true;
 	task->event = EVT_NONE;
 	task->name = name;
 	if(!name)
@@ -139,6 +140,9 @@ void Task_initialize(	Task* task,
 	task->prio = prio;
 	task->topicpool.topicdata = topic_pool;
 	task->topicpool.poolsize = topic_pool_size;
+	task->topicpool.pread = 0;
+	task->topicpool.pwrite = 0;
+	task->topicpool.status = POOL_EMPTY;
 	if(task->topicpool.topicdata){
 		for(i=0; i < task->topicpool.poolsize; i++){
 			task->topicpool.topicdata[i].id = 0;
@@ -162,12 +166,14 @@ void Task_start(Task* task, Exception *e){
 		Exception_throw(e, BAD_ARGUMENT, "Task_start task is null");
 		return; 
 	}
+	PLATFORM_ENTER_CRITICAL();
 	task->status = READY;
 	task->init(task->cbhandler);
 	// if task keeps READY (not suspended nor waiting), then allows execution
 	if(task->status == READY){
 		task->event |= EVT_YIELD;
 	}
+	PLATFORM_EXIT_CRITICAL();
 }
 
 //------------------------------------------------------------------------------------
@@ -176,8 +182,10 @@ void Task_suspend(Task* task, int delay_us, Exception *e){
 		Exception_throw(e, BAD_ARGUMENT, "Task_suspend task is null");
 		return; 
 	}
-	task->status = SUSPENDED;
+	PLATFORM_ENTER_CRITICAL();
+	task->isSuspended = true;
 	PLATFORM_TIMER_START(delay_us, timertask_callback, task);
+	PLATFORM_EXIT_CRITICAL();
 }
 
 //------------------------------------------------------------------------------------
@@ -186,11 +194,14 @@ void Task_resume(Task* task, char forced, Exception *e){
 		Exception_throw(e, BAD_ARGUMENT, "Task_resume task is null");
 		return; 
 	}
+	PLATFORM_ENTER_CRITICAL();
 	if(forced){
 		PLATFORM_TIMER_STOP(task);
 	}
+	task->isSuspended = false;
 	task->status = READY;
 	task->event |= EVT_RESUMED;
+	PLATFORM_EXIT_CRITICAL();
 }
 
 //------------------------------------------------------------------------------------
@@ -199,7 +210,9 @@ void Task_yield(Task* task, Exception *e){
 		Exception_throw(e, BAD_ARGUMENT, "Task_yield task is null");
 		return; 
 	}
+	PLATFORM_ENTER_CRITICAL();
 	task->status = YIELD;
+	PLATFORM_EXIT_CRITICAL();
 }
 
 //------------------------------------------------------------------------------------
@@ -221,22 +234,18 @@ char Task_isReady(Task* task, Exception *e){
 }
 
 //------------------------------------------------------------------------------------
-void Task_setRunning(Task* task, Exception *e){
-	if(!task){ 
-		Exception_throw(e, BAD_ARGUMENT, "Task_setRunning task is null");
-		return; 
-	}
-	task->status = RUNNING;
-}
-
-//------------------------------------------------------------------------------------
 void Task_setReady(Task* task, int evt, Exception *e){
 	if(!task){ 
 		Exception_throw(e, BAD_ARGUMENT, "Task_setReady task is null");
 		return; 
 	}
+	PLATFORM_ENTER_CRITICAL();
 	task->event |= evt;
 	task->status = READY;
+	if(task->isSuspended){
+		Task_resume(task, true, e);
+	}
+	PLATFORM_EXIT_CRITICAL();
 }
 
 //------------------------------------------------------------------------------------
@@ -245,7 +254,9 @@ void Task_setStop(Task* task, Exception *e){
 		Exception_throw(e, BAD_ARGUMENT, "Task_setStop task is null");
 		return; 
 	}
+	PLATFORM_ENTER_CRITICAL();
 	task->status = STOPPED;
+	PLATFORM_EXIT_CRITICAL();
 }
 
 //------------------------------------------------------------------------------------
@@ -260,30 +271,36 @@ void Task_execCb(Task* task, Exception *e){
 		task->onResume(task->cbhandler);
 	}
 	if((task->event & EVT_TOPIC)==EVT_TOPIC && task->onTopicUpdate){
-		int i = 0;
-		// processes all pending topics
 		task->event &= ~EVT_TOPIC;
-		for(i=0;i<task->topicpool.poolsize;i++){
-			if(task->topicpool.topicdata[i].id != 0){
-				task->onTopicUpdate(task->cbhandler, &task->topicpool.topicdata[i]);
-				task->topicpool.topicdata[i].id = 0;
-				task->topicpool.topicdata[i].data = 0;
-				task->topicpool.topicdata[i].datasize = 0;
+		// processes all pending topics until topic fifo pool is empty
+		for(;;){
+			TopicData td;
+			Task_popTopic(task, &td, e);
+			catch(e){
+				Exception_clear(e);
+				break;
 			}
+			task->onTopicUpdate(task->cbhandler, &td);
 		}
 	}
 	if((task->event & EVT_FLAGS)==EVT_FLAGS && task->onEventFlag){
+		PLATFORM_ENTER_CRITICAL();
 		int event = (task->event >> 4);
 		// checks if waiting_or or waiting_and
 		if(task->evhandler.mode == WAIT_OR && (task->evhandler.events & event)!=0){
 			task->evhandler.events &= ~event;
 			task->event &= ~EVT_FLAGMASK;
+			PLATFORM_EXIT_CRITICAL();
 			task->onEventFlag(task->cbhandler, event);
 		}
 		else if(task->evhandler.mode == WAIT_AND && (task->evhandler.events & event)==task->evhandler.events){
 			task->evhandler.events &= ~event;
 			task->event &= ~EVT_FLAGMASK;
+			PLATFORM_EXIT_CRITICAL();
 			task->onEventFlag(task->cbhandler, event);
+		}
+		else{
+			PLATFORM_EXIT_CRITICAL();
 		}
 	}
 	if(task->event == EVT_YIELD && task->onYieldTurn){
@@ -307,36 +324,73 @@ void Task_addTopic(Task* task, int id, const char * name, void *data, int datasi
 		Exception_throw(e, BAD_ARGUMENT, "Task_addTopic task or id null");
 		return;
 	}
-	int i;
-	for(i=0;i<task->topicpool.poolsize;i++){
-		if(task->topicpool.topicdata[i].id == 0){
-			task->topicpool.topicdata[i].id = id;
-			task->topicpool.topicdata[i].name = name;
-			task->topicpool.topicdata[i].data = data;
-			task->topicpool.topicdata[i].datasize = datasize;
-			Task_setReady(task, EVT_TOPIC, e);
-			return;
-		}
+	PLATFORM_ENTER_CRITICAL();
+	if(task->topicpool.status == POOL_FULL){
+		Exception_throw(e, MEMORY_ALLOC, "Task_addTopic topic_pool is full");
+		PLATFORM_EXIT_CRITICAL();
+		return;
 	}
-	Exception_throw(e, MEMORY_ALLOC, "Task_addTopic topic_pool is full");
+	int i = task->topicpool.pwrite;
+	task->topicpool.status = POOL_DATA;
+	task->topicpool.topicdata[i].id = id;
+	task->topicpool.topicdata[i].name = name;
+	task->topicpool.topicdata[i].data = data;
+	task->topicpool.topicdata[i].datasize = datasize;
+	task->topicpool.pwrite = (task->topicpool.pwrite < (task->topicpool.poolsize-1))? (task->topicpool.pwrite+1) : 0;
+	if(task->topicpool.pwrite == task->topicpool.pread){
+		task->topicpool.status = POOL_FULL;
+	}
+	PLATFORM_EXIT_CRITICAL();
+	Task_setReady(task, EVT_TOPIC, e);
 }
 
 //------------------------------------------------------------------------------------
-void Task_wait_or(Task* task, uint16_t evt, Exception *e){
+void Task_popTopic(Task* task, TopicData* td, Exception *e){
+	if(!task || !td){
+		Exception_throw(e, BAD_ARGUMENT, "Task_addTopic task or topic null");
+		return;
+	}
+	PLATFORM_ENTER_CRITICAL();
+	if(task->topicpool.status == POOL_EMPTY){
+		Exception_throw(e, MEMORY_ALLOC, "Task_addTopic topic_pool is empty");
+		PLATFORM_EXIT_CRITICAL();
+		return;
+	}
+	int i = task->topicpool.pread;
+	*td = task->topicpool.topicdata[i];
+	task->topicpool.pread = (task->topicpool.pread < (task->topicpool.poolsize-1))? (task->topicpool.pread+1) : 0;
+	if(task->topicpool.pread == task->topicpool.pwrite){
+		task->topicpool.status = POOL_EMPTY;
+	}
+	PLATFORM_EXIT_CRITICAL();
+}
+
+//------------------------------------------------------------------------------------
+void Task_wait_or(Task* task, uint16_t evt, uint32_t delay_us, Exception *e){
 	if(!task){
 		Exception_throw(e, BAD_ARGUMENT, "Task_wait_or task null");
 		return;
 	}
+	PLATFORM_ENTER_CRITICAL();
 	task->evhandler.mode = WAIT_OR;
 	task->evhandler.events = evt;
+	if(delay_us > 0){
+		Task_suspend(task, delay_us, e);
+	}
+	PLATFORM_EXIT_CRITICAL();
 }
 
 //------------------------------------------------------------------------------------
-void Task_wait_and(Task* task, uint16_t evt, Exception *e){
+void Task_wait_and(Task* task, uint16_t evt, uint32_t delay_us, Exception *e){
 	if(!task){
 		Exception_throw(e, BAD_ARGUMENT, "Task_wait_and task null");
 		return;
 	}
+	PLATFORM_ENTER_CRITICAL();
 	task->evhandler.mode = WAIT_AND;
 	task->evhandler.events = evt;
+	if(delay_us > 0){
+		Task_suspend(task, delay_us, e);
+	}
+	PLATFORM_EXIT_CRITICAL();
 }

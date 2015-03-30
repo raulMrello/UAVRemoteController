@@ -59,11 +59,23 @@ typedef struct {
 	int datasize;				///< topic data size
 }TopicData;
 
+/** \enum PoolStatus
+ *  \brief Topic fifo pool status
+ */
+typedef enum {
+	POOL_EMPTY,
+	POOL_DATA,
+	POOL_FULL
+}PoolStatus;
+
 /** \struct TopicDataPool
  *  \brief Topic data  pool struct is the pool for storing pending topics
  */
 typedef struct {
-	int poolsize;				///< pool size (num entries)
+	PoolStatus status;			///< fifo pool status
+	int poolsize;				///< fifo pool size (num entries)
+	int pread;					///< pointer to get fifo pool elements
+	int pwrite;					///< pointer to insert fifo pool elements
 	TopicData * topicdata;		///< topic data
 }TopicDataPool;
 

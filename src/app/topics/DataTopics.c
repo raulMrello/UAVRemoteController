@@ -9,7 +9,7 @@
 
 static Topic topic;
 static Task* observerlist[2];				///< Observerlist can alloc up to 2 different observers
-static Exception e = Exception_ALLOC();		///< Module's exception handling
+static Exception e = Exception_INIT();		///< Module's exception handling
 
 //------------------------------------------------------------------------------------
 Topic * MyTopic_initialize(const char * name){

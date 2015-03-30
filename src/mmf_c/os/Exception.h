@@ -49,10 +49,10 @@ typedef struct task{
 }Exception;
 
 
-/** \def EXCEPTION_ALLOC
+/** \def EXCEPTION_INIT
  *  \brief Set default values for code and msg exception properties
  */
-#define Exception_ALLOC()		{"", NO_EXCEPTIONS}
+#define Exception_INIT()		{"", NO_EXCEPTIONS}
 
 /**
  *  \fn Exception_throw

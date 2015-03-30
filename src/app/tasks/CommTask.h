@@ -17,7 +17,7 @@
 #ifndef SRC_MODULES_PUBLISHER_H_
 #define SRC_MODULES_PUBLISHER_H_
 
-#include "../../../src/mmf/c/os/mmf.h"
+#include "../../mmf_c/os/mmf.h"
 
 /** \def PublisherTaskPtr
  *  \brief Definition to abstract the callback handler into void* type

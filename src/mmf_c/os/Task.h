@@ -76,8 +76,7 @@ typedef enum {
 	RUNNING = 	      0 ,		///< task is executing
 	STOPPED = 	(1 << 0),		///< task stopped
 	READY = 	(1 << 1),		///< task ready for execution due to some event
-	YIELD = 	(1 << 2),		///< task is yielded temporarily
-	SUSPENDED = (1 << 3)		///< task is suspended for a specific time
+	YIELD = 	(1 << 2)		///< task is yielded temporarily
 }Stat;
 
 /**
@@ -118,6 +117,7 @@ typedef struct {
 	char * name;				///< Task name
 	int prio;					///< Task priority in the range PRIO_CRITICAL .. PRIO_LOW + SUBPRIO_MIN
 	Stat status;				///< Task status flag
+	char isSuspended;			///< Suspension flag
 	int event;					///< Pending event flags
 	EvtFlag evhandler;			///< Event flag handler structure
 	TopicDataPool topicpool;	///< Topic pool buffer
@@ -195,17 +195,19 @@ void Task_yield(Task* t, Exception *e);
  *  \brief Task keeps waiting for any of the events declared
  *  \param t Task
  *  \param evt Combination of events
+ *  \param delay_us Timeout limit in microseconds for wait operation. If 0 waits forever.
  *  \param e Exception code (0: success)
  */
-void Task_wait_or(Task* t, uint16_t evt, Exception *e);
+void Task_wait_or(Task* t, uint16_t evt, uint32_t delay_us, Exception *e);
 
 /** \fn Task_wait_and
  *  \brief Task keeps waiting for all of the events declared
  *  \param t Task
  *  \param evt Combination of events
+ *  \param delay_us Timeout limit in microseconds for wait operation. If 0 waits forever.
  *  \param e Exception code (0: success)
  */
-void Task_wait_and(Task* t, uint16_t evt, Exception *e);
+void Task_wait_and(Task* t, uint16_t evt, uint32_t delay_us, Exception *e);
 
 
 #endif /* MMF_OS_TASK_TASK_H_ */

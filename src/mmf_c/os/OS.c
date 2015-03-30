@@ -101,11 +101,15 @@ static void schedule(char forever, Exception *e){
 				if(Task_isReady(_tasklist[i], e)){
 					// get the event code which causes the task to be ready and passes to exec func.
 					Task_execCb(_tasklist[i], e);
+					catch(e){
+						return;
+					}
 					break;
 				}
+				catch(e){
+					return;
+				}
 			}
-			if(Exception_raised(e))
-				return;		
 		}
 		// after a complete cycle of scheduling (no more executable task pending)
 		// yielded tasks must be set to READY again
@@ -116,6 +120,9 @@ static void schedule(char forever, Exception *e){
 					// ensure set ready only those which are yielded
 					if(Task_isYield(_tasklist[i], e)){
 						Task_setReady(_tasklist[i], EVT_YIELD, e);
+					}
+					catch(e){
+						return;
 					}
 				}
 			}
