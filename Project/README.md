@@ -17,6 +17,11 @@ This controller has three main functions:
 
 ## Changelog
 
+> 31.03.2015-001 branch: master --------------
+ - Topics: add getRef to all topics
+ - Designing RcTask keycodes
+ - PENDING: All tasks.
+
 > 30.03.2015-001 branch: master --------------
  - Adding topics and tasks.
  - InputTopics and UartTopics done.

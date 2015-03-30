@@ -1,61 +1,57 @@
 /*
- * Publisher.h
+ * RcTask.h
  *
  *  Created on: 13/3/2015
- *      Author: RaulM
+ *      Author: raulMrello
  *
- *  Publisher task is demostrative task to post different event conditions to a Subscriber. It could raise events or
- *  topic updates
- *
- *  Example of use:
- *
- *  1 - It will initialize
- *  2 - It will publish topic updates
- *  3 - Sometimes it will send an event to the Subscriber or a combination of events
+ *  RcTask will manage GPIO input actions like pushbuttons press and release. In order to
+ *  process both events, this task will be attached to topics /push and /release. Also, it
+ *  will keep an internal timer to know if a pushbutton is pressed for a long time.
+ *  Depending on the input combination, it will update /rc topics for other modules.
  */
 
-#ifndef SRC_MODULES_PUBLISHER_H_
-#define SRC_MODULES_PUBLISHER_H_
+#ifndef SRC_MODULES_RCTASK_H_
+#define SRC_MODULES_RCTASK_H_
 
 #include "../../mmf_c/os/mmf.h"
 
-/** \def PublisherTaskPtr
+/** \def RcTaskPtr
  *  \brief Definition to abstract the callback handler into void* type
  */
-typedef void* PublisherTaskPtr;
+typedef void* RcTaskPtr;
 
-/** \fn Publisher_init
- *  \brief Publisher initialization callback
- *  \param t Publisher task object
+/** \fn RcTask_init
+ *  \brief RcTask initialization callback
+ *  \param t RcTask task object
  */
-void Publisher_init(PublisherTaskPtr t);
+void RcTask_init(RcTaskPtr t);
 
-/** \fn Publisher_OnYieldTurn
- *  \brief Publisher on yield turn events callback
- *  \param t Publisher task object
+/** \fn RcTask_OnYieldTurn
+ *  \brief RcTask on yield turn events callback
+ *  \param t RcTask task object
  */
-void Publisher_OnYieldTurn(PublisherTaskPtr t);
+void RcTask_OnYieldTurn(RcTaskPtr t);
 
-/** \fn Publisher_OnResume
- *  \brief Publisher on resume events callback
- *  \param t Publisher task object
+/** \fn RcTask_OnResume
+ *  \brief RcTask on resume events callback
+ *  \param t RcTask task object
  */
-void Publisher_OnResume(PublisherTaskPtr t);
+void RcTask_OnResume(RcTaskPtr t);
 
-/** \fn Publisher_OnEventFlag
- *  \brief Publisher on event flags callback
- *  \param t Publisher task object
+/** \fn RcTask_OnEventFlag
+ *  \brief RcTask on event flags callback
+ *  \param t RcTask task object
  *  \param event Event raised
  */
-void Publisher_OnEventFlag(PublisherTaskPtr t, int event);
+void RcTask_OnEventFlag(RcTaskPtr t, int event);
 
-///** \fn SPublisher_OnTopicUpdate
-// *  \brief Publisher on topic update events callback
-// *  \param t Publisher task object
-// *  \param td Topic data
-// */
-//void Publisher_OnTopicUpdate(PublisherTaskPtr t, TopicData * td);
+/** \fn RcTask_OnTopicUpdate
+ *  \brief RcTask on topic update events callback
+ *  \param t RcTask task object
+ *  \param td Topic data
+ */
+void RcTask_OnTopicUpdate(RcTaskPtr t, TopicData * td);
 
 
 
-#endif /* SRC_MODULES_PUBLISHER_H_ */
+#endif /* SRC_MODULES_RCTASK_H_ */

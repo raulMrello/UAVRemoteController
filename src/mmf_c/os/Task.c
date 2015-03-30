@@ -90,7 +90,7 @@ void Task_execCb(Task* t, Exception *e);
  *  \param datasize Topic data size
  *  \param e Exception code (0: success)
  */
-void Task_addTopic(Task*t, int id, const char * name, void *data, int datasize, Exception *e);
+void Task_addTopic(Task*t, int id, const char * name, void *data, int datasize, int* pcount, void (*done)(void*), void* publisher, Exception *e);
 
 /** \fn Task_addTopic
  *  \brief Adds a new topic update to the topic pool
@@ -131,7 +131,7 @@ void Task_initialize(	Task* task,
 		return; 
 	}
 	task->status = STOPPED;
-	task->isSuspended = true;
+	task->isSuspended = false;
 	task->event = EVT_NONE;
 	task->name = name;
 	if(!name)
@@ -200,6 +200,7 @@ void Task_resume(Task* task, char forced, Exception *e){
 	}
 	task->isSuspended = false;
 	task->status = READY;
+	task->event &= ~EVT_YIELD;
 	task->event |= EVT_RESUMED;
 	PLATFORM_EXIT_CRITICAL();
 }
@@ -281,6 +282,12 @@ void Task_execCb(Task* task, Exception *e){
 				break;
 			}
 			task->onTopicUpdate(task->cbhandler, &td);
+			// decrease topic count and if reaches 0, then notifies to publisher, that
+			// topic has been completely processed by all the subscribers.
+			*(td.pcount) -= 1;
+			if(*(td.pcount) <= 0 && td.done){
+				td.done(td.publisher);
+			}
 		}
 	}
 	if((task->event & EVT_FLAGS)==EVT_FLAGS && task->onEventFlag){
@@ -319,7 +326,7 @@ int Task_prio(Task* task, Exception *e){
 }
 
 //------------------------------------------------------------------------------------
-void Task_addTopic(Task* task, int id, const char * name, void *data, int datasize, Exception *e){
+void Task_addTopic(Task* task, int id, const char * name, void *data, int datasize, int *count, void (*done)(void*), void* publisher, Exception *e){
 	if(!task || !id){
 		Exception_throw(e, BAD_ARGUMENT, "Task_addTopic task or id null");
 		return;
@@ -336,6 +343,9 @@ void Task_addTopic(Task* task, int id, const char * name, void *data, int datasi
 	task->topicpool.topicdata[i].name = name;
 	task->topicpool.topicdata[i].data = data;
 	task->topicpool.topicdata[i].datasize = datasize;
+	task->topicpool.topicdata[i].pcount = count;
+	task->topicpool.topicdata[i].done = done;
+	task->topicpool.topicdata[i].publisher = publisher;
 	task->topicpool.pwrite = (task->topicpool.pwrite < (task->topicpool.poolsize-1))? (task->topicpool.pwrite+1) : 0;
 	if(task->topicpool.pwrite == task->topicpool.pread){
 		task->topicpool.status = POOL_FULL;

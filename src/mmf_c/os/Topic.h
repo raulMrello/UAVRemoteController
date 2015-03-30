@@ -45,6 +45,7 @@ typedef struct {
 	const char * name;			///< topic name id
 	void * data;				///< topic data
 	int datasize;				///< topic data size
+	int count;					///< topic producer/consumer count
 	void ** observerlist;		///< declaration of observer list
 	int listsize;				///< max number of observer in list
 }Topic;
@@ -53,10 +54,13 @@ typedef struct {
  *  \brief Topic data struct is the data part of a Topic
  */
 typedef struct {
-	int id;						///< topic id
-	const char * name;			///< topic name id
-	void * data;				///< topic data
-	int datasize;				///< topic data size
+	int id;							///< topic id
+	const char * name;				///< topic name id
+	void * data;					///< topic data
+	int datasize;					///< topic data size
+	int * pcount;					///< pointer to topic producer/consumer count
+	void (*done)(void* publisher);	///< callback to notify when topic consumed by all subscribers (count=0)
+	void * publisher;				///< publisher object
 }TopicData;
 
 /** \enum PoolStatus
@@ -95,9 +99,11 @@ void Topic_initialize(Topic* t, const char* name, void ** oblist, int listsize, 
  *  \param name Topic name
  *  \param data Topic's data
  *  \param datasize	Topic's data size in bytes
+ *  \param done Callback to invoke when topic had been consumed by all subscribers
+ *  \param publisher Publisher object who manages done callback
  *  \param Exception code
  */
-void Topic_notify(Topic* t, void * data, int datasize, Exception *e);
+void Topic_notify(Topic* t, void * data, int datasize, void (*done)(void*), void* publisher, Exception *e);
 
 /** \fn Topic_attach
  *  \brief Static function to attach (subscribe) an observer class to a topic

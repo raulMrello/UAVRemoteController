@@ -14,7 +14,7 @@
 #include "../../mmf_c/os/mmf.h"
 
 Topic * InputTopic_initialize(const char * name, Exception *e);
-//Topic * InputTopic_getRef(void);
+Topic * InputTopic_getRef(const char * name, Exception *e);
 //int InputTopic_getId(void);
 //const char * InputTopic_getName(void);
 

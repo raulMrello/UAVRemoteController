@@ -1,24 +1,39 @@
 /*
- * Publisher.cpp
+ * RcTask.c
  *
  *  Created on: 13/3/2015
- *      Author: RaulM
+ *      Author: raulMrello
  */
 
-#include "Publisher.h"
-#include "../topics/MyTopic.h"
+#include "RcTask.h"
+#include "../topics/InputTopics.h"
+#include "../topics/DataTopics.h"
 
-static int counter;
+#define KEY_L_UP		(int)(1 << 0)
+#define KEY_L_RIGHT		(int)(1 << 0)
+#define KEY_L_DOWN		(int)(1 << 0)
+#define KEY_L_LEFT		(int)(1 << 0)
+
+static int key;
 static Exception e = Exception_INIT();
 
 //------------------------------------------------------------------------------------
-void Publisher_init(PublisherTaskPtr t){
-	printf("Publisher_init\r\n");
-	counter = 0;
+void RcTask_init(RcTaskPtr t){
+	Topic_attach(InputTopic_getRef("/push", &e), t, &e);
+	catch(&e){
+		printf("Exception on RcTask_init e=%s\r\n", e.msg);
+		Exception_clear(&e);
+	}
+	Topic_attach(InputTopic_getRef("/release", &e), t, &e);
+	catch(&e){
+		printf("Exception on RcTask_init e=%s\r\n", e.msg);
+		Exception_clear(&e);
+	}
+	key = KEY_NONE;
 }
 
 //------------------------------------------------------------------------------------
-void Publisher_OnYieldTurn(PublisherTaskPtr t){
+void RcTask_OnYieldTurn(RcTaskPtr t){
 	printf("Publisher_OnYieldTurn\r\n");
 	counter++;
 
@@ -116,20 +131,20 @@ void Publisher_OnYieldTurn(PublisherTaskPtr t){
 
 
 //------------------------------------------------------------------------------------
-void Publisher_OnResume(PublisherTaskPtr t){
+void RcTask_OnResume(RcTaskPtr t){
 	printf("Publisher_OnResume\r\n");
 
 }
 
 //------------------------------------------------------------------------------------
-void Publisher_OnEventFlag(PublisherTaskPtr t, int event){
+void RcTask_OnEventFlag(RcTaskPtr t, int event){
 	printf("Publisher_OnEventFlag\r\n");
 
 }
 
 //------------------------------------------------------------------------------------
-//void Publisher_OnTopicUpdate(PublisherTaskPtr t, TopicData * td){
-//	printf("Publisher_OnTopicUpdate\r\n");
-//
-//}
+void RcTask_OnTopicUpdate(RcTaskPtr t, TopicData * td){
+	printf("Publisher_OnTopicUpdate\r\n");
+
+}
 

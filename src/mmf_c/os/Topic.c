@@ -13,7 +13,7 @@
 //------------------------------------------------------------------------------------
 
 extern void Task_setReady(Task* t, int evt, Exception *e);
-extern void Task_addTopic(Task*t, int id, const char* name, void *data, int datasize, Exception *e);
+extern void Task_addTopic(Task*t, int id, const char* name, void *data, int datasize, int *count, void (*done)(void*), void* publisher, Exception *e);
 
 //------------------------------------------------------------------------------------
 //-- PRIVATE MEMBERS -----------------------------------------------------------------
@@ -54,7 +54,7 @@ void Topic_initialize(Topic* topic, const char * name, void ** oblist, int lists
 }
 
 //------------------------------------------------------------------------------------
-void Topic_notify(Topic* topic, void * data, int datasize, Exception *e){
+void Topic_notify(Topic* topic, void * data, int datasize, void (*done)(void*), void* publisher, Exception *e){
 	int i;
 	if(!topic){
 		Exception_throw(e, BAD_ARGUMENT, "Topic_notify topic is null");
@@ -63,11 +63,13 @@ void Topic_notify(Topic* topic, void * data, int datasize, Exception *e){
 	PLATFORM_ENTER_CRITICAL();
 	topic->data = data;
 	topic->datasize = datasize;
+	topic->count = 0;
 	for(i = 0; i < topic->listsize; i++){
 		if(topic->observerlist[i]){
 			Task* t = (Task*)topic->observerlist[i];
+			topic->count++;
 			// inserts into the topic pool
-			Task_addTopic(t, topic->id, topic->name, topic->data, topic->datasize, e);
+			Task_addTopic(t, topic->id, topic->name, topic->data, topic->datasize, &topic->count, done, publisher, e);
 			catch(e){
 				PLATFORM_EXIT_CRITICAL();
 				return;

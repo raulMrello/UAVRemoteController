@@ -1,37 +1,49 @@
 /*
- * MyTopic.cpp
+ * DataTopics.c
  *
  *  Created on: 12/3/2015
- *      Author: dptoid
+ *      Author: raulMrello
  */
 
-#include "MyTopic.h"
+#include "DataTopics.h"
 
-static Topic topic;
-static Task* observerlist[2];				///< Observerlist can alloc up to 2 different observers
-static Exception e = Exception_INIT();		///< Module's exception handling
+static Topic rctopic, gpstopic;
+static Task* rc_oblist[1], gps_oblist[1];	///< Observerlist can alloc up to 1 different observers
 
 //------------------------------------------------------------------------------------
-Topic * MyTopic_initialize(const char * name){
-	Topic_initialize(&topic, name, (void**)observerlist, 2, &e);
-	catch(&e){
-		Exception_clear(&e);
+Topic * MyTopic_initialize(const char * name, Exception *e){
+	if(strcmp(name, "/rc") == 0){
+		Topic_initialize(&rctopic, name, (void**)rc_oblist, 1, e);
+		catch(e){
+			return 0;
+		}
+		return &rctopic;
+	}
+	else if(strcmp(name, "/gps") == 0){
+		Topic_initialize(&gpstopic, name, (void**)gps_oblist, 1, e);
+		catch(e){
+			return 0;
+		}
+		return &gpstopic;
+	}
+	else {
+		Exception_throw(e, BAD_ARGUMENT, "Unknown topic name");
 		return 0;
 	}
-	return &topic;
+
 }
 
-//------------------------------------------------------------------------------------
-Topic * MyTopic_getRef(void){
-	return &topic;
-}
-
-//------------------------------------------------------------------------------------
-int MyTopic_getId(void){
-	return topic.id;
-}
-
-//------------------------------------------------------------------------------------
-const char * MyTopic_getName(void){
-	return topic.name;
-}
+////------------------------------------------------------------------------------------
+//Topic * MyTopic_getRef(void){
+//	return &topic;
+//}
+//
+////------------------------------------------------------------------------------------
+//int MyTopic_getId(void){
+//	return topic.id;
+//}
+//
+////------------------------------------------------------------------------------------
+//const char * MyTopic_getName(void){
+//	return topic.name;
+//}
