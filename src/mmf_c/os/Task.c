@@ -195,8 +195,12 @@ void Task_resume(Task* task, char forced, Exception *e){
 		return; 
 	}
 	PLATFORM_ENTER_CRITICAL();
+	// if resume forced, stops running timer, and do not apply READY state.
 	if(forced){
 		PLATFORM_TIMER_STOP(task);
+		task->isSuspended = false;
+		PLATFORM_EXIT_CRITICAL();
+		return;
 	}
 	task->isSuspended = false;
 	task->status = READY;

@@ -9,22 +9,54 @@
 #include "../topics/InputTopics.h"
 #include "../topics/DataTopics.h"
 
-#define KEY_L_UP		(int)(1 << 0)
-#define KEY_L_RIGHT		(int)(1 << 0)
-#define KEY_L_DOWN		(int)(1 << 0)
-#define KEY_L_LEFT		(int)(1 << 0)
+/** Pushbutton abstract definitions */
+#define KEY_NONE	(int)0
+#define KEY_N		(int)(1 << 0)
+#define KEY_NE		(int)(1 << 1)
+#define KEY_E		(int)(1 << 2)
+#define KEY_ES		(int)(1 << 3)
+#define KEY_S		(int)(1 << 4)
+#define KEY_SW		(int)(1 << 5)
+#define KEY_W		(int)(1 << 6)
+#define KEY_WN		(int)(1 << 7)
+#define KEY_MODE	(int)(1 << 8)
+
 
 static int key;
 static Exception e = Exception_INIT();
+static Topic * pushTopic;
+static Topic * releaseTopic;
+static Topic * rcTopic;
+
+//------------------------------------------------------------------------------------
+static void publishUpdate(RcTaskPtr t, Exception * e);
 
 //------------------------------------------------------------------------------------
 void RcTask_init(RcTaskPtr t){
-	Topic_attach(InputTopic_getRef("/push", &e), t, &e);
+	/** Get topic reference for /push and attach to it */
+	pushTopic = InputTopic_getRef("/push", &e);
 	catch(&e){
 		printf("Exception on RcTask_init e=%s\r\n", e.msg);
 		Exception_clear(&e);
 	}
-	Topic_attach(InputTopic_getRef("/release", &e), t, &e);
+	Topic_attach(pushTopic, t, &e);
+	catch(&e){
+		printf("Exception on RcTask_init e=%s\r\n", e.msg);
+		Exception_clear(&e);
+	}
+	/** Get topic reference for /release and attach to it */
+	releaseTopic = InputTopic_getRef("/release", &e);
+	catch(&e){
+		printf("Exception on RcTask_init e=%s\r\n", e.msg);
+		Exception_clear(&e);
+	}
+	Topic_attach(releaseTopic, t, &e);
+	catch(&e){
+		printf("Exception on RcTask_init e=%s\r\n", e.msg);
+		Exception_clear(&e);
+	}
+	/** Get topic reference for /rc for future publishing */
+	rcTopic =  DataTopic_getRef("/rc", &e);
 	catch(&e){
 		printf("Exception on RcTask_init e=%s\r\n", e.msg);
 		Exception_clear(&e);
@@ -34,117 +66,71 @@ void RcTask_init(RcTaskPtr t){
 
 //------------------------------------------------------------------------------------
 void RcTask_OnYieldTurn(RcTaskPtr t){
-	printf("Publisher_OnYieldTurn\r\n");
-	counter++;
-
-	switch(counter){
-		// in this case sends a topic update
-		case 1:{
-			Topic_notify(MyTopic_getRef(), &counter, sizeof(int), &e);
-			catch(&e){
-				printf("Exception on Publisher_OnYieldTurn: %s\r\n", e.msg);
-				Exception_clear(&e);
-			}
-			break;
-		}
-		// in this case sends event 1
-		case 2:{
-			OS_send_event(0, "subscriber", 1, &e);
-			catch(&e){
-				printf("Exception on Publisher_OnYieldTurn: %s\r\n", e.msg);
-				Exception_clear(&e);
-			}
-			break;
-		}
-		// in this case sends event 2
-		case 3:{
-			OS_send_event(0, "subscriber", 2, &e);
-			catch(&e){
-				printf("Exception on Publisher_OnYieldTurn: %s\r\n", e.msg);
-				Exception_clear(&e);
-			}
-			break;
-		}
-		// in this case sends event 8
-		case 4:{
-			OS_send_event(0, "subscriber", 8, &e);
-			catch(&e){
-				printf("Exception on Publisher_OnYieldTurn: %s\r\n", e.msg);
-				Exception_clear(&e);
-			}
-			break;
-		}
-		// in this case sends event 16
-		case 5:{
-			OS_send_event(0, "subscriber", 16, &e);
-			catch(&e){
-				printf("Exception on Publisher_OnYieldTurn: %s\r\n", e.msg);
-				Exception_clear(&e);
-			}
-			break;
-		}
-		// in this case sends event 1 and post topic update
-		case 6:{
-			OS_send_event(0, "subscriber", 1, &e);
-			catch(&e){
-				printf("Exception on Publisher_OnYieldTurn: %s\r\n", e.msg);
-				Exception_clear(&e);
-			}
-			Topic_notify(MyTopic_getRef(), &counter, sizeof(int), &e);
-			catch(&e){
-				printf("Exception on Publisher_OnYieldTurn: %s\r\n", e.msg);
-				Exception_clear(&e);
-			}
-			break;
-		}
-		// in this case sends an event to an unknown task
-		case 7:{
-			OS_send_event(0, "subscriBER", 1, &e);
-			catch(&e){
-				printf("Exception on Publisher_OnYieldTurn: %s\r\n", e.msg);
-				Exception_clear(&e);
-			}
-			break;
-		}
-		// in this case colapses susbscriber topic pool
-		case 8:{
-			int j;
-			for(j=0;j<10;j++){
-				Topic_notify(MyTopic_getRef(), &counter, sizeof(int), &e);
-				catch(&e){
-					printf("Exception on Publisher_OnYieldTurn: %s\r\n", e.msg);
-					Exception_clear(&e);
-					break;
-				}
-			}
-			break;
-		}
-	}
-
-	// keeps task running
-	Task_yield((Task*)t, &e);	///< IMPORTANT!!! in order to get control later, else it won't be executed
-	catch(&e){
-		printf("Exception on Publisher_OnYieldTurn: %s\r\n", e.msg);
-		Exception_clear(&e);
-	}
 }
 
 
 //------------------------------------------------------------------------------------
 void RcTask_OnResume(RcTaskPtr t){
-	printf("Publisher_OnResume\r\n");
-
+	// publish /rc update
+	publishUpdate(t, &e);
+	catch(&e){
+		printf("Exception on RcTask_OnResume e=%s\r\n", e.msg);
+		Exception_clear(&e);
+	}
 }
 
 //------------------------------------------------------------------------------------
 void RcTask_OnEventFlag(RcTaskPtr t, int event){
-	printf("Publisher_OnEventFlag\r\n");
-
 }
 
 //------------------------------------------------------------------------------------
 void RcTask_OnTopicUpdate(RcTaskPtr t, TopicData * td){
-	printf("Publisher_OnTopicUpdate\r\n");
+	if(td->id == (int)pushTopic){
+		// get key event
+		key |= (int)td->data;
+	}
+	if(td->id == (int)releaseTopic){
+		// release keys event
+		key &= ~(int)td->data;
+	}
+	// publish /rc update
+	publishUpdate(t, &e);
+	catch(&e){
+		printf("Exception on RcTask_OnTopicUpdate e=%s\r\n", e.msg);
+		Exception_clear(&e);
+	}
+}
 
+//------------------------------------------------------------------------------------
+/**
+ * \brief Publish an /rc topic update. If keys already pressed, enables task suspension.
+ * Else, force task resume.
+ */
+static void publishUpdate(RcTaskPtr t, Exception * e){
+	static int lastKey = KEY_NONE;
+	// publish /rc update if key changes respect last notified value
+	if(key != lastKey){
+		lastKey = key;
+		Topic_notify(rcTopic, (void*)key, sizeof(int), 0, 0, e);
+		catch(e){
+			return;
+
+		}
+	}
+	// if keys pressed, keep waiting for a repeated event in 500ms
+	if(key){
+		Task_suspend(t, 500000, e);
+		catch(e){
+			return;
+
+		}
+	}
+	// else, disable in-course task suspension
+	else{
+		Task_resume(t, 1, e);
+		catch(e){
+			return;
+		}
+	}
 }
 

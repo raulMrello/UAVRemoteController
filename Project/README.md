@@ -17,6 +17,11 @@ This controller has three main functions:
 
 ## Changelog
 
+> 31.03.2015-002 branch: master --------------
+ - Defined RC_TOPIC_DATA_T structure for /rc topic updates
+ - Task RcTask must be redefined to manage key values according with mode in order to generate /rc topic updates
+ - Rest of tasks and topics should be done.
+
 > 31.03.2015-001 branch: master --------------
  - Topics: add getRef to all topics
  - Designing RcTask keycodes
