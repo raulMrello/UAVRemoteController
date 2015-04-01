@@ -7,24 +7,27 @@
 
 #include "InputTopics.h"
 #include <string.h>
-static Topic pushtopic, releasetopic;
-static Task* push_oblist[1], release_oblist[1];		///< Observerlist can alloc up to 2 different observers
+
+//------------------------------------------------------------------------------------
+//--  PRIVATE DEFINITIONS  -----------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+static Topic keytopic;
+static Task* key_oblist[1];		///< Observerlist can alloc up to 2 different observers
+
+
+//------------------------------------------------------------------------------------
+//--  MODULE IMPLEMENTATION  ---------------------------------------------------------
+//------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------
 Topic * MyTopic_initialize(const char * name, Exception *e){
-	if(strcmp(name, "/push") == 0){
-		Topic_initialize(&pushtopic, name, (void**)push_oblist, 1, e);
+	if(strcmp(name, "/key") == 0){
+		Topic_initialize(&keytopic, name, (void**)key_oblist, 1, e);
 		catch(e){
 			return 0;
 		}
-		return &pushtopic;
-	}
-	else if(strcmp(name, "/release") == 0){
-		Topic_initialize(&releasetopic, name, (void**)release_oblist, 1, e);
-		catch(e){
-			return 0;
-		}
-		return &releasetopic;
+		return &keytopic;
 	}
 	else {
 		Exception_throw(e, BAD_ARGUMENT, "Unknown topic name");
@@ -34,11 +37,8 @@ Topic * MyTopic_initialize(const char * name, Exception *e){
 
 ////------------------------------------------------------------------------------------
 Topic * MyTopic_getRef(const char * name, Exception *e){
-	if(strcmp(name, "/push") == 0){
-		return &pushtopic;
-	}
-	else if(strcmp(name, "/release") == 0){
-		return &releasetopic;
+	if(strcmp(name, "/key") == 0){
+		return &keytopic;
 	}
 	else {
 		Exception_throw(e, BAD_ARGUMENT, "Unknown topic name");

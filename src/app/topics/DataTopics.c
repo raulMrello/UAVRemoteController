@@ -7,8 +7,19 @@
 
 #include "DataTopics.h"
 
-static Topic rctopic, gpstopic;
-static Task* rc_oblist[1], gps_oblist[1];	///< Observerlist can alloc up to 1 different observers
+//------------------------------------------------------------------------------------
+//--  PRIVATE DEFINITIONS  -----------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+static Topic rctopic;
+static Topic gpstopic;
+static Task * rc_oblist[1];
+static Task * gps_oblist[1];	///< Observerlist can alloc up to 1 different observers
+
+
+//------------------------------------------------------------------------------------
+//--  MODULE IMPLEMENTATION  ---------------------------------------------------------
+//------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------
 Topic * MyTopic_initialize(const char * name, Exception *e){
@@ -30,14 +41,22 @@ Topic * MyTopic_initialize(const char * name, Exception *e){
 		Exception_throw(e, BAD_ARGUMENT, "Unknown topic name");
 		return 0;
 	}
-
 }
 
-////------------------------------------------------------------------------------------
-//Topic * MyTopic_getRef(void){
-//	return &topic;
-//}
-//
+//------------------------------------------------------------------------------------
+Topic * DataTopic_getRef(const char * name, Exception *e){
+	if(strcmp(name, "/rc") == 0){
+		return &rctopic;
+	}
+	else if(strcmp(name, "/gps") == 0){
+		return &gpstopic;
+	}
+	else {
+		Exception_throw(e, BAD_ARGUMENT, "Unknown topic name");
+		return 0;
+	}
+}
+
 ////------------------------------------------------------------------------------------
 //int MyTopic_getId(void){
 //	return topic.id;

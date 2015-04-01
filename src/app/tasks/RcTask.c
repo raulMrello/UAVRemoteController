@@ -9,48 +9,32 @@
 #include "../topics/InputTopics.h"
 #include "../topics/DataTopics.h"
 
-/** Pushbutton abstract definitions */
-#define KEY_NONE	(int)0
-#define KEY_N		(int)(1 << 0)
-#define KEY_NE		(int)(1 << 1)
-#define KEY_E		(int)(1 << 2)
-#define KEY_ES		(int)(1 << 3)
-#define KEY_S		(int)(1 << 4)
-#define KEY_SW		(int)(1 << 5)
-#define KEY_W		(int)(1 << 6)
-#define KEY_WN		(int)(1 << 7)
-#define KEY_MODE	(int)(1 << 8)
+//------------------------------------------------------------------------------------
+//--  PRIVATE DEFINITIONS  -----------------------------------------------------------
+//------------------------------------------------------------------------------------
 
-
-static int key;
+static KEY_TOPIC_DATA_T inp;
+static RC_TOPIC_DATA_T rc;
 static Exception e = Exception_INIT();
-static Topic * pushTopic;
-static Topic * releaseTopic;
+static Topic * keyTopic;
 static Topic * rcTopic;
 
+static void updateManulControls(void);
+
+
 //------------------------------------------------------------------------------------
-static void publishUpdate(RcTaskPtr t, Exception * e);
+//--  MODULE IMPLEMENTATION  ---------------------------------------------------------
+//------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------
 void RcTask_init(RcTaskPtr t){
-	/** Get topic reference for /push and attach to it */
-	pushTopic = InputTopic_getRef("/push", &e);
+	/** Get topic reference for /key and attach to it */
+	keyTopic = InputTopic_getRef("/key", &e);
 	catch(&e){
 		printf("Exception on RcTask_init e=%s\r\n", e.msg);
 		Exception_clear(&e);
 	}
-	Topic_attach(pushTopic, t, &e);
-	catch(&e){
-		printf("Exception on RcTask_init e=%s\r\n", e.msg);
-		Exception_clear(&e);
-	}
-	/** Get topic reference for /release and attach to it */
-	releaseTopic = InputTopic_getRef("/release", &e);
-	catch(&e){
-		printf("Exception on RcTask_init e=%s\r\n", e.msg);
-		Exception_clear(&e);
-	}
-	Topic_attach(releaseTopic, t, &e);
+	Topic_attach(keyTopic, t, &e);
 	catch(&e){
 		printf("Exception on RcTask_init e=%s\r\n", e.msg);
 		Exception_clear(&e);
@@ -61,7 +45,9 @@ void RcTask_init(RcTaskPtr t){
 		printf("Exception on RcTask_init e=%s\r\n", e.msg);
 		Exception_clear(&e);
 	}
-	key = KEY_NONE;
+	// sets default value for topic handlers
+	inp = (KEY_TOPIC_DATA_T){KEY_NONE};
+	rc = (RC_TOPIC_DATA_T){0,0,0,0,0,0};
 }
 
 //------------------------------------------------------------------------------------
@@ -71,8 +57,17 @@ void RcTask_OnYieldTurn(RcTaskPtr t){
 
 //------------------------------------------------------------------------------------
 void RcTask_OnResume(RcTaskPtr t){
-	// publish /rc update
-	publishUpdate(t, &e);
+	// updates manual controls
+	rc.mode = RC_MODE_MANUAL_ARMED;
+	rc.loc_keys = 0;
+	updateManualControls();
+	// publishes topic update
+	Topic_notify(rcTopic, (void*)&rc, sizeof(RC_TOPIC_DATA_T), 0, 0, e);
+	catch(e){
+		printf("Exception on RcTask_OnResume e=%s\r\n", e.msg);
+		Exception_clear(&e);
+	}
+	Task_suspend(t, 1000000, e);
 	catch(&e){
 		printf("Exception on RcTask_OnResume e=%s\r\n", e.msg);
 		Exception_clear(&e);
@@ -85,52 +80,101 @@ void RcTask_OnEventFlag(RcTaskPtr t, int event){
 
 //------------------------------------------------------------------------------------
 void RcTask_OnTopicUpdate(RcTaskPtr t, TopicData * td){
-	if(td->id == (int)pushTopic){
-		// get key event
-		key |= (int)td->data;
-	}
-	if(td->id == (int)releaseTopic){
-		// release keys event
-		key &= ~(int)td->data;
-	}
-	// publish /rc update
-	publishUpdate(t, &e);
-	catch(&e){
-		printf("Exception on RcTask_OnTopicUpdate e=%s\r\n", e.msg);
-		Exception_clear(&e);
+	// topic checking
+	if(td->id == (int)keyTopic){
+		char enableSuspension = 0;
+		// finalizes any previous suspension in course
+		Task_resume(t, 1, &e);
+		catch(&e){
+			printf("Exception on RcTask_OnResume e=%s\r\n", e.msg);
+			Exception_clear(&e);
+		}
+		// get new key event
+		inp.keys = (int)td->data;
+		// if mode LOC then saves new key events and publish /rc topic
+		if((inp.keys & KEY_LOC) != KEY_RELEASED){
+			rc.mode = RC_MODE_LOC;
+			rc.loc_keys = (inp.keys & (KEY_N|KEY_NE|KEY_E|KEY_ES|KEY_S|KEY_SW|KEY_W|KEY_WN));
+		}
+		// if mode MANUAL: then check if ARMED then enables task suspension and publish /rc topic
+		else if((inp.keys & KEY_ARM) != KEY_RELEASED){
+			rc.mode = RC_MODE_MANUAL_ARMED;
+			rc.loc_keys = 0;
+			updateManualControls();
+			enableSuspension = 1;
+		}
+		// if mode MANUAL & DISARMED, idem
+		else{
+			rc.mode = RC_MODE_MANUAL_DISARMED;
+			rc.loc_keys = 0;
+			rc.throttle = 0;
+			rc.pitch = 0;
+			rc.roll = 0;
+			rc.yaw = 0;
+		}
+
+		// publishes topic update
+		Topic_notify(rcTopic, (void*)&rc, sizeof(RC_TOPIC_DATA_T), 0, 0, e);
+		catch(e){
+			printf("Exception on RcTask_OnTopicUpdate e=%s\r\n", e.msg);
+			Exception_clear(&e);
+		}
+
+		// if must suspend to reactivate in a period of time, then do it
+		if(enableSuspension){
+			Task_suspend(t, 1000000, e);
+			catch(e){
+				printf("Exception on RcTask_OnTopicUpdate e=%s\r\n", e.msg);
+				Exception_clear(&e);
+			}
+		}
 	}
 }
 
 //------------------------------------------------------------------------------------
 /**
- * \brief Publish an /rc topic update. If keys already pressed, enables task suspension.
- * Else, force task resume.
+ * \brief Updates manual controls (throttle, roll, pitch, yaw) according with their last
+ * state and the new one, keeping them into their ranges.
  */
-static void publishUpdate(RcTaskPtr t, Exception * e){
-	static int lastKey = KEY_NONE;
-	// publish /rc update if key changes respect last notified value
-	if(key != lastKey){
-		lastKey = key;
-		Topic_notify(rcTopic, (void*)key, sizeof(int), 0, 0, e);
-		catch(e){
-			return;
-
-		}
+static void updateManulControls(void){
+	// throttle will inc/dec with keys N/S in the range 1000/2000
+	if((inp.keys & KEY_S) != KEY_RELEASED){
+		rc.throttle = (rc.throttle < 1000)? 1000 : rc.throttle;
+		rc.throttle -= (rc.throttle >= 1100)? 100 : 0;
 	}
-	// if keys pressed, keep waiting for a repeated event in 500ms
-	if(key){
-		Task_suspend(t, 500000, e);
-		catch(e){
-			return;
-
-		}
+	if((inp.keys & KEY_N) != KEY_RELEASED){
+		rc.throttle = (rc.throttle < 1000)? 1000 : rc.throttle;
+		rc.throttle += (rc.throttle <= 1900)? 100 : 0;
 	}
-	// else, disable in-course task suspension
-	else{
-		Task_resume(t, 1, e);
-		catch(e){
-			return;
-		}
+
+	// pitch will inc/dec with keys NE/WN in the range 1000/2000
+	if((inp.keys & KEY_WN) != KEY_RELEASED){
+		rc.pitch = (rc.pitch < 1000)? 1000 : rc.pitch;
+		rc.pitch -= (rc.pitch >= 1100)? 100 : 0;
+	}
+	if((inp.keys & KEY_NE) != KEY_RELEASED){
+		rc.pitch = (rc.pitch < 1000)? 1000 : rc.pitch;
+		rc.pitch += (rc.pitch <= 1900)? 100 : 0;
+	}
+
+	// roll will inc/dec with keys E/W in the range 1000/2000
+	if((inp.keys & KEY_W) != KEY_RELEASED){
+		rc.roll = (rc.roll < 1000)? 1000 : rc.roll;
+		rc.roll -= (rc.roll >= 1100)? 100 : 0;
+	}
+	if((inp.keys & KEY_E) != KEY_RELEASED){
+		rc.roll = (rc.roll < 1000)? 1000 : rc.roll;
+		rc.roll += (rc.roll <= 1900)? 100 : 0;
+	}
+
+	// yaw will inc/dec with keys ES/SW in the range 1000/2000
+	if((inp.keys & KEY_SW) != KEY_RELEASED){
+		rc.yaw = (rc.yaw < 1000)? 1000 : rc.yaw;
+		rc.yaw -= (rc.yaw >= 1100)? 100 : 0;
+	}
+	if((inp.keys & KEY_ES) != KEY_RELEASED){
+		rc.yaw = (rc.yaw < 1000)? 1000 : rc.yaw;
+		rc.yaw += (rc.yaw <= 1900)? 100 : 0;
 	}
 }
 
