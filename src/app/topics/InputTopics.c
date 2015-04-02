@@ -21,7 +21,7 @@ static Task* key_oblist[1];		///< Observerlist can alloc up to 2 different obser
 //------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------
-Topic * MyTopic_initialize(const char * name, Exception *e){
+Topic * InputTopic_initialize(const char * name, Exception *e){
 	if(strcmp(name, "/key") == 0){
 		Topic_initialize(&keytopic, name, (void**)key_oblist, 1, e);
 		catch(e){
@@ -36,7 +36,7 @@ Topic * MyTopic_initialize(const char * name, Exception *e){
 }
 
 ////------------------------------------------------------------------------------------
-Topic * MyTopic_getRef(const char * name, Exception *e){
+Topic * InputTopic_getRef(const char * name, Exception *e){
 	if(strcmp(name, "/key") == 0){
 		return &keytopic;
 	}

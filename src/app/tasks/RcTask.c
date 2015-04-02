@@ -19,7 +19,7 @@ static Exception e = Exception_INIT();
 static Topic * keyTopic;
 static Topic * rcTopic;
 
-static void updateManulControls(void);
+static void updateManualControls(void);
 
 
 //------------------------------------------------------------------------------------
@@ -62,12 +62,12 @@ void RcTask_OnResume(RcTaskPtr t){
 	rc.loc_keys = 0;
 	updateManualControls();
 	// publishes topic update
-	Topic_notify(rcTopic, (void*)&rc, sizeof(RC_TOPIC_DATA_T), 0, 0, e);
-	catch(e){
+	Topic_notify(rcTopic, (void*)&rc, sizeof(RC_TOPIC_DATA_T), 0, 0, &e);
+	catch(&e){
 		printf("Exception on RcTask_OnResume e=%s\r\n", e.msg);
 		Exception_clear(&e);
 	}
-	Task_suspend(t, 1000000, e);
+	Task_suspend(t, 1000000, &e);
 	catch(&e){
 		printf("Exception on RcTask_OnResume e=%s\r\n", e.msg);
 		Exception_clear(&e);
@@ -114,16 +114,16 @@ void RcTask_OnTopicUpdate(RcTaskPtr t, TopicData * td){
 		}
 
 		// publishes topic update
-		Topic_notify(rcTopic, (void*)&rc, sizeof(RC_TOPIC_DATA_T), 0, 0, e);
-		catch(e){
+		Topic_notify(rcTopic, (void*)&rc, sizeof(RC_TOPIC_DATA_T), 0, 0, &e);
+		catch(&e){
 			printf("Exception on RcTask_OnTopicUpdate e=%s\r\n", e.msg);
 			Exception_clear(&e);
 		}
 
 		// if must suspend to reactivate in a period of time, then do it
 		if(enableSuspension){
-			Task_suspend(t, 1000000, e);
-			catch(e){
+			Task_suspend(t, 1000000, &e);
+			catch(&e){
 				printf("Exception on RcTask_OnTopicUpdate e=%s\r\n", e.msg);
 				Exception_clear(&e);
 			}
@@ -136,7 +136,7 @@ void RcTask_OnTopicUpdate(RcTaskPtr t, TopicData * td){
  * \brief Updates manual controls (throttle, roll, pitch, yaw) according with their last
  * state and the new one, keeping them into their ranges.
  */
-static void updateManulControls(void){
+static void updateManualControls(void){
 	// throttle will inc/dec with keys N/S in the range 1000/2000
 	if((inp.keys & KEY_S) != KEY_RELEASED){
 		rc.throttle = (rc.throttle < 1000)? 1000 : rc.throttle;

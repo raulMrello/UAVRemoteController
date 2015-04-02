@@ -17,6 +17,10 @@ This controller has three main functions:
 
 ## Changelog
 
+> 02.04.2015-001 branch: master --------------
+ - Using GpsTask for testing RcTask. Once done, create SysTask to handle whole device management and test cases.
+ - Modules GpsTask and CommTasks with default content must be designed.
+
 > 01.04.2015-001 branch: master --------------
  - Module RcTask finished (but NOT_TESTED)
  - Sets modules GpsTask and CommTasks to default content and test RcTask execution simulating keyboard events

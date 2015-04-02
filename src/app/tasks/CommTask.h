@@ -1,61 +1,55 @@
 /*
- * Publisher.h
+ * CommTask.h
  *
  *  Created on: 13/3/2015
- *      Author: RaulM
+ *      Author: raulMrello
  *
- *  Publisher task is demostrative task to post different event conditions to a Subscriber. It could raise events or
- *  topic updates
- *
- *  Example of use:
- *
- *  1 - It will initialize
- *  2 - It will publish topic updates
- *  3 - Sometimes it will send an event to the Subscriber or a combination of events
+ *  CommTask receives updates from /rc and /gps topics and also /com topics from the
+ *  remote wifi link. And generates /data topics.
  */
 
-#ifndef SRC_MODULES_PUBLISHER_H_
-#define SRC_MODULES_PUBLISHER_H_
+#ifndef SRC_MODULES_COMMTASK_H_
+#define SRC_MODULES_COMMTASK_H_
 
 #include "../../mmf_c/os/mmf.h"
 
-/** \def PublisherTaskPtr
+/** \def CommTaskPtr
  *  \brief Definition to abstract the callback handler into void* type
  */
-typedef void* PublisherTaskPtr;
+typedef void* CommTaskPtr;
 
-/** \fn Publisher_init
- *  \brief Publisher initialization callback
- *  \param t Publisher task object
+/** \fn CommTask_init
+ *  \brief CommTask initialization callback
+ *  \param t CommTask task object
  */
-void Publisher_init(PublisherTaskPtr t);
+void CommTask_init(CommTaskPtr t);
 
-/** \fn Publisher_OnYieldTurn
- *  \brief Publisher on yield turn events callback
- *  \param t Publisher task object
+/** \fn CommTask_OnYieldTurn
+ *  \brief CommTask on yield turn events callback
+ *  \param t CommTask task object
  */
-void Publisher_OnYieldTurn(PublisherTaskPtr t);
+void CommTask_OnYieldTurn(CommTaskPtr t);
 
-/** \fn Publisher_OnResume
- *  \brief Publisher on resume events callback
- *  \param t Publisher task object
+/** \fn CommTask_OnResume
+ *  \brief CommTask on resume events callback
+ *  \param t CommTask task object
  */
-void Publisher_OnResume(PublisherTaskPtr t);
+void CommTask_OnResume(CommTaskPtr t);
 
-/** \fn Publisher_OnEventFlag
- *  \brief Publisher on event flags callback
- *  \param t Publisher task object
+/** \fn CommTask_OnEventFlag
+ *  \brief CommTask on event flags callback
+ *  \param t CommTask task object
  *  \param event Event raised
  */
-void Publisher_OnEventFlag(PublisherTaskPtr t, int event);
+void CommTask_OnEventFlag(CommTaskPtr t, int event);
 
-///** \fn SPublisher_OnTopicUpdate
-// *  \brief Publisher on topic update events callback
-// *  \param t Publisher task object
-// *  \param td Topic data
-// */
-//void Publisher_OnTopicUpdate(PublisherTaskPtr t, TopicData * td);
+/** \fn CommTask_OnTopicUpdate
+ *  \brief CommTask on topic update events callback
+ *  \param t CommTask task object
+ *  \param td Topic data
+ */
+void CommTask_OnTopicUpdate(CommTaskPtr t, TopicData * td);
 
 
 
-#endif /* SRC_MODULES_PUBLISHER_H_ */
+#endif /* SRC_MODULES_COMMTASK_H_ */

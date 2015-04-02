@@ -27,11 +27,7 @@ int main(void) {
 	// 2- [optional] Topics initialization, it can be done in tasks implementation. Nevertheless is done
 	//	  here for clarification to ensure that observerlist is not accidentally cleared.
 
-	InputTopic_initialize("/push", &e);
-	catch(&e){
-		return -1;
-	}
-	InputTopic_initialize("/release", &e);
+	InputTopic_initialize("/key", &e);
 	catch(&e){
 		return -1;
 	}

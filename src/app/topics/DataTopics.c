@@ -6,6 +6,7 @@
  */
 
 #include "DataTopics.h"
+#include <string.h>
 
 //------------------------------------------------------------------------------------
 //--  PRIVATE DEFINITIONS  -----------------------------------------------------------
@@ -22,7 +23,7 @@ static Task * gps_oblist[1];	///< Observerlist can alloc up to 1 different obser
 //------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------
-Topic * MyTopic_initialize(const char * name, Exception *e){
+Topic * DataTopic_initialize(const char * name, Exception *e){
 	if(strcmp(name, "/rc") == 0){
 		Topic_initialize(&rctopic, name, (void**)rc_oblist, 1, e);
 		catch(e){
