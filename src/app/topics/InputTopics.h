@@ -33,6 +33,8 @@ typedef enum {
 	KEY_WN 	 = (int)(1 << 7),
 	KEY_LOC  = (int)(1 << 8),
 	KEY_ARM  = (int)(1 << 9),
+	KEY_ALT  = (int)(1 << 10),
+	KEY_RTH  = (int)(1 << 11),
 }KeyStatus;
 
 

@@ -37,9 +37,11 @@ typedef enum {
  *  \brief Enumerates different modes in which UAV can be setup
  */
 typedef enum {
-	RC_MODE_LOC 			= (int)(1 << 0),  ///< Location mode for auto-follow aerial photography
-	RC_MODE_MANUAL_DISARMED = (int)(1 << 1),  ///< Manual mode, UAV disarmed
-	RC_MODE_MANUAL_ARMED 	= (int)(1 << 2)	  ///< Manual mode, UAV armed and ready for flight
+	RC_MODE_LOC 			 = (int)(1 << 0),	  	///< Location mode for auto-follow aerial photography
+	RC_MODE_MANUAL_DISARMED  = (int)(1 << 1),	  	///< Manual mode, UAV disarmed
+	RC_MODE_MANUAL_ARMED 	 = (int)(1 << 2),	  	///< Manual mode, UAV armed and ready for flight
+	RC_MODE_MANUAL_ARMED_ALT = (int)(1 << 3),	  	///< Manual mode, UAV armed with Altitude Hold mode
+	RC_MODE_MANUAL_ARMED_RTH = (int)(1 << 4)	  	///< Manual mode, UAV armed with Return To Home mode
 }RcMode;
 
 

@@ -98,7 +98,16 @@ void RcTask_OnTopicUpdate(RcTaskPtr t, TopicData * td){
 		}
 		// if mode MANUAL: then check if ARMED then enables task suspension and publish /rc topic
 		else if((inp.keys & KEY_ARM) != KEY_RELEASED){
-			rc.mode = RC_MODE_MANUAL_ARMED;
+			// checks priority modes RTH (then) ALT (then) ARMED
+			if((inp.keys & KEY_RTH) != KEY_RELEASED){
+				rc.mode = RC_MODE_MANUAL_ARMED_RTH;
+			}
+			else if((inp.keys & KEY_ALT) != KEY_RELEASED){
+				rc.mode = RC_MODE_MANUAL_ARMED_ALT;
+			}
+			else{
+				rc.mode = RC_MODE_MANUAL_ARMED;
+			}
 			rc.loc_keys = 0;
 			updateManualControls();
 			enableSuspension = 1;

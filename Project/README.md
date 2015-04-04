@@ -17,6 +17,13 @@ This controller has three main functions:
 
 ## Changelog
 
+> 04.04.2015-001 branch: master --------------
+ - Added ALT and RTH modes to InputTopics and DataTopics. Also handled in RcTask.
+ - Using GpsTask for testing RcTask. Once done, create SysTask to handle whole device management and test cases.
+ - Modules GpsTask and CommTasks with default content must be designed.
+ KNOWN ISSUES:
+ - MMF should be modified to handle task suspensions with predefined timed ticks as other RTOSes.
+
 > 02.04.2015-001 branch: master --------------
  - Using GpsTask for testing RcTask. Once done, create SysTask to handle whole device management and test cases.
  - Modules GpsTask and CommTasks with default content must be designed.
