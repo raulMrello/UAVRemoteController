@@ -17,6 +17,11 @@ This controller has three main functions:
 
 ## Changelog
 
+> 06.04.2015-003 branch: master --------------
+ - Added folder "drivers" from the keil project (shared), to develope also under eclipse.
+ - PENDING:
+ 	- Test led blinking in STM32 board.
+
 > 06.04.2015-001 branch: master --------------
  - MMF release "0.8.06042015001" added as a link resource
  - Modified BlinkLed module to act as a Task.

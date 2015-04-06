@@ -20,6 +20,10 @@ This controller has three main functions:
 
 ## Changelog
 
+> 06.04.2015-003 branch: master --------------
+ - Added "driver" link folder to stm32_eclipse from stm32_keil
+ - Building Project_stm32_keil from old sources.
+
 > 06.04.2015-002 branch: master --------------
  - New project structure (linux, windows, stm32_gnuarm, stm32_keil)
  - Building Project_stm32_keil from old sources.
