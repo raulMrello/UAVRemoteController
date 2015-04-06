@@ -59,7 +59,7 @@
 
 #include "Task.h"
 /** private function required during OS allocation macro */
-extern void OS_init(Task ** tasklist, int numTasks, Exception *e);
+extern void OS_init(Task ** tasklist, int numTasks, int tick_us, Exception *e);
 
 
 /** \def OS_ALLOC
@@ -67,11 +67,12 @@ extern void OS_init(Task ** tasklist, int numTasks, Exception *e);
  *  to hold the allowable tasks, and then invokes to OS_init method to initialize internal
  *  properties.
  *  \param num_tasks Max number of tasks
+ *  \param tick_us System tick in microseconds
  *  \param e Exception object for error handling
  */
-#define OS_ALLOC(tasklist, num_tasks, e) \
+#define OS_ALLOC(tasklist, num_tasks, tick_us, e) \
 				static Task* mmf_##tasklist[num_tasks]; \
-				OS_init(mmf_##tasklist, num_tasks, (e))
+				OS_init(mmf_##tasklist, num_tasks, tick_us, (e))
 
 
 /** \fn OS_start
@@ -117,6 +118,12 @@ void OS_log(char* logbuffer, int logbuffersize);
  *  \param e Exception object
  */
 void OS_send_event(Task * to, const char * taskname, uint16_t event, Exception * e);
+
+/** \fn OS_tick
+ *  \brief Generates a kernel tick for suspended tasks
+ *  \param e Exception object
+ */
+void OS_tick(Exception * e);
 
 
 

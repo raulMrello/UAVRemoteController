@@ -23,29 +23,42 @@ extern void Task_execCb(Task* t, Exception *e);
 //-- PRIVATE MEMBERS -----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-Task** _tasklist;				///< List of max number of allocatable tasks
-int _numTasks;
-int _taskcount;					///< Count of current allocated tasks
+static Task** _tasklist;		///< List of max number of allocatable tasks
+static int _numTasks;			///< Number of current tasks
+static int _taskcount;			///< Count of current allocated tasks
+static int _tick_us;			///< System tick in microseconds
 
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------
+/** \fn OS_getTimeTicks
+ *  \brief Get systicks from a microsecond value
+ *  \param microseconds Microseconds value
+ *  \return Number of systicks
+ */
+int OS_getTimeTicks(int microseconds){
+	 return (int)(microseconds/_tick_us);
+ }
 
 //------------------------------------------------------------------------------------
 /** \fn OS_init
  *  \brief Initializes kernel internals
  *  \param tasklist Tasklist array
  *  \param numTasks Number of tasks
+ *  \param tick_us System tick in microseconds
  *  \param e Exception
  */
-void OS_init(Task ** tasklist, int numTasks, Exception * e){
+void OS_init(Task ** tasklist, int numTasks, int tick_us, Exception * e){
 	int i;
-	if(!tasklist || !numTasks){
+	if(!tasklist || !numTasks || !tick_us){
 		Exception_throw(e, BAD_ARGUMENT, "OS_init no tasklist coherence");
 		return;
 	}
 	_tasklist = tasklist;
 	_numTasks = numTasks;
+	_tick_us = tick_us;
 	// clears task list and task count
 	for(i = 0; i < _numTasks; i++){
 		_tasklist[i] = 0;
@@ -191,4 +204,16 @@ void OS_send_event(Task * t, const char * taskname, uint16_t event, Exception * 
 	// Adapt to the task event handling format
 	int evt = ((((int)event) << 4) | EVT_FLAGS);
 	Task_setReady(t, evt, e);
+}
+
+//------------------------------------------------------------------------------------
+void OS_tick(Exception *e){
+	int i;
+	// executes a tick on each task.
+	for(i = 0; i < _numTasks; i++){
+		Timer_tick(&_tasklist[i]->tmr, e);
+		catch(e){
+			return;
+		}
+	}
 }

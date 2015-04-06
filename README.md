@@ -17,6 +17,11 @@ This controller has three main functions:
 
 ## Changelog
 
+> 06.04.2015-001 branch: master --------------
+ - MMF updated to "0.8.06042015001" version.
+ - Added SysTask to handle lowest priority tasks (in this case, to simulate systick events)
+ - Modified OS_ALLOC invocation to simulate a 10ms systick timer
+
 > 05.04.2015-001 branch: master --------------
  - Modified README.md location in linux-eclipse project.
  - Create SysTask to handle lowest priority processes (power management, test cases...).

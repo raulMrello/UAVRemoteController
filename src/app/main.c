@@ -18,7 +18,7 @@ int main(void) {
 	//     And invokes to init member in the form:			OS_init(mmf_os_tasklist, 2, &e);
 	//     Exception handling should be checked afterwards.
 
-	OS_ALLOC(os_tasklist, 3, &e);
+	OS_ALLOC(os_tasklist, 4, 10000, &e);
 	catch(&e){
 		Exception_clear(&e);
 		return -1;
@@ -108,6 +108,24 @@ int main(void) {
 					CommTask_OnEventFlag,
 					CommTask_OnTopicUpdate,
 					&commtask,
+					&e);
+	catch(&e){
+		Exception_clear(&e);
+		return -1;
+	}
+
+	Task systask;
+	Task_initialize(&systask,
+					"systask",
+					PRIO_MAX+3,
+					0,
+					0,
+					SysTask_init,
+					SysTask_OnYieldTurn,
+					SysTask_OnResume,
+					SysTask_OnEventFlag,
+					SysTask_OnTopicUpdate,
+					&systask,
 					&e);
 	catch(&e){
 		Exception_clear(&e);

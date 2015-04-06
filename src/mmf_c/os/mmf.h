@@ -30,7 +30,7 @@
 #define MMF_OS_MMF_H_
 
 //------------------------------------------------------------------------------------
-#define __MMF_C_VERSION "0.7.30032015001"
+#define __MMF_C_VERSION "0.8.06042015001"
 
 
 //------------------------------------------------------------------------------------
@@ -48,6 +48,7 @@
 #include "Task.h"		///< required for Task primitives like: Task_initialize ...
 #include "Topic.h"		///< required for Topic primitives like: Topic_notify ...
 #include "Exception.h"	///< required for Exception primitives like: catch ...
+#include "Timer.h"		///< required for Timming primitives like: Timer_start ...
 
 
 #endif /* MMF_OS_MMF_H_ */

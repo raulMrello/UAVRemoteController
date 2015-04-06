@@ -132,6 +132,10 @@ void Task_initialize(	Task* task,
 	}
 	task->status = STOPPED;
 	task->isSuspended = false;
+	Timer_initialize(&(task->tmr), 0, 0, timertask_callback, task, e);
+	catch(e){
+		return;
+	}
 	task->event = EVT_NONE;
 	task->name = name;
 	if(!name)
@@ -184,7 +188,7 @@ void Task_suspend(Task* task, int delay_us, Exception *e){
 	}
 	PLATFORM_ENTER_CRITICAL();
 	task->isSuspended = true;
-	PLATFORM_TIMER_START(delay_us, timertask_callback, task);
+	Timer_start(&(task->tmr), delay_us, e);
 	PLATFORM_EXIT_CRITICAL();
 }
 
@@ -197,8 +201,8 @@ void Task_resume(Task* task, char forced, Exception *e){
 	PLATFORM_ENTER_CRITICAL();
 	// if resume forced, stops running timer, and do not apply READY state.
 	if(forced){
-		PLATFORM_TIMER_STOP(task);
 		task->isSuspended = false;
+		Timer_stop(&(task->tmr), e);
 		PLATFORM_EXIT_CRITICAL();
 		return;
 	}

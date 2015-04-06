@@ -38,6 +38,7 @@
 
 #include "Exception.h"
 #include "Topic.h"
+#include "Timer.h"
 #include <stdint.h>
 
 /**
@@ -121,6 +122,7 @@ typedef struct {
 	int event;					///< Pending event flags
 	EvtFlag evhandler;			///< Event flag handler structure
 	TopicDataPool topicpool;	///< Topic pool buffer
+	Timer tmr;					///< Timer for suspension operations
 	/** task interface */
 	void * cbhandler;						///< inherit object
 	InitCallback init;						///< initialization callback
