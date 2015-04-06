@@ -4,6 +4,7 @@
 #include "tasks/RcTask.h"
 #include "tasks/GpsTask.h"
 #include "tasks/CommTask.h"
+#include "tasks/SysTask.h"
 #include "topics/InputTopics.h"
 #include "topics/UartTopics.h"
 #include "topics/DataTopics.h"

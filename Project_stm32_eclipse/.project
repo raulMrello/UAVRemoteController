@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>UAVRC_stm32_eclipse</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
+			<triggers>clean,full,incremental,</triggers>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.cdt.managedbuilder.core.ScannerConfigBuilder</name>
+			<triggers>full,incremental,</triggers>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.cdt.core.cnature</nature>
+		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
+		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
+		<nature>org.eclipse.cdt.core.ccnature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>mmf_c</name>
+			<type>2</type>
+			<location>C:/_workspace/UAVRemoteController/src/mmf_c</location>
+		</link>
+		<link>
+			<name>os</name>
+			<type>2</type>
+			<location>C:/PARENT-2-UAVRC_stm32_win_eclipse/src/mmf_c/os</location>
+		</link>
+	</linkedResources>
+	<variableList>
+		<variable>
+			<name>mmf_c</name>
+			<value>file:/C:/_workspace/UAVRemoteController/src/mmf_c</value>
+		</variable>
+	</variableList>
+</projectDescription>

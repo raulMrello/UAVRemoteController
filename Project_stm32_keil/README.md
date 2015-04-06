@@ -1,33 +1,27 @@
-# UAVRemoteController
-The UAV Remote Controller is a remote controller for an UAV quadcopter, which includes a keypad for UAV positioning and a GPS module for
-user reference location.
+# UAVRC_stm32_keil
+This project is the stm32 implementation under KEIL uVision to develope and test final releases.
+
 
 ## Features
-This controller has three main functions:
+This project will include next modules:
 
-1. Translate user input commands (pushbuttons) into RC positioning signals for the UAV.
-2. Capture user's gps location and transmit to UAV flight controller to allow waypoint navigation with aerial photography.
-3. Receive alarms from the UAV, to manage critical situations, (like: inmediate landing, collision avoidance...).
+1. RcTask, manages user inputs, like pushbuttons and switch selectors. According with those inputs, this module generates /rc topics to be send to the TelemetryReceiver.
+2. GpsTask, reads NMEA/UBX streams from the serial GPS module. It extract useful information and generates /gps topics for the TelemetryReceiver.
+3. CommTask, receives /rc and /gps topics from the other modules and sends them to the TelemetryReceiver. Also it receives /ack topics from the TelemetryReceiver
+4. Drivers, will adapt old source code to BSP_STM32 board.
 
 ## Contents
-- /docs/TaskModel.odp: Sketch of the system firmware. Tasks, devices, and topics.
-- /src/mmf_c/*: Multithreaded kernel code [see Github project](https://github.com/raulMrello/MMF_C)
-- /src/app/*: Application source code (tasks, topics, etc...)
-- /Project_linux_eclipse: development and test project under eclipse linux.
-- /Project_windows_eclipse: development and test project under eclipse windows.
-- /Project_stm32_eclipse: development stm32 project under eclipse (gnuarm).
-- /Project_stm32_keil: development stm32 project under keil (uvision).
+- ../src/mmf_c/*: Multithreaded kernel code [see Github project](https://github.com/raulMrello/MMF_C)
+- ../src/app/*: Application source code (tasks, topics, ...)
 
 ## Changelog
 
 > 06.04.2015-002 branch: master --------------
- - New project structure (linux, windows, stm32_gnuarm, stm32_keil)
- - Building Project_stm32_keil from old sources.
-
-> 06.04.2015-001 branch: master --------------
- - MMF updated to "0.8.06042015001" version.
- - Added SysTask to handle lowest priority tasks (in this case, to simulate systick events)
- - Modified OS_ALLOC invocation to simulate a 10ms systick timer
+ - MMF updated to "0.8.06042015001" version loaded.
+ - Modifying drv_GPIO. Must check EXTI assignment to input pins.
+ - PENDING:
+	- Rest of drivers.
+	- Remove old interfaces.
 
 > 05.04.2015-001 branch: master --------------
  - Modified README.md location in linux-eclipse project.

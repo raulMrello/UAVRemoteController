@@ -12,22 +12,17 @@ This controller has three main functions:
 ## Contents
 - /docs/TaskModel.odp: Sketch of the system firmware. Tasks, devices, and topics.
 - /src/mmf_c/*: Multithreaded kernel code [see Github project](https://github.com/raulMrello/MMF_C)
-- /src/app/*: Application source code (tasks, topics, etc...)
-- /Project_linux_eclipse: development and test project under eclipse linux.
-- /Project_windows_eclipse: development and test project under eclipse windows.
-- /Project_stm32_eclipse: development stm32 project under eclipse (gnuarm).
-- /Project_stm32_keil: development stm32 project under keil (uvision).
+- /src/app/*: Application source code
+- /src/port/*: Platform specific source code
 
 ## Changelog
 
-> 06.04.2015-002 branch: master --------------
- - New project structure (linux, windows, stm32_gnuarm, stm32_keil)
- - Building Project_stm32_keil from old sources.
-
 > 06.04.2015-001 branch: master --------------
- - MMF updated to "0.8.06042015001" version.
- - Added SysTask to handle lowest priority tasks (in this case, to simulate systick events)
- - Modified OS_ALLOC invocation to simulate a 10ms systick timer
+ - MMF release "0.8.06042015001" added as a link resource
+ - Modified BlinkLed module to act as a Task.
+ - Modified main to use MMF and blink a led (test case)
+ - PENDING:
+ 	- Test led blinking in STM32 board.
 
 > 05.04.2015-001 branch: master --------------
  - Modified README.md location in linux-eclipse project.
