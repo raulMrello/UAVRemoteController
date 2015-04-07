@@ -58,6 +58,7 @@
 #define OS_OS_H_
 
 #include "Task.h"
+
 /** private function required during OS allocation macro */
 extern void OS_init(Task ** tasklist, int numTasks, int tick_us, Exception *e);
 

@@ -33,6 +33,9 @@
  **********************************************************************************/
 void BSP_RC_init(void);
 
+
+#define BSP_GPS_init	drv_UART1_init
+
 int WifiLink_write(void * data, int size);
 int WifiLink_read(void * data, int size);
 int GpsModule_read(void * data, int size);

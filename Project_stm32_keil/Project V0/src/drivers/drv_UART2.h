@@ -1,48 +1,51 @@
-/*************************************************************************//**
- * @file    drv_UART2.h
- * @mcu		STM32F1x
- * @brief   USART2 peripheral controller
- * @date    11.06.2010
- * @author  Raúl M.
- ****************************************************************************/
-#ifndef __UART2_H__
-#define __UART2_H__
-
-/****************************************************************************************************//**
- *                        REQUIRED LIBRARIES
- ********************************************************************************************************/
-#include <stdint.h>
-
-/****************************************************************************************************//**
- *                        PROVIDED INTERFACES 
- ********************************************************************************************************/
-void 	drv_UART2_Init			(uint32_t baudrate);				//!< setups the driver with a baudrate
-int 	drv_UART2_SendChar		(char c);							//!< Sends a character via serial link
-uint8_t drv_UART2_SendMsg		(uint8_t *ptr, uint8_t size);		//!< Sends message
-int 	drv_UART2_GetChar		(void);								//!< Read a received character
-void	drv_UART2_EnableRx		(void);								//!< enables reception interrupts
-void	drv_UART2_DisableRx		(void);								//!< disables reception interrupts
-
-/****************************************************************************************************//**
- *                        REQUIRED INTERFACES
+/*
+ * drv_UART2.h
  *
- * To be implemented in <SYS_Link.c>
- ********************************************************************************************************/
-extern void (* const drv_UART2_Requires_IRecvEvent)(void);
-extern void (* const drv_UART2_Requires_ISentEvent)(void);
+ *  Created on: 07/04/2015
+ *      Author: raulMrello
+ *
+ *  UART2 driver for STM32F103C8T6. It controls:
+ *
+ *  	- LINK module
+ *
+ *  On initialization "drv_UART2_Init()", port is configured as:
+ *
+ *  	- Full-duplex, interrupts disabled and peripheral ready
+ *  	- Subscribed to /uart, /rc, /gps topic updates
+ *
+ *  Basic operation:
+ *		1. Module is ready for operation
+ *		2. After a /uart topic update it manages accordingly. These topics are configuration topics to start, stop...
+ *		3. On received data, it processes and builds /uart topic updates
+ *		4. On completion, publishes /uart topic update.
+ *
+ */
+ 
+#ifndef __DRV_UART2_H__
+#define __DRV_UART2_H__
 
 
-/****************************************************************************************************//**
- *                        PUBLIC TYPES 
- ********************************************************************************************************/
-
-/****************************************************************************************************//**
- * @fun		UART2_ENABLE_FULLDUPLEX
- * @brief	Enable/Disable full duplex capability.
- * 			if 0 then Half duplex
- * 			if 1 then Full duplex
- **********************************************************************************/
-#define UART2_ENABLE_FULLDUPLEX		1
+#include "stm32f10x.h"	    	///< STM32F10x Library Definitions
+#include "UART_defines.h"		///< Common UART types
+#include "UartTopics.h"			///< required to publish, receive /uart topic updates
+#include "DataTopics.h"			///< required to publish, /rc /gps topic updates
+#include "mmf.h"				///< required for external TopicData type
 
 
-#endif
+
+/** \fun drv_UART2_Init
+ *  \brief Initializes UART2 peripheral
+ *	\param e Exception handler
+ */
+void drv_UART2_Init(Exception *e);
+
+/** \fn drv_UART2_OnTopicUpdate
+ *  \brief Interface to receive topic updates from external objects
+ *  \param obj Void pointer to the object who manages this callback
+ *  \param td Reference to the topic data which has been updated
+ */
+void drv_UART2_OnTopicUpdate(void * obj, TopicData * td);
+
+
+
+#endif	//__DRV_UART2_H__

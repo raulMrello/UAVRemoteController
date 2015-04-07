@@ -1,6 +1,5 @@
-# UAVRemoteController
-The UAV Remote Controller is a remote controller for an UAV quadcopter, which includes a keypad for UAV positioning and a GPS module for
-user reference location.
+# UAVRC_stm32_eclipse
+This is the project implementation under eclipse CDT cross-compiled to GNU-ARM (STM32) microcontroller selected.
 
 ## Features
 This controller has three main functions:
@@ -16,6 +15,11 @@ This controller has three main functions:
 - /src/port/*: Platform specific source code
 
 ## Changelog
+
+> 07.04.2015-001 branch: master --------------
+ - Modified drv_GPIO module.
+ - PENDING:
+ 	- Rest of drivers, tasks, ....
 
 > 06.04.2015-003 branch: master --------------
  - Added folder "drivers" from the keil project (shared), to develope also under eclipse.

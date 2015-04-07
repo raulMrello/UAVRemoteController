@@ -1,19 +1,19 @@
 /*
- * InputTopics.cpp
+ * OutputTopics.cpp
  *
- *  Created on: 12/3/2015
+ *  Created on: 07/4/2015
  *      Author: raulMrello
  */
 
-#include "InputTopics.h"
+#include "OutputTopics.h"
 #include <string.h>
 
 //------------------------------------------------------------------------------------
 //--  PRIVATE DEFINITIONS  -----------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-static Topic keytopic;
-static Task* key_oblist[1];		///< Observerlist can alloc up to 1 different observers
+static Topic outtopic;
+static Task* out_oblist[1];		///< Observerlist can alloc up to 1 different observers
 
 
 //------------------------------------------------------------------------------------
@@ -21,13 +21,13 @@ static Task* key_oblist[1];		///< Observerlist can alloc up to 1 different obser
 //------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------
-Topic * InputTopic_initialize(const char * name, Exception *e){
-	if(strcmp(name, "/key") == 0){
-		Topic_initialize(&keytopic, name, (void**)key_oblist, 1, e);
+Topic * OutputTopic_initialize(const char * name, Exception *e){
+	if(strcmp(name, "/out") == 0){
+		Topic_initialize(&outtopic, name, (void**)out_oblist, 1, e);
 		catch(e){
 			return 0;
 		}
-		return &keytopic;
+		return &outtopic;
 	}
 	else {
 		Exception_throw(e, BAD_ARGUMENT, "Unknown topic name");
@@ -36,9 +36,9 @@ Topic * InputTopic_initialize(const char * name, Exception *e){
 }
 
 ////------------------------------------------------------------------------------------
-Topic * InputTopic_getRef(const char * name, Exception *e){
-	if(strcmp(name, "/key") == 0){
-		return &keytopic;
+Topic * OutputTopic_getRef(const char * name, Exception *e){
+	if(strcmp(name, "/out") == 0){
+		return &outtopic;
 	}
 	else {
 		Exception_throw(e, BAD_ARGUMENT, "Unknown topic name");

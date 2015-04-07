@@ -1,47 +1,51 @@
-/*************************************************************************//**
- * @file    drv_UART1.h
- * @mcu		STM32F1x
- * @brief   USART1 peripheral controller
- * @date    14.06.2010
- * @author  Raúl M.
- ****************************************************************************/
-#ifndef __UART1_H__
-#define __UART1_H__
-
-/****************************************************************************************************//**
- *                        REQUIRED LIBRARIES
- ********************************************************************************************************/
-#include <stdint.h>
-
-/****************************************************************************************************//**
- *                        PROVIDED INTERFACES 
- ********************************************************************************************************/
-void 	drv_UART1_Init			(uint32_t baudrate);				//!< setups the driver with a baudrate
-int 	drv_UART1_SendChar		(char c);							//!< Sends a character via serial link
-uint8_t drv_UART1_SendMsg		(uint8_t *ptr, uint8_t size);		//!< Sends message
-int 	drv_UART1_GetChar		(void);								//!< Read a received character
-void	drv_UART1_EnableRx		(void);								//!< enables reception interrupts
-void	drv_UART1_DisableRx		(void);								//!< disables reception interrupts
-
-/****************************************************************************************************//**
- *                        REQUIRED INTERFACES
+/*
+ * drv_UART1.h
  *
- * To be implemented in <SYS_Link.c>
- ********************************************************************************************************/
-extern void (* const drv_UART1_Requires_IRecvEvent)(void);
-extern void (* const drv_UART1_Requires_ISentEvent)(void);
+ *  Created on: 07/04/2015
+ *      Author: raulMrello
+ *
+ *  UART1 driver for STM32F103C8T6. It controls:
+ *
+ *  	- GPS module
+ *
+ *  On initialization "drv_UART1_Init()", port is configured as:
+ *
+ *  	- Full-duplex, interrupts disabled and peripheral ready
+ *  	- Subscribed to /uart topic updates
+ *
+ *  Basic operation:
+ *		1. Module is ready for operation
+ *		2. After a /uart topic update it manages accordingly. These topics are configuration topics to start, stop...
+ *		3. On received data, it processes and extract NMEA/UBX streams and fills GPS_TOPIC_DATA_T.
+ *		4. On completion, publishes /gps topic update.
+ *
+ */
+ 
+#ifndef __DRV_UART1_H__
+#define __DRV_UART1_H__
 
 
-/****************************************************************************************************//**
- *                        PUBLIC TYPES 
- ********************************************************************************************************/
+#include "stm32f10x.h"	    	///< STM32F10x Library Definitions
+#include "UART_defines.h"		///< Common UART types
+#include "UartTopics.h"			///< required to receive /uart topic updates
+#include "DataTopics.h"			///< required to publish /gps topic updates
+#include "mmf.h"				///< required for external TopicData type
 
-/****************************************************************************************************//**
- * @fun		UART1_ENABLE_FULLDUPLEX
- * @brief	Enable/Disable full duplex capability.
- * 			if 0 then Half duplex
- * 			if 1 then Full duplex
- **********************************************************************************/
-#define UART1_ENABLE_FULLDUPLEX		1
 
-#endif
+
+/** \fun drv_UART1_Init
+ *  \brief Initializes UART1 peripheral
+ *	\param e Exception handler
+ */
+void drv_UART1_Init(Exception *e);
+
+/** \fn drv_UART1_OnTopicUpdate
+ *  \brief Interface to receive topic updates from external objects
+ *  \param obj Void pointer to the object who manages this callback
+ *  \param td Reference to the topic data which has been updated
+ */
+void drv_UART1_OnTopicUpdate(void * obj, TopicData * td);
+
+
+
+#endif	//__DRV_UART1_H__

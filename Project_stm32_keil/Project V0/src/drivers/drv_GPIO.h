@@ -1,89 +1,52 @@
+/*
+ * drv_GPIO.h
+ *
+ *  Created on: 07/04/2015
+ *      Author: raulMrello
+ *
+ *  GPIO driver for STM32F103C8T6. It controls:
+ *
+ *  	- 8 keyboard inputs
+ *  	- 4 selector mode inputs
+ *  	- 2 digital outputs
+ *
+ *  On initialization "drv_GPIO_Init()", io lines are configured as:
+ *
+ *  	- Inputs interrupt on falling edges
+ *  	- Outputs push-pull set to 0
+ *  	- Internal function "setOutput" will be subscribed to OutputTopics updates
+ *
+ *  When an input interrupt occurs, all inputs are read and stored in a bitmask "key" value.
+ *  Then a Topic_notify is published for all subscribed objects.
+ *
+ *  When an external module want to set an output value, it must publish a Topic_notify, in
+ *  this case, the topic type must be "OutputTopic" and should include output_id and value.
+ *
+ *
+ */
+
 #ifndef __DRV_GPIO_H
 #define	__DRV_GPIO_H
 
-/****************************************************************************************************//**
- *                        REQUIRED LIBRARIES
- ********************************************************************************************************/
-#include "stm32f10x.h"		    	// STM32F10x Library Definitions     
-#include <stdint.h>
-
-/****************************************************************************************************//**
- *                        PUBLIC DEFINITIONS
- ********************************************************************************************************/
-#define PIN_On(port,pin)    	port->ODR |=  (1 << pin)
-#define PIN_Toggle(port,pin) 	port->ODR ^=  (1 << pin)
-#define PIN_Off(port,pin)     	port->ODR &= ~(1 << pin)
-#define PIN_Is_On(port,pin)  	(port->ODR & (1 << pin))
-
-//Configuration functions
-void drv_GPIO_Init(void);
-int  drv_GPIO_readKeyboard(void);
-int  drv_GPIO_readSelectors(void);
-void drv_GPIO_setOutput(uint8_t id, uint8_t value);
-
-/****************************************************************************************************//**
- *                        GPIO CONFIGURATION 
- ********************************************************************************************************/
-
-/** Keyboard */
-
-#define KEY_N_PIN  		GPIO_Pin_0
-#define KEY_N_PORT		GPIOB
-
-#define KEY_NE_PIN 		GPIO_Pin_1
-#define KEY_NE_PORT		GPIOB
-
-#define KEY_E_PIN  		GPIO_Pin_2
-#define KEY_E_PORT		GPIOB
-
-#define KEY_ES_PIN  	GPIO_Pin_10
-#define KEY_ES_PORT		GPIOB
-
-#define KEY_S_PIN  		GPIO_Pin_11
-#define KEY_S_PORT		GPIOB
-
-#define KEY_SW_PIN  	GPIO_Pin_12
-#define KEY_SW_PORT		GPIOB
-
-#define KEY_W_PIN  		GPIO_Pin_13
-#define KEY_W_PORT		GPIOB
-
-#define KEY_WN_PIN  	GPIO_Pin_14
-#define KEY_WN_PORT		GPIOB
-
-/** Mode selectors */
-
-#define SEL_ARM_PIN  	GPIO_Pin_4
-#define SEL_ARM_PORT	GPIOA
-
-#define SEL_LOC_PIN  	GPIO_Pin_5
-#define SEL_LOC_PORT	GPIOA
-
-#define SEL_ALT_PIN  	GPIO_Pin_6
-#define SEL_ALT_PORT	GPIOA
-
-#define SEL_RTH_PIN  	GPIO_Pin_7
-#define SEL_RTH_PORT	GPIOA
-
-/** Outputs */
-
-#define OUT_0_PIN 	 	GPIO_Pin_15
-#define OUT_0_PORT		GPIOB
-
-#define OUT_1_PIN 	 	GPIO_Pin_8
-#define OUT_1_PORT		GPIOA
+#include "stm32f10x.h"	    	///< STM32F10x Library Definitions
+#include "InputTopics.h"		///< required to publish /key topic updates
+#include "OutputTopics.h"		///< required to receive /out topic updates
+#include "mmf.h"				///< required for external TopicData type
 
 
-/* Así se utilizan las líneas
 
-#define drv_KEY_ESC_as_input()			drv_GPIO_config_pin(SW_ESC_PIN,SW_ESC_PORT,GPIO_Mode_IPU,GPIO_Speed_10MHz)
-#define drv_KEY_ESC_is_on()				(GPIO_ReadInputDataBit(SW_ESC_PORT,SW_ESC_PIN)!=0)
-#define drv_KEY_COL1_state()			GPIO_ReadInputDataBit(KEY_COL1_PORT,KEY_COL1_PIN)
-#define drv_KEY_ROW1_as_output()		drv_GPIO_config_pin(KEY_ROW1_PIN,KEY_ROW1_PORT,GPIO_Mode_Out_PP,GPIO_Speed_2MHz)
-#define drv_KEY_ROW1_Off()				GPIO_ResetBits(KEY_ROW1_PORT,KEY_ROW1_PIN)
-#define drv_KEY_ROW1_On()				GPIO_SetBits(KEY_ROW1_PORT,KEY_ROW1_PIN)
+/** \fun drv_GPIO_Init
+ *  \brief Initializes GPIO lines
+ *	\param e Exception handler
+ */
+void drv_GPIO_Init(Exception *e);
 
-*/
+/** \fn drv_GPIO_OnTopicUpdate
+ *  \brief Interface to receive topic updates from external objects
+ *  \param obj Void pointer to the object who manages this callback
+ *  \param td Reference to the topic data which has been updated
+ */
+void drv_GPIO_OnTopicUpdate(void * obj, TopicData * td);
 
 #endif
 

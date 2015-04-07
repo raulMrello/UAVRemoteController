@@ -90,7 +90,7 @@ void RcTask_OnTopicUpdate(RcTaskPtr t, TopicData * td){
 			Exception_clear(&e);
 		}
 		// get new key event
-		inp.keys = (int)td->data;
+		inp.keys = ((KEY_TOPIC_DATA_T*)td->data)->keys;
 		// if mode LOC then saves new key events and publish /rc topic
 		if((inp.keys & KEY_LOC) != KEY_RELEASED){
 			rc.mode = RC_MODE_LOC;

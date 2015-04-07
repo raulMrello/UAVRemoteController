@@ -50,8 +50,8 @@ void drv_TIM3_Init(){
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 
-	// Configuramos los pines
-	GPIO_TIM3_as_timer();
+//	// Configuramos los pines
+//	GPIO_TIM3_as_timer();
 
 	// Configuracion TIM
 	TIM_TimeBaseStructure.TIM_Period = 999;

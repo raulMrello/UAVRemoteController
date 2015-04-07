@@ -1,282 +1,242 @@
-/*************************************************************************//**
- * @file    drv_UART1.h
- * @mcu		STM32F1x
- * @brief   USART1 peripheral controller
- * @date    14.06.2010
- * @author  Raúl M.
- ****************************************************************************/
-
-/****************************************************************************************************//**
- *                        REQUIRED LIBRARIES
- ********************************************************************************************************/
-#include <stdio.h>
-#include "UART_defines.h"
-#include "drv_UART1.h"		// includes <stdint.h>
-#include "stm32f10x.h"		// includes <stm32f10x...h>
-
-
-/****************************************************************************************************//**
- *                        	REQUIRED INTERFACES
- ********************************************************************************************************/
-#define IRecvEvent()		drv_UART1_Requires_IRecvEvent()
-#define ISentEvent()		drv_UART1_Requires_ISentEvent()
-
+/*
+ * drv_UART1.c
+ *
+ *  Created on: 07/04/2015
+ *      Author: raulMrello
+ *
+ */
  
-/****************************************************************************************************//**
- *                        PRIVATE MEMBERS
- ********************************************************************************************************/
-#define USART_DEF							USART1
-#define USART_DEF_IRQHandler       			USART1_IRQHandler
-#define USART_DEF_Init(baud)   				drv_UART1_Init(baud)
-#define USART_DEF_SendMsg					drv_UART1_SendMsg
-#define USART_DEF_SendChar      			drv_UART1_SendChar
-#define USART_DEF_GetChar      				drv_UART1_GetChar
-#define USART_DEF_RegisterDevice(task,flag)	drv_UART1_RegisterDevice(task,flag)
-#define UART_DEF_CTRL						uart1_ctrl
-#define UART_DEF_CLOCK						RCC_APB2Periph_USART1
-#define UART_DEF_CLOCK_FUNC					RCC_APB2PeriphClockCmd
-#define USART_DEF_TX_PIN					GPIO_Pin_9
-#define USART_DEF_TX_PORT					GPIOA
-#define USART_DEF_TX_CLOCK					RCC_APB2Periph_GPIOA
-#define USART_DEF_RX_PIN					GPIO_Pin_10
-#define USART_DEF_RX_PORT					GPIOA
-#define USART_DEF_IRQn						USART1_IRQn
-    
-// buffer controller for this driver
-uart_ctrl_t UART_DEF_CTRL;
+#include "drv_UART1.h"
 
-//#if UART1_ENABLE_FULLDUPLEX > 0
-//static uint8_t enableRx1 = 1;
-//#else
-//static uint8_t enableRx1 = 0;
-//#endif
+//------------------------------------------------------------------------------------
+//-- PRIVATE DEFINITIONS -------------------------------------------------------------
+//------------------------------------------------------------------------------------
 
-//buf_rx USART_DEF_RX_BUFF;// = { 0, 0, };
-#define SIO_RBUFLEN ((unsigned short)(UART_DEF_CTRL.rbuf.in - UART_DEF_CTRL.rbuf.out))
+#define USART1_TX_PIN		GPIO_Pin_9
+#define USART1_TX_PORT		GPIOA
+#define USART1_TX_CLOCK		RCC_APB2Periph_GPIOA
 
-//buf_tx USART_DEF_TX_BUFF;// = { 0, 0, };
-#define SIO_TBUFLEN ((unsigned short)(UART_DEF_CTRL.tbuf.in - UART_DEF_CTRL.tbuf.out))
+#define USART1_RX_PIN		GPIO_Pin_10
+#define USART1_RX_PORT		GPIOA
 
+#define USART1_IRQn			USART1_IRQn
 
+#define SIO_RBUFLEN ((unsigned short)(gpsUart.rbuf.in - gpsUart.rbuf.out))
+#define SIO_TBUFLEN ((unsigned short)(gpsUart.tbuf.in - gpsUart.tbuf.out))
 
-/********************************************************************************************************
- ********************************************************************************************************
- ********************************************************************************************************
- 										IMPLEMENTATION	
- ********************************************************************************************************
- ********************************************************************************************************
- ********************************************************************************************************/
+//------------------------------------------------------------------------------------
+//-- PRIVATE MEMBERS -----------------------------------------------------------------
+//------------------------------------------------------------------------------------
 
-/****************************************************************************************************//**
- * @fun		USART_DEF_Init
- * @brief	Initialize driver assigning a baudrate. If baudrate is 0 it only initialize Rx buffer
- * @param	baudrate	
- * @return	n/a
- **********************************************************************************/
-void USART_DEF_Init(uint32_t baudrate) {
-  USART_InitTypeDef USART_InitStructure;
-  GPIO_InitTypeDef GPIO_InitStructure;
-  NVIC_InitTypeDef NVIC_InitStructure;   
-  
-  UART_DEF_CTRL.rbuf.in = 0;
-  UART_DEF_CTRL.rbuf.out = 0;
-   
-  if(baudrate == 0){
-	return;
-  } 
+static Exception e = Exception_INIT();
+static GPS_TOPIC_DATA_T gpsTopicData;
+static UART_TOPIC_DATA_T uartTopicData;
+static Topic * gpsTopic;
+static Topic * uartTopic;
+static uart_ctrl_t gpsUart;
 
-  UART_DEF_CTRL.tbuf.in = 0;                                    // Clear com buffer indexes
-  UART_DEF_CTRL.tbuf.out = 0;
-  UART_DEF_CTRL.tbuf.tx_restart = 1;
+/** \fun enableRx
+ *  \brief Enables data reception
+ */
+static void enableRx(void);
 
-//  #if UART1_ENABLE_FULLDUPLEX > 0
-//  enableRx1 = 1;
-//  #else
-//  enableRx1 = 0;
-//  #endif
+/** \fun disableRx
+ *  \brief Disables data reception
+ */
+static void disableRx(void);
 
-  USART_InitStructure.USART_BaudRate = baudrate;
-  USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-  USART_InitStructure.USART_StopBits = USART_StopBits_1;
-  USART_InitStructure.USART_Parity = USART_Parity_No;
-  USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-  USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+/** \fun sendChar
+ *  \brief Sends a character
+ *  \param c Character to send
+ *  \param e Exception handler
+ */
+static void sendChar(char c, Exception *e);
+
+/** \fun sendMsg
+ *  \brief Sends a message. If buffer overflows, then sends what it can.
+ *  \param ptr Buffer to send
+ *  \param size Number of bytes to send
+ *  \return Number of bytes sent
+ */
+static int sendMsg(uint8_t *ptr, int size);
+
+/** \fun getChar
+ *  \brief Gets a character
+ *  \param c Pointer to the receptor of the character
+ *  \param e Exception handler
+ */
+static void getChar (char * c, Exception *e);
 
 
-//---------------
- 
-  /* Enable GPIO clock */
-  RCC_APB2PeriphClockCmd(USART_DEF_TX_CLOCK, ENABLE);
-  UART_DEF_CLOCK_FUNC(UART_DEF_CLOCK, ENABLE); 
+//------------------------------------------------------------------------------------
+//-- IMPLEMENTATION  -----------------------------------------------------------------
+//------------------------------------------------------------------------------------
 
-  /* Configure USART Tx as alternate function push-pull */
-  GPIO_InitStructure.GPIO_Pin = USART_DEF_TX_PIN;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(USART_DEF_TX_PORT, &GPIO_InitStructure);
-    
-  /* Configure USART Rx as input floating */
-  GPIO_InitStructure.GPIO_Pin = USART_DEF_RX_PIN;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  GPIO_Init(USART_DEF_TX_PORT, &GPIO_InitStructure);
-
-  /* USART configuration */
-  USART_Init(USART_DEF, &USART_InitStructure);
-  
-  USART_ITConfig(USART_DEF, USART_IT_TXE, DISABLE);
-  USART_ITConfig(USART_DEF, USART_IT_RXNE, DISABLE);
-     
-  /* Enable USART */
-  NVIC_InitStructure.NVIC_IRQChannel = USART_DEF_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&NVIC_InitStructure);
-
-  USART_Cmd(USART_DEF, ENABLE);
-
+//------------------------------------------------------------------------------------
+static void enableRx(void) {     
+  	USART_ReceiveData(USART1);	// dummy read for flags clearing
+	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+	USART_Cmd(USART1, ENABLE);
 }
 
-/****************************************************************************************************//**
- * @fun		drv_UART1_EnableRx
- * @brief	Disable reception interrupts to avoid ECHO detection
- * @return	n/a
- **********************************************************************************/
-void drv_UART1_EnableRx(void) {     
-  	USART_ReceiveData(USART_DEF);	// dummy read for flags clearing
+//------------------------------------------------------------------------------------
+static void disableRx(void) {
+	USART_ITConfig(USART1, USART_IT_RXNE, DISABLE);
+  	USART_ReceiveData(USART1); 						// dummy read for flags clearing
+	USART_Cmd(USART1, ENABLE);
+}
 
-	// enables reception ONLY if transmission finished.
-	if(UART_DEF_CTRL.tbuf.tx_restart == 1){
-		USART_ITConfig(USART_DEF, USART_IT_RXNE, ENABLE);
-//  		USART_DEF->CR1 &= ~0x0004;	// Clear RE "Receiver Enable" bit in CR Register
-// 		USART_DEF->CR1 |= 0x0004;		// Set RE, init start condition capture
-//		enableRx1 = 1;										// enables Rx interrupts
+//------------------------------------------------------------------------------------
+void sendChar(char c, Exception *e) {  
+	if(gpsUart.tbuf.out == 0 && gpsUart.tbuf.in == TBUF_SIZE-1){
+		Exception_throw(e, MEMORY_ALLOC, "drv_UART1::sendChar buffer overflow");
+		return;
 	}
+	if(gpsUart.tbuf.out > 0 && gpsUart.tbuf.in == (gpsUart.tbuf.out-1)){
+		Exception_throw(e, MEMORY_ALLOC, "drv_UART1::sendChar buffer overflow");
+		return;
+	}                                            
+	// Add data to the transmit buffer.	
+	gpsUart.tbuf.buf [gpsUart.tbuf.in] = c;      
+	gpsUart.tbuf.in++;
+	// keep index into the range
+	if(gpsUart.tbuf.in >= TBUF_SIZE){
+		gpsUart.tbuf.in = 0;
+	}
+	// If transmit interrupt is disabled, enable it and starts transmission
+	if (gpsUart.tbuf.tx_restart) {                               
+		gpsUart.tbuf.tx_restart = 0;	
+		USART_ITConfig(USART1, USART_IT_TXE, ENABLE);
+	}  
 }
 
-/****************************************************************************************************//**
- * @fun		drv_UART1_DisableRx
- * @brief	Disable reception interrupts to avoid ECHO detection
- * @return	n/a
- **********************************************************************************/
-void drv_UART1_DisableRx(void) {
-	USART_ITConfig(USART_DEF, USART_IT_RXNE, DISABLE);
-//	USART_ClearITPendingBit(USART_DEF,USART_IT_RXNE);	// reset Rx pending flag
-  	USART_ReceiveData(USART_DEF); 						// dummy read for flags clearing
-//	enableRx1 = 0;										// disables Rx interrupts
+//------------------------------------------------------------------------------------
+static int sendMsg(uint8_t *ptr, int size){
+	uint8_t count = 0; 
+	Exception e = Exception_INIT();
+	for(count = 0; count < size; count++){
+		sendChar(*(ptr+count), &e);
+		catch(&e){
+			return count;
+		}
+	}
+	return size;
 }
 
-/****************************************************************************************************//**
- * @fun		USART_DEF_SendChar
- * @brief	Sends a character
- * @param	c 	character to send	
- * @retval	-1	error
- * @retval  0	succesfull
- **********************************************************************************/
-int USART_DEF_SendChar (char c) {  
-  if(UART_DEF_CTRL.tbuf.out == 0 && UART_DEF_CTRL.tbuf.in == TBUF_SIZE-1){
-    return (-1);
-  }
-  if(UART_DEF_CTRL.tbuf.out > 0 && UART_DEF_CTRL.tbuf.in == (UART_DEF_CTRL.tbuf.out-1)){
-    return (-1);
-  }
-                                                  
-  UART_DEF_CTRL.tbuf.buf [UART_DEF_CTRL.tbuf.in] = c;           // Add data to the transmit buffer.
-  UART_DEF_CTRL.tbuf.in++;
-  // keep index into the range
-  if(UART_DEF_CTRL.tbuf.in >= TBUF_SIZE){
-  	UART_DEF_CTRL.tbuf.in = 0;
-  }
-
-  if (UART_DEF_CTRL.tbuf.tx_restart) {                               // If transmit interrupt is disabled, enable it
-    UART_DEF_CTRL.tbuf.tx_restart = 0;
-	
-//	#if UART1_ENABLE_FULLDUPLEX > 0
-//	enableRx1 = 1;
-//	#else
-//	enableRx1 = 0;
-//	#endif
-
-	//USART_ITConfig(USART_DEF, (USART_IT_LBD | USART_IT_ERR | USART_IT_ORE | USART_IT_NE | USART_IT_FE | USART_IT_PE), ENABLE);
-//	USART_ITConfig(USART_DEF, USART_IT_RXNE, ENABLE);
-	USART_ITConfig(USART_DEF, USART_IT_TXE, ENABLE);
-  }
-
-  return (0);
-}
-
-
-
-/****************************************************************************************************//**
- * @fun		USART_DEF_SendMsg
- * @brief	Sends a buffer
- * @param	ptr		Buffer address
- * @param	size	Size in bytes to be sent
- * @return	Bytes sent
- **********************************************************************************/
- uint8_t USART_DEF_SendMsg(uint8_t *ptr,uint8_t size){
-
-	  uint8_t count = 0;
-	  
-	  for (count=0;count<size;count++)
-	  {
-	  		if (USART_DEF_SendChar(*(ptr+count))!=0) {
-			   	return count;
-			}
-	  }
-
-	  return size;
-}
-
-
-
-
-/****************************************************************************************************//**
- * @fun		USART_DEF_GetChar
- * @brief	Read the next byte in the buffer
- * @return	Byte read
- **********************************************************************************/
-int USART_DEF_GetChar (void) {
-  	int data;
-	
+//------------------------------------------------------------------------------------
+static void getChar (char * c, Exception *e) {
+ 	int data;
 	if (SIO_RBUFLEN == 0){
-    	return (-1);
+    	Exception_throw(e, MEMORY_ALLOC, "drv_UART1::getChar buffer is empty");
+		return;
 	}
-
-	data = UART_DEF_CTRL.rbuf.buf [UART_DEF_CTRL.rbuf.out];
-	UART_DEF_CTRL.rbuf.out++;
-	if(UART_DEF_CTRL.rbuf.out >= RBUF_SIZE){
-		UART_DEF_CTRL.rbuf.out = 0;
+	data = gpsUart.rbuf.buf [gpsUart.rbuf.out];
+	gpsUart.rbuf.out++;
+	if(gpsUart.rbuf.out >= RBUF_SIZE){
+		gpsUart.rbuf.out = 0;
 	}
-  	return (data);
+  	*c = (char)data;
 }
 
+//------------------------------------------------------------------------------------
+void drv_UART1_Init(Exception *e){
+	
+	/** buffer and topic initialization */
+	  
+	gpsUart.rbuf.in = 0;
+	gpsUart.rbuf.out = 0;
+   	gpsUart.tbuf.in = 0;                                    
+	gpsUart.tbuf.out = 0;
+	gpsUart.tbuf.tx_restart = 1;
+	
+	/** Subscribe to UartTopics update and attach callback function */
+	uartTopic = UartTopic_getRef("/uart", e);
+	catch(e){
+		return;
+	}
+	Topic_attach(uartTopic, 0, e);
+	catch(e){
+		return;
+	}
+	// sets default value for topic handler
+	gpsTopicData = (GPS_TOPIC_DATA_T){0, 0, 0, 0};
 
+	/** peripheral initialization */
+	
+	USART_InitTypeDef USART_InitStructure;
+	GPIO_InitTypeDef GPIO_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;   
 
-/****************************************************************************************************//**
- * @fun		USART_DEF_IRQHandler
- * @brief	Interrupt handler. On byte reception, interface <IRecvEvent> is invoked
- * @return	
- **********************************************************************************/
-volatile uint16_t idle_data_irq;
-void USART_DEF_IRQHandler (void) {
-	 
+	USART_InitStructure.USART_BaudRate = 115200;
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;
+	USART_InitStructure.USART_Parity = USART_Parity_No;
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+
+	/* Enable GPIO clock */
+	RCC_APB2PeriphClockCmd(USART1_TX_CLOCK, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE); 
+
+	/* Configure USART Tx as alternate function push-pull */
+	GPIO_InitStructure.GPIO_Pin = USART1_TX_PIN;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(USART1_TX_PORT, &GPIO_InitStructure);
+    
+	/* Configure USART Rx as input floating */
+	GPIO_InitStructure.GPIO_Pin = USART1_RX_PIN;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	GPIO_Init(USART1_TX_PORT, &GPIO_InitStructure);
+
+	/* USART configuration */
+	USART_Init(USART1, &USART_InitStructure);
+	USART_ITConfig(USART1, USART_IT_TXE, DISABLE);
+	USART_ITConfig(USART1, USART_IT_RXNE, DISABLE);
+     
+	/* Enable USART */
+	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+
+	USART_Cmd(USART1, ENABLE);
+}
+
+//------------------------------------------------------------------------------------
+void drv_UART1_OnTopicUpdate(void * obj, TopicData * td){
+	(void)obj;	// param not used
+	//topic checking
+	if(td->id == (int)uartTopic){
+		uartTopicData = *((UART_TOPIC_DATA_T*)td->data);
+		#warning TODO extract data and proceed for example with send(...)
+		// TODO
+	}	
+}
+
+//------------------------------------------------------------------------------------
+//-- INTERRUPTS  ---------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------
+void USART1_IRQHandler (void) {	 
   	volatile unsigned int IIR;
   	uart_ctrl_t *ptr;
   	uint16_t input_data;
+  	ptr = &gpsUart;
 
-  	ptr = &UART_DEF_CTRL;
-
-  	if (USART_GetITStatus(USART_DEF,USART_IT_RXNE)!=RESET){ 
+  	if (USART_GetITStatus(USART1,USART_IT_RXNE)!=RESET){ 
   		// process data if Rx enabled
- 		if(USART_GetFlagStatus(USART_DEF,USART_FLAG_FE)!=RESET){
+ 		if(USART_GetFlagStatus(USART1,USART_FLAG_FE)!=RESET){
   	  		volatile uint32_t i;
-			USART_DEF->CR1 &= ~0x0004;	// Clear RE "Receiver Enable" bit in CR Register
-			USART_DEF_Init(0);
-			USART_DEF->CR1 |= 0x0004;		// Set RE, init start condition capture	
+			USART1->CR1 &= ~0x0004;	// Clear RE "Receiver Enable" bit in CR Register
+			gpsUart.rbuf.in = 0;	// clear buffers
+			gpsUart.rbuf.out = 0;
+			USART1->CR1 |= 0x0004;	// Set RE, init start condition capture	
   		}
-  		// read and hence clear pending flags  USART_ClearITPendingBit(USART_DEF,USART_IT_RXNE);
-  		input_data = (USART_ReceiveData(USART_DEF)& 0x1FF); 
+  		// read and hence clear pending flags  USART_ClearITPendingBit(USART1,USART_IT_RXNE);
+  		input_data = (USART_ReceiveData(USART1)& 0x1FF); 
 		if ((ptr->rbuf.in - ptr->rbuf.out) == 0) {
    			ptr->rbuf.buf [ptr->rbuf.in] = input_data;
    			ptr->rbuf.in++;
@@ -284,29 +244,33 @@ void USART_DEF_IRQHandler (void) {
 				ptr->rbuf.in = 0;
 			}
 		}
-		IRecvEvent(); 			
+		/** [optional] add code here to notify new data received */ 
+		#warning TODO add code to notify new recv data		
 	}
 	
-   if (USART_GetITStatus(USART_DEF,USART_IT_TXE)!=RESET){
-	 USART_ClearITPendingBit(USART_DEF,USART_IT_TXE);
-     if (ptr->tbuf.in != ptr->tbuf.out) {
+	if (USART_GetITStatus(USART1,USART_IT_TXE)!=RESET){
+		USART_ClearITPendingBit(USART1,USART_IT_TXE);
+		if (ptr->tbuf.in != ptr->tbuf.out) {
         
-		USART_SendData(USART_DEF,ptr->tbuf.buf[ptr->tbuf.out]);
-		ptr->tbuf.out++;
-		if(ptr->tbuf.out >= TBUF_SIZE){
-			ptr->tbuf.out = 0;
+			USART_SendData(USART1,ptr->tbuf.buf[ptr->tbuf.out]);
+			ptr->tbuf.out++;
+			if(ptr->tbuf.out >= TBUF_SIZE){
+				ptr->tbuf.out = 0;
+			}
+			ptr->tbuf.tx_restart = 0;    
 		}
-        ptr->tbuf.tx_restart = 0;
-    
-	 }
-     else {
-        ptr->tbuf.tx_restart = 1;
-	   	USART_ITConfig(USART_DEF, USART_IT_TXE, DISABLE);
-		ISentEvent();										//notify end of stream transmission
-     }
+		else {
+			ptr->tbuf.tx_restart = 1;
+			USART_ITConfig(USART1, USART_IT_TXE, DISABLE);
+			/** [optional] add code here to notify end of transmission */
+		}
+	}
+	
+	if(USART_GetITStatus(USART1,USART_IT_IDLE)!=RESET){
+		USART_ClearITPendingBit(USART1,USART_IT_IDLE);
+		/** [optional] add code here to notify end of stream reception */  
+		#warning TODO add code to notify new recv stream
    }
-   	// Prueba
-	idle_data_irq = USART_ReceiveData(USART_DEF); 
-
+   	// dummy read for flags clearing
+	input_data = USART_ReceiveData(USART1); 
 }
-

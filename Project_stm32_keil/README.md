@@ -16,6 +16,13 @@ This project will include next modules:
 
 ## Changelog
 
+> 07.04.2015-001 branch: master --------------
+ - Done drv_GPIO, drv_UART1, drv_UART2
+ - Adapting module drv_TIM3 for PWM output
+ - Changed lines PB0 (now TIM3CH3 as pwm) and now PB9 is new input.
+ - PENDING:
+	- Remove old interfaces, unused drivers, and modules
+
 > 06.04.2015-002 branch: master --------------
  - MMF updated to "0.8.06042015001" version loaded.
  - Modifying drv_GPIO. Must check EXTI assignment to input pins.
