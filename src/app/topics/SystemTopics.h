@@ -4,7 +4,20 @@
  *  Created on: 12/3/2015
  *      Author: raulMrello
  *
- *  Topics related to System configuration. This includes topics /sys
+ *  Topics are data structures used in publisher/subscriber architectures. These structures use to have
+ *	various common members: 
+ *		- status: is a bitmask variable showing the current state of the topic
+ *		- queries: is a bitmask variable indicating which params of the topic have been updated
+ *		- params: several variables according with the topic type
+ *	Also, topics has a unique name string "/name". Using that string, an agent can get topic
+ *	references, publish updates, attach to those updates ...
+ *
+ *	SystemTopics module includes all kind of topics related to system configuration.
+ *	Next lines describe those which are already implemented:
+ *
+ *	Topic: 	"/sys"
+ *	Descr:	Describes system configuration actions to carry out on a specified peripheral.
+ *	
  */
 
 #ifndef SRC_TOPICS_SYSTEMTOPICS_H_

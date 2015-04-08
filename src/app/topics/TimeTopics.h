@@ -4,7 +4,20 @@
  *  Created on: 12/3/2015
  *      Author: raulMrello
  *
- *  Topics related to TIME publishers. This includes topics /time
+ *  Topics are data structures used in publisher/subscriber architectures. These structures use to have
+ *	various common members: 
+ *		- status: is a bitmask variable showing the current state of the topic
+ *		- queries: is a bitmask variable indicating which params of the topic have been updated
+ *		- params: several variables according with the topic type
+ *	Also, topics has a unique name string "/name". Using that string, an agent can get topic
+ *	references, publish updates, attach to those updates ...
+ *
+ *	TimeTopics module includes all kind of topics related to time (config, events).
+ *	Next lines describe those which are already implemented:
+ *
+ *	Topic: 	"/time"
+ *	Descr:	Describes time actions (configure, events)
+ *	
  */
 
 #ifndef SRC_TOPICS_TIMETOPICS_H_

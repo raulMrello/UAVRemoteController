@@ -4,7 +4,23 @@
  *  Created on: 12/3/2015
  *      Author: raulMrello
  *
- *  Topics related to Gps peripherals. This includes topics as /nmea and /ubx.
+ *  Topics are data structures used in publisher/subscriber architectures. These structures use to have
+ *	various common members: 
+ *		- status: is a bitmask variable showing the current state of the topic
+ *		- queries: is a bitmask variable indicating which params of the topic have been updated
+ *		- params: several variables according with the topic type
+ *	Also, topics has a unique name string "/name". Using that string, an agent can get topic
+ *	references, publish updates, attach to those updates ...
+ *
+ *	GpsTopics module includes all kind of topics related to gps data.
+ *	Next lines describe those which are already implemented:
+ *
+ *	Topic: 	"/nmea"
+ *	Descr:	Describes gps topic data (lat, lng ...) provided by a gps module in NMEA format.
+ *
+ *	Topic: 	"/ubx"
+ *	Descr:	Describes gps topic data (lat, lng ...) provided by a gps module in UBX format.
+ *	
  */
 
 #ifndef SRC_TOPICS_GPSTOPICS_H_

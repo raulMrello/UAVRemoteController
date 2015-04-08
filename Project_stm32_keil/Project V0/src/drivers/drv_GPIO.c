@@ -72,7 +72,6 @@
 //------------------------------------------------------------------------------------
 
 static KEY_TOPIC_DATA_T keyTopicData;
-static OUT_TOPIC_DATA_T outTopicData;
 static Topic * keyTopic;
 static Topic * outTopic;
 
@@ -259,8 +258,6 @@ void drv_GPIO_Init(Exception *ex){
 	catch(ex){
 		return;
 	}
-	// sets default value for topic handler
-	outTopicData = (OUT_TOPIC_DATA_T){(int)0, (OutputStatus)OUT_OFF};
 }
 
 //------------------------------------------------------------------------------------
@@ -268,8 +265,10 @@ void drv_GPIO_OnTopicUpdate(void * obj, TopicData * td){
 	(void)obj;	// param not used
 	//topic checking
 	if(td->id == (int)outTopic){
-		outTopicData = *((OUT_TOPIC_DATA_T*)td->data);
-		setOutput(outTopicData.output_id, outTopicData.value);
+		OUT_TOPIC_DATA_T* topic = (OUT_TOPIC_DATA_T*)td->data;
+		if((topic->queries & (OUT_SET_OFF | OUT_SET_ON)) != 0){
+			setOutput(topic->output_id, topic->status);
+		}
 	}	
 }
 

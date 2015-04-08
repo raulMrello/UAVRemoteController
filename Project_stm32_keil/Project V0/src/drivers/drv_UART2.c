@@ -149,7 +149,7 @@ void drv_UART2_Init(Exception *e){
 	lnkUart.tbuf.tx_restart = 1;
 	
 	/** Subscribe to UartTopics update and attach callback function */
-	uartTopic = UartTopic_getRef("/uart", e);
+	uartTopic = UartTopic_getRef("/uart2", e);
 	catch(e){
 		return;
 	}
@@ -220,6 +220,15 @@ void drv_UART2_OnTopicUpdate(void * obj, TopicData * td){
 		if((topic->queries & UART_DISABLE_RX)!= 0 && (uartTopicData.status & UART_RX_ENABLED)!= 0){
 			uartTopicData.status &= ~UART_RX_ENABLED;
 			disableRx();
+		}
+		if((topic->queries & UART_SEND) != 0){
+			int written = sendMsg((uint8_t*)topic->data, topic->datasize);
+			if(written != topic->datasize){
+				uartTopicData.queries = UART_NACK;
+				uartTopicData.status = UART_ERR_BUFFER_FULL;
+				uartTopicData.datasize = written;
+				Topic_notify(uartTopic, &uartTopicData, sizeof(UART_TOPIC_DATA_T), 0, 0, &e);	
+			}
 		}
 		#warning TODO process ACK, NACK, etc....
 		// TODO

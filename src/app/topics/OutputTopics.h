@@ -4,8 +4,23 @@
  *  Created on: 12/3/2015
  *      Author: raulMrello
  *
- *  Topics related to GPIO output pins. These topics are named as /out and will be formed
- *  by an output_id and a logic value.
+ *  Topics are data structures used in publisher/subscriber architectures. These structures use to have
+ *	various common members: 
+ *		- status: is a bitmask variable showing the current state of the topic
+ *		- queries: is a bitmask variable indicating which params of the topic have been updated
+ *		- params: several variables according with the topic type
+ *	Also, topics has a unique name string "/name". Using that string, an agent can get topic
+ *	references, publish updates, attach to those updates ...
+ *
+ *	OutputTopics module includes all kind of topics related to output pins (ADC, digital out, PWM, ...).
+ *	Next lines describe those which are already implemented:
+ *
+ *	Topic: 	"/out"
+ *	Descr:	Describes digital output actions (On,Off) to carry out on a specified output pin.
+ *
+ *	Topic: 	"/pwm"
+ *	Descr:	Describes pwm output actions (start, stop, setDuty, setPeriod) to carry out on a specified output pin.
+ *	
  */
 
 #ifndef SRC_TOPICS_OUTUTTOPICS_H_
@@ -18,21 +33,30 @@
 //--  /out topics definitions  -------------------------------------------------------
 //------------------------------------------------------------------------------------
 
+/** \enum OutRequest
+ *  \brief Out requested operation flags definitions
+ */
+typedef enum {
+	OUT_NO_QUERIES	= 0,
+	OUT_SET_OFF 	= (1 << 0),
+	OUT_SET_ON 		= (1 << 1)
+}OutRequest;
+
 /** \enum OutputStatus
  *  \brief Enumerates different output status 
  */
 typedef enum {
 	OUT_OFF  = 0,
-	OUT_ON 	 = 1
-}OutputStatus;
-
+	OUT_ON 	 = (1 << 0)
+}OutStatus;
 
 /** \struct OUT_TOPIC_DATA_T
  *  \brief Topic data structure for /out topics
  */
 typedef struct {
 	int output_id;			///< output id
-	OutputStatus value;		///< output logic value
+	OutRequest queries;		///< requested operation flags
+	OutStatus status;		///< output logic value
 }OUT_TOPIC_DATA_T;
 
 //------------------------------------------------------------------------------------

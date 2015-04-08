@@ -20,7 +20,7 @@ This controller has three main functions:
 
 ## Changelog
 
-> 08.04.2015-001 branch: master --------------
+> 08.04.2015-002 branch: master --------------
  - See README.md in project "stm32_keil"
  
 > 07.04.2015-001 branch: master --------------

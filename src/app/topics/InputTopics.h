@@ -4,8 +4,20 @@
  *  Created on: 12/3/2015
  *      Author: raulMrello
  *
- *  Topics related to GPIO input pins in which pushbuttons are connected to those pins.
- *  These topics can be /push and /release and will add a keycode parameter in a char format.
+ *  Topics are data structures used in publisher/subscriber architectures. These structures use to have
+ *	various common members: 
+ *		- status: is a bitmask variable showing the current state of the topic
+ *		- queries: is a bitmask variable indicating which params of the topic have been updated
+ *		- params: several variables according with the topic type
+ *	Also, topics has a unique name string "/name". Using that string, an agent can get topic
+ *	references, publish updates, attach to those updates ...
+ *
+ *	InputTopics module includes all kind of topics related to input pins (ADC, digital in, DAC, ...).
+ *	Next lines describe those which are already implemented:
+ *
+ *	Topic: 	"/key"
+ *	Descr:	Describes keyboard actions (pressed/released) as an uint32 bitmask variable
+ *	
  */
 
 #ifndef SRC_TOPICS_INPUTTOPICS_H_

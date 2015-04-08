@@ -150,7 +150,7 @@ void drv_UART1_Init(Exception *e){
 	gpsUart.tbuf.tx_restart = 1;
 	
 	/** Subscribe to UartTopics update and attach callback function */
-	uartTopic = UartTopic_getRef("/uart", e);
+	uartTopic = UartTopic_getRef("/uart1", e);
 	catch(e){
 		return;
 	}
@@ -207,9 +207,27 @@ void drv_UART1_Init(Exception *e){
 //------------------------------------------------------------------------------------
 void drv_UART1_OnTopicUpdate(void * obj, TopicData * td){
 	(void)obj;	// param not used
+	Exception e;
 	//topic checking
 	if(td->id == (int)uartTopic){
-		uartTopicData = *((UART_TOPIC_DATA_T*)td->data);
+		UART_TOPIC_DATA_T* topic = (UART_TOPIC_DATA_T*)td->data;
+		if((topic->queries & UART_ENABLE_RX)!= 0 && (uartTopicData.status & UART_RX_ENABLED)== 0){
+			uartTopicData.status |= UART_RX_ENABLED;
+			enableRx();
+		}
+		if((topic->queries & UART_DISABLE_RX)!= 0 && (uartTopicData.status & UART_RX_ENABLED)!= 0){
+			uartTopicData.status &= ~UART_RX_ENABLED;
+			disableRx();
+		}		
+		if((topic->queries & UART_SEND) != 0){
+			int written = sendMsg((uint8_t*)topic->data, topic->datasize);
+			if(written != topic->datasize){
+				uartTopicData.queries = UART_NACK;
+				uartTopicData.status = UART_ERR_BUFFER_FULL;
+				uartTopicData.datasize = written;
+				Topic_notify(uartTopic, &uartTopicData, sizeof(UART_TOPIC_DATA_T), 0, 0, &e);	
+			}
+		}
 		#warning TODO extract data and proceed for example with send(...)
 		// TODO
 	}	

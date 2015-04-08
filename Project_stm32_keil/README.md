@@ -16,13 +16,20 @@ This project will include next modules:
 
 ## Changelog
 
+> 08.04.2015-002 branch: master --------------
+ - Updated all topics modules. Added header comments.
+ - Modified drv_UART to catch SEND requests.
+ - NEXT STEPS:
+	- Unify drv_UART1 and drv_UART2 in a common drv_UART.
+	- Add tasks (LoggerTask in stead Link for serial debug trace)
+	- Add code to main
+
 > 08.04.2015-001 branch: master --------------
  - Removed all unused modules from project and from filesystem.
  - Finished drivers and topics
  - NEXT STEPS:
 	- Add tasks (LoggerTask in stead Link for serial debug trace)
 	- Add code to main
-
 
 > 07.04.2015-001 branch: master --------------
  - Done drv_GPIO, drv_UART1, drv_UART2
