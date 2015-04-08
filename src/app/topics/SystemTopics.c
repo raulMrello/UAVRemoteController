@@ -5,21 +5,21 @@
  *      Author: raulMrello
  */
 
-#include "UartTopics.h"
+#include "SystemTopics.h"
 #include <string.h>
 
-#define uart_OBSIZE		2		///< Observerlist can alloc up to 2 different observers
-static Topic uarttopic;
-static Task* uart_oblist[uart_OBSIZE];
+#define sys_OBSIZE	2		///< Observerlist can alloc up to 2 different observers
+static Topic systopic;
+static Task* sys_oblist[sys_OBSIZE];	
 
 //------------------------------------------------------------------------------------
-Topic * UartTopic_initialize(const char * name, Exception *e){
-	if(strcmp(name, "/uart") == 0){
-		Topic_initialize(&uarttopic, name, (void**)uart_oblist, uart_OBSIZE, e);
+Topic * SystemTopic_initialize(const char * name, Exception *e){
+	if(strcmp(name, "/sys") == 0){
+		Topic_initialize(&systopic, name, (void**)sys_oblist, sys_OBSIZE, e);
 		catch(e){
 			return 0;
 		}
-		return &uarttopic;
+		return &systopic;
 	}
 	else {
 		Exception_throw(e, BAD_ARGUMENT, "Unknown topic name");
@@ -28,9 +28,9 @@ Topic * UartTopic_initialize(const char * name, Exception *e){
 }
 
 //------------------------------------------------------------------------------------
-Topic * UartTopic_getRef(const char * name, Exception *e){
-	if(strcmp(name, "/uart") == 0){
-		return &uarttopic;
+Topic * SystemTopic_getRef(const char * name, Exception *e){
+	if(strcmp(name, "/sys") == 0){
+		return &systopic;
 	}
 	else {
 		Exception_throw(e, BAD_ARGUMENT, "Unknown topic name");

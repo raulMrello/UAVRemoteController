@@ -29,7 +29,6 @@
 //------------------------------------------------------------------------------------
 
 static Exception e = Exception_INIT();
-static LNK_TOPIC_DATA_T lnkTopicData;
 static UART_TOPIC_DATA_T uartTopicData;
 static Topic * lnkTopic;
 static Topic * uartTopic;
@@ -158,9 +157,7 @@ void drv_UART2_Init(Exception *e){
 	catch(e){
 		return;
 	}
-	// sets default value for topic handler
-	lnkTopicData = (LNK_TOPIC_DATA_T){0, 0, 0, 0};
-
+	
 	/** peripheral initialization */
 	
 	USART_InitTypeDef USART_InitStructure;
@@ -176,7 +173,7 @@ void drv_UART2_Init(Exception *e){
 
 	/* Enable GPIO clock */
 	RCC_APB2PeriphClockCmd(USART2_TX_CLOCK, ENABLE);
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART2, ENABLE); 
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE); 
 
 	/* Configure USART Tx as alternate function push-pull */
 	GPIO_InitStructure.GPIO_Pin = USART2_TX_PIN;
@@ -202,6 +199,12 @@ void drv_UART2_Init(Exception *e){
 	NVIC_Init(&NVIC_InitStructure);
 
 	USART_Cmd(USART2, ENABLE);
+
+	// sets default value for topic handler
+	uartTopicData.queries = UART_NO_QUERIES;
+	uartTopicData.status = (UART_NOFLOWCTL | UART_8BITS | UART_NO_PARITY | UART_1STOP);
+	uartTopicData.baudrate = 115200;
+
 }
 
 //------------------------------------------------------------------------------------
@@ -209,8 +212,16 @@ void drv_UART2_OnTopicUpdate(void * obj, TopicData * td){
 	(void)obj;	// param not used
 	//topic checking
 	if(td->id == (int)uartTopic){
-		uartTopicData = *((UART_TOPIC_DATA_T*)td->data);
-		#warning TODO extract data and proceed for example with send(...)
+		UART_TOPIC_DATA_T* topic = (UART_TOPIC_DATA_T*)td->data;
+		if((topic->queries & UART_ENABLE_RX)!= 0 && (uartTopicData.status & UART_RX_ENABLED)== 0){
+			uartTopicData.status |= UART_RX_ENABLED;
+			enableRx();
+		}
+		if((topic->queries & UART_DISABLE_RX)!= 0 && (uartTopicData.status & UART_RX_ENABLED)!= 0){
+			uartTopicData.status &= ~UART_RX_ENABLED;
+			disableRx();
+		}
+		#warning TODO process ACK, NACK, etc....
 		// TODO
 	}	
 }

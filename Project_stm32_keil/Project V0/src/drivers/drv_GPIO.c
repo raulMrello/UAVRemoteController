@@ -71,7 +71,6 @@
 //-- PRIVATE MEMBERS -----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-static Exception e = Exception_INIT();
 static KEY_TOPIC_DATA_T keyTopicData;
 static OUT_TOPIC_DATA_T outTopicData;
 static Topic * keyTopic;
@@ -156,7 +155,7 @@ static void setOutput(int id, int value){
 }
 
 //------------------------------------------------------------------------------------
-void drv_GPIO_Init(Exception *e){
+void drv_GPIO_Init(Exception *ex){
 
 	/** Port clocks enable */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
@@ -185,10 +184,7 @@ void drv_GPIO_Init(Exception *e){
 	GPIO_ResetBits(OUT_1_PORT,OUT_1_PIN);
 
 	/** PWM pins */
-	configPin(PWM_0_PIN, PWM_X_PORT, GPIO_Mode_Out_PP, GPIO_Speed_50MHz);
-	configPin(PWM_1_PIN, PWM_X_PORT, GPIO_Mode_Out_PP, GPIO_Speed_50MHz);
-	configPin(PWM_2_PIN, PWM_X_PORT, GPIO_Mode_Out_PP, GPIO_Speed_50MHz);
-	configPin(PWM_3_PIN, PWM_X_PORT, GPIO_Mode_Out_PP, GPIO_Speed_50MHz);
+	configPin(PWM_0_PIN, PWM_0_PORT, GPIO_Mode_Out_PP, GPIO_Speed_50MHz);
 
 	/** EXTI configuration */
   	EXTI_InitTypeDef EXTI_InitStructure;
@@ -255,16 +251,16 @@ void drv_GPIO_Init(Exception *e){
 	NVIC_Init(&NVIC_InitStructure);
 
 	/** Subscribe to OutputTopics update and attach callback function */
-	outTopic = OutputTopic_getRef("/out", e);
-	catch(e){
+	outTopic = OutputTopic_getRef("/out", ex);
+	catch(ex){
 		return;
 	}
-	Topic_attach(outTopic, 0, e);
-	catch(e){
+	Topic_attach(outTopic, 0, ex);
+	catch(ex){
 		return;
 	}
 	// sets default value for topic handler
-	outTopicData = (OUT_TOPIC_DATA_T){0, 0};
+	outTopicData = (OUT_TOPIC_DATA_T){(int)0, (OutputStatus)OUT_OFF};
 }
 
 //------------------------------------------------------------------------------------
@@ -283,45 +279,51 @@ void drv_GPIO_OnTopicUpdate(void * obj, TopicData * td){
 
 //------------------------------------------------------------------------------------
 void EXTI1_IRQHandler(void){
-   keyTopicData.keys = readInputs();
-   EXTI_ClearFlag(EXTI_Line1);
-   Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
+	Exception e;
+	keyTopicData.keys = readInputs();
+	EXTI_ClearFlag(EXTI_Line1);
+	Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
 }
 
 //------------------------------------------------------------------------------------
 void EXTI2_IRQHandler(void){
-   keyTopicData.keys = readInputs();
-   EXTI_ClearFlag(EXTI_Line2);
-   Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
+	Exception e;
+	keyTopicData.keys = readInputs();
+	EXTI_ClearFlag(EXTI_Line2);
+	Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
 }
 
 //------------------------------------------------------------------------------------
 void EXTI3_IRQHandler(void){
-   keyTopicData.keys = readInputs();
-   EXTI_ClearFlag(EXTI_Line3);
-   Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
+	Exception e;
+	keyTopicData.keys = readInputs();
+	EXTI_ClearFlag(EXTI_Line3);
+	Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
 }
 
 //------------------------------------------------------------------------------------
 void EXTI4_IRQHandler(void){
-   keyTopicData.keys = readInputs();
-   EXTI_ClearFlag(EXTI_Line4);
-   Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
+	Exception e;
+	keyTopicData.keys = readInputs();
+	EXTI_ClearFlag(EXTI_Line4);
+	Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
 }
 
 //------------------------------------------------------------------------------------
 void EXTI9_5_IRQHandler(void){
-   keyTopicData.keys = readInputs();
-   EXTI_ClearFlag(EXTI_Line5|EXTI_Line6|EXTI_Line7|EXTI_Line8|EXTI_Line9);
-   Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
+	Exception e;
+	keyTopicData.keys = readInputs();
+	EXTI_ClearFlag(EXTI_Line5|EXTI_Line6|EXTI_Line7|EXTI_Line8|EXTI_Line9);
+	Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
 }
 
 
 //------------------------------------------------------------------------------------
 void EXTI15_10_IRQHandler(void){
-   keyTopicData.keys = readInputs();
-   EXTI_ClearFlag(EXTI_Line10|EXTI_Line11|EXTI_Line12|EXTI_Line13|EXTI_Line14);
-   Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
+	Exception e;
+	keyTopicData.keys = readInputs();
+	EXTI_ClearFlag(EXTI_Line10|EXTI_Line11|EXTI_Line12|EXTI_Line13|EXTI_Line14);
+	Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
 }
 
 

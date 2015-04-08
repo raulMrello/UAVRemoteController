@@ -27,11 +27,21 @@
 
 #include "stm32f10x.h"	    	///< STM32F10x Library Definitions
 #include "UART_defines.h"		///< Common UART types
-#include "UartTopics.h"			///< required to publish, receive /uart topic updates
-#include "DataTopics.h"			///< required to publish, /rc /gps topic updates
+#include "UartTopics.h"			///< required to receive /uart topic updates
+#include "RcTopics.h"			///< required to publish /rc topic updates
+#include "GpsTopics.h"			///< required to publish /gps topic updates
 #include "mmf.h"				///< required for external TopicData type
 
 
+//------------------------------------------------------------------------------------
+//-- BSP DEFINES  --------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+#define BSP_LNK_init				drv_UART2_Init
+#define BSP_LNK_OnTopicUpdate		drv_UART2_OnTopicUpdate
+
+
+//------------------------------------------------------------------------------------
 
 /** \fun drv_UART2_Init
  *  \brief Initializes UART2 peripheral

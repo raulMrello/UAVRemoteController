@@ -69,12 +69,12 @@
      If you are using different crystal you have to adapt those functions accordingly.
     */
 
-/*#define SYSCLK_FREQ_HSE    HSE_Value */
-#define SYSCLK_FREQ_24MHz  24000000 
+/* #define SYSCLK_FREQ_HSE    HSE_Value */
+/* #define SYSCLK_FREQ_24MHz  24000000  */
 /* #define SYSCLK_FREQ_36MHz  36000000 */
 /* #define SYSCLK_FREQ_48MHz  48000000 */
 /* #define SYSCLK_FREQ_56MHz  56000000 */
-/* #define SYSCLK_FREQ_72MHz  72000000 */
+#define SYSCLK_FREQ_72MHz  72000000
 
 /*!< Uncomment the following line if you need to use external SRAM mounted
      on STM3210E-EVAL board (STM32 High density devices) as data memory  */ 
@@ -855,7 +855,7 @@ static void SetSysClockTo72(void)
     /* PCLK2 = HCLK */
     RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE2_DIV1;
     
-    /* PCLK1 = HCLK */
+    /* PCLK1 = HCLK/2 */
     RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE1_DIV2;
 
 #ifdef STM32F10X_CL

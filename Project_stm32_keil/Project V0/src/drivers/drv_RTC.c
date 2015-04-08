@@ -1,48 +1,64 @@
-/*************************************************************************//**
- * @file    drv_RTC.h
- * @mcu		STM32F1x
- * @brief   RTC peripheral controller
- * @date    08.06.2010
- * @author  Raúl M.
- ****************************************************************************/
-
-/****************************************************************************************************//**
- *                        REQUIRED LIBRARIES
- ********************************************************************************************************/
-#include "stm32f10x.h"
+/*
+ * drv_RTC.c
+ *
+ *  Created on: 07/04/2015
+ *      Author: raulMrello
+ *
+ */
+ 
 #include "drv_RTC.h"
 
+//------------------------------------------------------------------------------------
+//-- PRIVATE DEFINITIONS -------------------------------------------------------------
+//------------------------------------------------------------------------------------
 
-/****************************************************************************************************//**
- *                        	REQUIRED INTERFACES
- ********************************************************************************************************/
-#define ITimeEvent()		drv_RTC_Requires_ITimeEvent()
+//------------------------------------------------------------------------------------
+//-- PRIVATE MEMBERS -----------------------------------------------------------------
+//------------------------------------------------------------------------------------
 
- 
-/****************************************************************************************************//**
- *                        PRIVATE MEMBERS
- ********************************************************************************************************/
+static SYS_TOPIC_DATA_T sysTopicData;
+static TIME_TOPIC_DATA_T timeTopicData;
+static Topic * sysTopic;
+static Topic * timeTopic;
 
+static void setTime(int time);
+static int getTime(void);
+static void endisAlarm(int endis);
 
+//------------------------------------------------------------------------------------
+//-- IMPLEMENTATION  -----------------------------------------------------------------
+//------------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------------
+static void setTime(int time){
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
+  	PWR_BackupAccessCmd(ENABLE);
+	RTC_WaitForLastTask();
+	RTC_SetCounter((uint32_t)time);
+	RTC_WaitForLastTask();
+	PWR_BackupAccessCmd(DISABLE);
+}
 
-/********************************************************************************************************
- ********************************************************************************************************
- ********************************************************************************************************
- 										IMPLEMENTATION	
- ********************************************************************************************************
- ********************************************************************************************************
- ********************************************************************************************************/
+//------------------------------------------------------------------------------------
+static int getTime(void){
+	int counter;
+	counter = (int)RTC_GetCounter();	
+	return (counter);
+}
 
-/****************************************************************************************************//**
- * @fun		drv_RTC_Init
- * @brief	Provided interface to initialize driver enabling interrupts
- * @return	n/a
- **********************************************************************************/
-void drv_RTC_Init(void)
-{
-	NVIC_InitTypeDef NVIC_InitStructure;
-	
+//------------------------------------------------------------------------------------
+static void endisAlarm(int endis){
+	// Wait until last write operation on RTC registers has finished 
+	RTC_WaitForLastTask();
+	// Enable the RTC Second 
+	RTC_ITConfig(RTC_IT_SEC, ((endis)? ENABLE : DISABLE));
+	// Wait until last write operation on RTC registers has finished 
+	RTC_WaitForLastTask();
+
+}
+//------------------------------------------------------------------------------------
+void drv_RTC_Init(Exception *e){
+	NVIC_InitTypeDef NVIC_InitStructure;	
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1); 	// Configure one bit for preemption priority
 	
 	// Enable the RTC Interrupt 
@@ -52,8 +68,7 @@ void drv_RTC_Init(void)
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 
-	if (BKP_ReadBackupRegister(BKP_DR1) != 0xA5A5)
-	{
+	if (BKP_ReadBackupRegister(BKP_DR1) != 0xA5A5){
   		// Enable PWR and BKP clocks 
 		RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
 		// Allow access to BKP Domain
@@ -70,8 +85,8 @@ void drv_RTC_Init(void)
 		RCC_RTCCLKCmd(ENABLE);
 		// Wait for RTC registers synchronization 
 		RTC_WaitForSynchro();
-		// Enable the RTC Second 
-		drv_RTC_Enable();
+		// Disable the RTC Second 
+		endisAlarm(0);
 		// Set RTC prescaler: set RTC period to 1sec
 		RTC_SetPrescaler(32767); // RTC period = RTCCLK/RTC_PR = (32.768 KHz)/(32767+1) 
 		// Wait until last write operation on RTC registers has finished 
@@ -84,84 +99,72 @@ void drv_RTC_Init(void)
 
 		BKP_WriteBackupRegister(BKP_DR1, 0xA5A5);
 	}
-	else
-	{
+	else{
 		// Wait for RTC registers synchronization
 		RTC_WaitForSynchro();
-		// Enable the RTC Second
-		drv_RTC_Enable();
+		// Disable the RTC Second
+		endisAlarm(0);
 	}
   	/* Clear reset flags */
    	RCC_ClearFlag();
  
+	/** Subscribe to SystemTopics update and attach callback function */
+	sysTopic = SystemTopic_getRef("/sys", e);
+	catch(e){
+		return;
+	}
+	Topic_attach(sysTopic, 0, e);
+	catch(e){
+		return;
+	}
+	// sets default value for topic handler 
+	sysTopicData.status = 0;
+	sysTopicData.queries = SYS_NO_QUERIES;
+	sysTopicData.time = 0;
+	
+	timeTopicData.time = 0;
+	timeTopicData.event = TIME_NO_EVENTS;
 }
 
-/****************************************************************************************************//**
- * @fun		drv_RTC_GetTime
- * @brief	Provided interface to get the current time value
- * @return	time value as uint32
- **********************************************************************************/
-uint32_t drv_RTC_GetTime(void){
-	uint32_t counter;
-	counter = RTC_GetCounter();	
-	return (counter);
-}
-
-/****************************************************************************************************//**
- * @fun		drv_RTC_SetTime
- * @brief	Provided interface to set the current time value
- * @param	counter		New time value
- * @return	n/a
- **********************************************************************************/
-void drv_RTC_SetTime(uint32_t counter){
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
-  	PWR_BackupAccessCmd(ENABLE);
-	RTC_WaitForLastTask();
-	RTC_SetCounter(counter);
-	RTC_WaitForLastTask();
-	PWR_BackupAccessCmd(DISABLE);
-}
-
-/****************************************************************************************************//**
- * @fun		RTC_IRQHandler
- * @brief	RTC interrupt handler it invokes to required interface ITimeEvent to notify time updating
- * @return	n/a
- **********************************************************************************/
-void RTC_IRQHandler(void){
-	if (RTC_GetITStatus(RTC_IT_SEC) != RESET)
-	{
-	 	RTC_ClearITPendingBit(RTC_IT_SEC); 	// Clear the RTC Second interrupt 
-		RTC_WaitForLastTask(); 			// Wait until last write operation on RTC registers has finished 
-		ITimeEvent();
+//------------------------------------------------------------------------------------
+void drv_RTC_OnTopicUpdate(void * obj, TopicData * td){
+	(void)obj;	// param not used
+	//topic checking
+	if(td->id == (int)sysTopic){
+		sysTopicData = *((SYS_TOPIC_DATA_T*)td->data);
+		if((sysTopicData.queries & SYS_RTC_SET_TIME) != 0){
+			sysTopicData.queries &= ~SYS_RTC_SET_TIME;
+			setTime(sysTopicData.time);
+		}
+		if((sysTopicData.queries & SYS_RTC_ENABLE_EVENTS) != 0 && (sysTopicData.status & SYS_RTC_EVENTS_ENABLED) == 0){
+			sysTopicData.queries &= ~SYS_RTC_ENABLE_EVENTS;
+			sysTopicData.status |= SYS_RTC_EVENTS_ENABLED;
+			endisAlarm(1);
+		}
+		if((sysTopicData.queries & SYS_RTC_DISABLE_EVENTS) != 0 && (sysTopicData.status & SYS_RTC_EVENTS_ENABLED) != 0){
+			sysTopicData.queries &= ~SYS_RTC_DISABLE_EVENTS;
+			sysTopicData.status &= ~SYS_RTC_EVENTS_ENABLED;
+			endisAlarm(0);
+		}
 	}
 }
-/****************************************************************************************************//**
- * @fun		drv_RTC_Enable
- * @brief	Enable interrupts
- * @return	n/a
- **********************************************************************************/
-void drv_RTC_Enable(void){
-	// Wait until last write operation on RTC registers has finished 
-	RTC_WaitForLastTask();
-	// Enable the RTC Second 
-	RTC_ITConfig(RTC_IT_SEC, ENABLE);
-	// Wait until last write operation on RTC registers has finished 
-	RTC_WaitForLastTask();
 
+//------------------------------------------------------------------------------------
+//-- INTERRUPTS  ---------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------
+void RTC_IRQHandler(void){
+	Exception e;
+	if (RTC_GetITStatus(RTC_IT_SEC) != RESET) {
+	 	RTC_ClearITPendingBit(RTC_IT_SEC); 	// Clear the RTC Second interrupt 
+		RTC_WaitForLastTask(); 				// Wait until last write operation on RTC registers has finished 
+		timeTopicData.time = getTime();
+		timeTopicData.event = TIME_EVENT_SECOND;
+		Topic_notify(timeTopic, &timeTopicData, sizeof(TIME_TOPIC_DATA_T), 0, 0, &e);
+	}
 }
 
-/****************************************************************************************************//**
- * @fun		drv_RTC_Disable
- * @brief	Disable interrupts
- * @return	n/a
- **********************************************************************************/
-void drv_RTC_Disable(void){
-	// Wait until last write operation on RTC registers has finished 
-	RTC_WaitForLastTask();
-	// Disable the RTC Second 
-	RTC_ITConfig(RTC_IT_SEC, DISABLE);
-	// Wait until last write operation on RTC registers has finished 
-	RTC_WaitForLastTask();
-}
+
 
 

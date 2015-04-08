@@ -65,7 +65,7 @@ typedef enum {
 	EVT_RESUMED = 	(1 << 1),	///< event which sets a suspended->ready transition
 	EVT_TOPIC = 	(1 << 2),	///< event due to a topic update
 	EVT_FLAGS = 	(1 << 3),	///< event which sets a flagwait->ready transition
-	EVT_FLAGMASK =  (0xffffffff & ~(EVT_TOPIC|EVT_RESUMED|EVT_YIELD))
+	EVT_FLAGMASK =  (int)(0xffffffff & ~(EVT_TOPIC|EVT_RESUMED|EVT_YIELD))
 }Event;
 
 

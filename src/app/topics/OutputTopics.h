@@ -15,7 +15,7 @@
 
 
 //------------------------------------------------------------------------------------
-//--  /key topics definitions  -------------------------------------------------------
+//--  /out topics definitions  -------------------------------------------------------
 //------------------------------------------------------------------------------------
 
 /** \enum OutputStatus
@@ -31,9 +31,36 @@ typedef enum {
  *  \brief Topic data structure for /out topics
  */
 typedef struct {
-	int output_id;		///< output id
-	int value;			///< output logic value
+	int output_id;			///< output id
+	OutputStatus value;		///< output logic value
 }OUT_TOPIC_DATA_T;
+
+//------------------------------------------------------------------------------------
+//--  /pwm topics definitions  -------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+/** \enum PwmRequest
+ *  \brief Pwm requested operation flags definitions
+ */
+typedef enum {
+	PWM_NO_QUERIES		= 0,
+	PWM_SET_PERIOD 		= (1 << 0),
+	PWM_SET_DUTY 		= (1 << 1)
+}PwmRequest;
+
+/** \struct PWM_TOPIC_DATA_T
+ *  \brief Topic data structure for /pwm topics
+ */
+typedef struct {
+	int period;			///< period in milliseconds
+	int duty;			///< duty (range 0%..100%)
+	PwmRequest queries;	///< requested operation flags
+}PWM_TOPIC_DATA_T;
+
+//------------------------------------------------------------------------------------
+//--  COMMON DEFINITIONS  ------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
 
 /**
  *  \fn OutputTopic_initialize

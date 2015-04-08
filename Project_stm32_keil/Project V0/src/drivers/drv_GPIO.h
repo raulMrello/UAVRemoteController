@@ -34,6 +34,15 @@
 #include "mmf.h"				///< required for external TopicData type
 
 
+//------------------------------------------------------------------------------------
+//-- BSP DEFINES  --------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+#define BSP_GPIO_init				drv_GPIO_Init
+#define BSP_GPIO_OnTopicUpdate		drv_GPIO_OnTopicUpdate
+
+
+//------------------------------------------------------------------------------------
 
 /** \fun drv_GPIO_Init
  *  \brief Initializes GPIO lines

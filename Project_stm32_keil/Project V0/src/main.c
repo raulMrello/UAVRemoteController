@@ -20,13 +20,38 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
+#include "core_cm3.h"
+#include "mmf.h"
 
+
+/** \def 	SYSTICK_PERIOD_MILLISECONDS
+  * @brief  Convert a milliseconds period into systick ticks, according with selected system frequency.
+  */
+#define SYSTICK_PERIOD_MILLISECONDS(ms)		(int)(((SystemFrequency/8)*1000000*(ms))/1000)
+
+static Exception e = Exception_INIT();
 
 int main(void){
-  	SystemInit();		// Setup STM32 system (clock, PLL and Flash configuration)
-  	for(;;); 		// Infinite loop
+	// Setup STM32 system (clock, PLL and Flash configuration)
+  	SystemInit();		
+	// Setup SysTick interrupts
+	SysTick_Config(SYSTICK_PERIOD_MILLISECONDS(10));
+	// Infinite loop
+  	for(;;); 		
 }
 
+/**
+  * @brief  This function handles SysTick Handler.
+  * @param  None
+  * @retval None
+  */
+
+void SysTick_Handler(void){	
+	OS_tick(&e);
+	catch(&e){
+		while(1){ }
+	}
+}
 
 
 

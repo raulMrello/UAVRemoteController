@@ -1,25 +1,26 @@
 /*
- * UartTopics.c
+ * TimeTopics.c
  *
  *  Created on: 12/3/2015
  *      Author: raulMrello
  */
 
-#include "UartTopics.h"
+#include "TimeTopics.h"
 #include <string.h>
 
-#define uart_OBSIZE		2		///< Observerlist can alloc up to 2 different observers
-static Topic uarttopic;
-static Task* uart_oblist[uart_OBSIZE];
+
+#define time_OBSIZE		1		///< Observerlist can alloc up to 2 different observers
+static Topic timetopic;
+static Task* time_oblist[time_OBSIZE];
 
 //------------------------------------------------------------------------------------
-Topic * UartTopic_initialize(const char * name, Exception *e){
-	if(strcmp(name, "/uart") == 0){
-		Topic_initialize(&uarttopic, name, (void**)uart_oblist, uart_OBSIZE, e);
+Topic * TimeTopic_initialize(const char * name, Exception *e){
+	if(strcmp(name, "/time") == 0){
+		Topic_initialize(&timetopic, name, (void**)time_oblist, time_OBSIZE, e);
 		catch(e){
 			return 0;
 		}
-		return &uarttopic;
+		return &timetopic;
 	}
 	else {
 		Exception_throw(e, BAD_ARGUMENT, "Unknown topic name");
@@ -28,9 +29,9 @@ Topic * UartTopic_initialize(const char * name, Exception *e){
 }
 
 //------------------------------------------------------------------------------------
-Topic * UartTopic_getRef(const char * name, Exception *e){
-	if(strcmp(name, "/uart") == 0){
-		return &uarttopic;
+Topic * TimeTopic_getRef(const char * name, Exception *e){
+	if(strcmp(name, "/time") == 0){
+		return &timetopic;
 	}
 	else {
 		Exception_throw(e, BAD_ARGUMENT, "Unknown topic name");

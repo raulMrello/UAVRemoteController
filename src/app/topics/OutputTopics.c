@@ -12,8 +12,9 @@
 //--  PRIVATE DEFINITIONS  -----------------------------------------------------------
 //------------------------------------------------------------------------------------
 
+#define out_OBSIZE		1		///< Observerlist can alloc up to 1 different observers
 static Topic outtopic;
-static Task* out_oblist[1];		///< Observerlist can alloc up to 1 different observers
+static Task* out_oblist[out_OBSIZE];		
 
 
 //------------------------------------------------------------------------------------
@@ -23,7 +24,7 @@ static Task* out_oblist[1];		///< Observerlist can alloc up to 1 different obser
 //------------------------------------------------------------------------------------
 Topic * OutputTopic_initialize(const char * name, Exception *e){
 	if(strcmp(name, "/out") == 0){
-		Topic_initialize(&outtopic, name, (void**)out_oblist, 1, e);
+		Topic_initialize(&outtopic, name, (void**)out_oblist, out_OBSIZE, e);
 		catch(e){
 			return 0;
 		}

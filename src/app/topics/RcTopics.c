@@ -1,20 +1,20 @@
 /*
- * InputTopics.cpp
+ * RcTopics.c
  *
  *  Created on: 12/3/2015
  *      Author: raulMrello
  */
 
-#include "InputTopics.h"
+#include "RcTopics.h"
 #include <string.h>
 
 //------------------------------------------------------------------------------------
 //--  PRIVATE DEFINITIONS  -----------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-#define key_OBSIZE		1		///< Observerlist can alloc up to 1 different observers
-static Topic keytopic;
-static Task* key_oblist[key_OBSIZE];		
+#define rc_OBSIZE		1		///< Observerlist can alloc up to 1 different observers
+static Topic rctopic;
+static Task * rc_oblist[rc_OBSIZE];
 
 
 //------------------------------------------------------------------------------------
@@ -22,13 +22,13 @@ static Task* key_oblist[key_OBSIZE];
 //------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------
-Topic * InputTopic_initialize(const char * name, Exception *e){
-	if(strcmp(name, "/key") == 0){
-		Topic_initialize(&keytopic, name, (void**)key_oblist, key_OBSIZE, e);
+Topic * RcTopic_initialize(const char * name, Exception *e){
+	if(strcmp(name, "/rc") == 0){
+		Topic_initialize(&rctopic, name, (void**)rc_oblist, rc_OBSIZE, e);
 		catch(e){
 			return 0;
 		}
-		return &keytopic;
+		return &rctopic;
 	}
 	else {
 		Exception_throw(e, BAD_ARGUMENT, "Unknown topic name");
@@ -36,10 +36,10 @@ Topic * InputTopic_initialize(const char * name, Exception *e){
 	}
 }
 
-////------------------------------------------------------------------------------------
-Topic * InputTopic_getRef(const char * name, Exception *e){
-	if(strcmp(name, "/key") == 0){
-		return &keytopic;
+//------------------------------------------------------------------------------------
+Topic * RcTopic_getRef(const char * name, Exception *e){
+	if(strcmp(name, "/rc") == 0){
+		return &rctopic;
 	}
 	else {
 		Exception_throw(e, BAD_ARGUMENT, "Unknown topic name");

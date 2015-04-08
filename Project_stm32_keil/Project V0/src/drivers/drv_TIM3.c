@@ -1,48 +1,51 @@
-/*************************************************************************//**
- * @file    drv_TIM2.c
- * @mcu		STM32F1x
- * @brief   TIM2 peripheral controller
- * @date    14.06.2010
- * @author  Raúl M.
- ****************************************************************************/
-
-/****************************************************************************************************//**
- *                        REQUIRED LIBRARIES
- ********************************************************************************************************/
+/*
+ * drv_TIM3.c
+ *
+ *  Created on: 07/04/2015
+ *      Author: raulMrello
+ *
+ */
+ 
 #include "drv_TIM3.h"
 
-static uint8_t duty = 255;
+//------------------------------------------------------------------------------------
+//-- PRIVATE DEFINITIONS -------------------------------------------------------------
+//------------------------------------------------------------------------------------
 
-/********************************************************************************************************
- ********************************************************************************************************
- ********************************************************************************************************
- 										IMPLEMENTATION	
- ********************************************************************************************************
- ********************************************************************************************************
- ********************************************************************************************************/
+#define DEFAULT_PREESCALER  36		// APB1 = SYSCLK/2, at 72MHz = 36MHz. Then 36MHz/36 = 1MHz clock
+#define DEFAULT_PERIOD		250		// 250 ticks at 1Mhz(1us) = 250us => 4KHz (buzzer resonant freq)
 
-/****************************************************************************************************//**
- * @fun		ReloadAndRun
- * @brief	Loads a new duty value and restart timer
- * @return	n/a
- **********************************************************************************/
-static void ReloadAndRun(uint8_t value){
-	static uint8_t lastLoadedValue = (uint8_t)-1;
+//------------------------------------------------------------------------------------
+//-- PRIVATE MEMBERS -----------------------------------------------------------------
+//------------------------------------------------------------------------------------
 
-    if(value == lastLoadedValue)
-   		return;
+static PWM_TOPIC_DATA_T pwmTopicData;
+static Topic * pwmTopic;
 
-	lastLoadedValue = value;
-	TIM_SetCompare3(TIM3, value*10);
- 
+/** \fun restart
+ *  \brief Restarts the peripheral with a new period/duty configuration
+ */
+static void restart(void);
+
+/** \fun updateDuty
+ *  \brief Updates duty
+ */
+static void updateDuty(void);
+
+//------------------------------------------------------------------------------------
+//-- IMPLEMENTATION  -----------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------
+static void updateDuty(void){
+	TIM_SetCompare3(TIM3, (uint16_t)((pwmTopicData.duty * pwmTopicData.period)/100));
 }
 
-/****************************************************************************************************//**
- * @fun		drv_TIM3_Init
- * @brief	Provided interface to setup the driver to its default configuration
- * @return	n/a
- **********************************************************************************/
-void drv_TIM3_Init(){
+//------------------------------------------------------------------------------------
+static void restart(void){
+  	/* TIM3 disable counter */
+ 	TIM_Cmd(TIM3, DISABLE);
+	
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 	TIM_OCInitTypeDef  		TIM_OCInitStructure;
 
@@ -54,8 +57,8 @@ void drv_TIM3_Init(){
 //	GPIO_TIM3_as_timer();
 
 	// Configuracion TIM
-	TIM_TimeBaseStructure.TIM_Period = 999;
-	TIM_TimeBaseStructure.TIM_Prescaler = 0;
+	TIM_TimeBaseStructure.TIM_Period = pwmTopicData.period;
+	TIM_TimeBaseStructure.TIM_Prescaler = DEFAULT_PREESCALER;
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 
@@ -72,41 +75,44 @@ void drv_TIM3_Init(){
  
    	/* TIM3 enable counter */
    	TIM_Cmd(TIM3, ENABLE);
-
-	duty = 0;
+	updateDuty();
 }
 
+//------------------------------------------------------------------------------------
+void drv_TIM3_Init(Exception *e){
 
-/****************************************************************************************************//**
- * @fun		drv_TIM3_SetDuty
- * @brief	Provided interface to set a new duty %
- * @param	val		new duty value. Range 0..99
- * @return	n/a
- **********************************************************************************/
-void drv_TIM3_SetDuty(uint8_t val){
-	if(val > 100)
-		val = 100;
-	duty = val;
+	/** Subscribe to OutputTopics update and attach callback function */
+	pwmTopic = OutputTopic_getRef("/pwm", e);
+	catch(e){
+		return;
+	}
+	Topic_attach(pwmTopic, 0, e);
+	catch(e){
+		return;
+	}
+	// sets default value for topic handler (duty=0%) and stops PWM generation
+	pwmTopicData.period = DEFAULT_PERIOD;
+	pwmTopicData.duty = 0;
+	pwmTopicData.queries = PWM_NO_QUERIES;
+	restart();
 }
 
-
-/****************************************************************************************************//**
- * @fun		drv_TIM3_on
- * @brief	Provided interface to start the PWM signal generation
- * @return	n/a
- **********************************************************************************/
-void drv_TIM3_on(void){
-	ReloadAndRun(duty);
+//------------------------------------------------------------------------------------
+void drv_TIM3_OnTopicUpdate(void * obj, TopicData * td){
+	(void)obj;	// param not used
+	//topic checking
+	if(td->id == (int)pwmTopic){
+		PWM_TOPIC_DATA_T * topic = (PWM_TOPIC_DATA_T*)td->data;
+		if((topic->queries & PWM_SET_PERIOD) != 0){
+			pwmTopicData.period = topic->period;
+			restart();
+		}
+		if((topic->queries & PWM_SET_DUTY) != 0){
+			pwmTopicData.duty = topic->duty;
+			updateDuty();
+		}
+	}	
 }
 
-
-/****************************************************************************************************//**
- * @fun		drv_TIM3_off
- * @brief	Provided interface to stop the PWM signal generation
- * @return	n/a
- **********************************************************************************/
-void drv_TIM3_off(void){
-	ReloadAndRun(0);
-}
 
   

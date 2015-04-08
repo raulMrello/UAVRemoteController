@@ -16,6 +16,14 @@ This project will include next modules:
 
 ## Changelog
 
+> 08.04.2015-001 branch: master --------------
+ - Removed all unused modules from project and from filesystem.
+ - Finished drivers and topics
+ - NEXT STEPS:
+	- Add tasks (LoggerTask in stead Link for serial debug trace)
+	- Add code to main
+
+
 > 07.04.2015-001 branch: master --------------
  - Done drv_GPIO, drv_UART1, drv_UART2
  - Adapting module drv_TIM3 for PWM output
