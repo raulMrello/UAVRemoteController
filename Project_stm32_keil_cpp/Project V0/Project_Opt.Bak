@@ -1,0 +1,85 @@
+### uVision2 Project, (C) Keil Software
+### Do not modify !
+
+ cExt (*.c)
+ aExt (*.s*; *.src; *.a*)
+ oExt (*.obj)
+ lExt (*.lib)
+ tExt (*.txt; *.h; *.inc)
+ pExt (*.plm)
+ CppX (*.cpp)
+ DaveTm { 0,0,0,0,0,0,0,0 }
+
+Target (SGPSV01), 0x0004 // Tools: 'ARM-ADS'
+GRPOPT 1,(User),1,0,0
+GRPOPT 2,(StdPeriph_Driver),1,0,0
+GRPOPT 3,(CMSIS),1,0,0
+GRPOPT 4,(RVMDK),1,0,0
+GRPOPT 5,(Doc),1,0,0
+GRPOPT 6,(drivers),1,0,0
+GRPOPT 7,(devices),1,0,0
+
+OPTFFF 1,1,1,452984832,0,128,128,0,<.\src\main.c><main.c> { 44,0,0,0,0,0,0,0,1,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,233,255,255,255,132,0,0,0,132,0,0,0,167,3,0,0,118,2,0,0 }
+OPTFFF 1,2,1,0,0,0,0,0,<.\src\RTX_Conf_CM.c><RTX_Conf_CM.c> 
+OPTFFF 1,3,1,0,0,0,0,0,<.\src\stm32f10x_it.c><stm32f10x_it.c> 
+OPTFFF 1,4,5,520093696,0,1,6,0,<.\src\smartGPS.h><smartGPS.h> { 44,0,0,0,0,0,0,0,1,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,233,255,255,255,66,0,0,0,66,0,0,0,101,3,0,0,52,2,0,0 }
+OPTFFF 1,5,5,0,0,0,0,0,<.\src\fifo.h><fifo.h> 
+OPTFFF 1,6,1,301989888,0,0,0,0,<.\src\fifo.c><fifo.c> 
+OPTFFF 1,7,5,637534208,0,1,11,0,<.\src\app_defines.h><app_defines.h> { 44,0,0,0,0,0,0,0,1,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,233,255,255,255,88,0,0,0,88,0,0,0,123,3,0,0,74,2,0,0 }
+OPTFFF 2,8,1,419430400,0,0,0,0,<..\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_usart.c><stm32f10x_usart.c> 
+OPTFFF 2,9,1,134217728,0,0,0,0,<..\Libraries\STM32F10x_StdPeriph_Driver\src\misc.c><misc.c> 
+OPTFFF 2,10,1,0,0,0,0,0,<..\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_exti.c><stm32f10x_exti.c> 
+OPTFFF 2,11,1,0,0,0,0,0,<..\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_fsmc.c><stm32f10x_fsmc.c> 
+OPTFFF 2,12,1,83886080,0,0,0,0,<..\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_gpio.c><stm32f10x_gpio.c> 
+OPTFFF 2,13,1,536870912,0,0,0,0,<..\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_rcc.c><stm32f10x_rcc.c> 
+OPTFFF 2,14,1,0,0,0,0,0,<..\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_spi.c><stm32f10x_spi.c> 
+OPTFFF 3,15,1,0,0,0,0,0,<..\Libraries\CMSIS\Core\CM3\core_cm3.c><core_cm3.c> 
+OPTFFF 3,16,1,83886080,0,0,0,0,<..\Libraries\CMSIS\Core\CM3\system_stm32f10x.c><system_stm32f10x.c> 
+OPTFFF 4,17,2,0,0,0,0,0,<..\Libraries\CMSIS\Core\CM3\startup\arm\startup_stm32f10x_hd.s><startup_stm32f10x_hd.s> 
+OPTFFF 5,18,5,603979776,0,0,0,0,<.\readme.txt><readme.txt> 
+OPTFFF 6,19,1,553648128,0,0,0,0,<.\src\drivers\Retarget_UART.c><Retarget_UART.c> 
+OPTFFF 6,20,5,0,0,0,0,0,<.\src\drivers\drv_UART1.h><drv_UART1.h> 
+OPTFFF 6,21,1,184549376,0,108,108,0,<.\src\drivers\drv_UART1.c><drv_UART1.c> { 44,0,0,0,0,0,0,0,1,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,233,255,255,255,154,0,0,0,154,0,0,0,189,3,0,0,140,2,0,0 }
+OPTFFF 6,22,5,905969664,0,0,0,0,<.\src\drivers\drv_UART2.h><drv_UART2.h> 
+OPTFFF 6,23,1,402653184,0,0,0,0,<.\src\drivers\drv_UART2.c><drv_UART2.c> 
+OPTFFF 6,24,5,369098752,0,0,0,0,<.\src\drivers\drv_UART3.h><drv_UART3.h> 
+OPTFFF 6,25,1,939524096,0,0,0,0,<.\src\drivers\drv_UART3.c><drv_UART3.c> 
+OPTFFF 6,26,5,369098752,0,0,0,0,<.\src\drivers\drv_UART4.h><drv_UART4.h> 
+OPTFFF 6,27,1,788529152,0,0,0,0,<.\src\drivers\drv_UART4.c><drv_UART4.c> 
+OPTFFF 6,28,5,536870912,0,0,0,0,<.\src\drivers\drv_GPIO.h><drv_GPIO.h> 
+OPTFFF 6,29,1,754974720,0,0,0,0,<.\src\drivers\drv_GPIO.c><drv_GPIO.c> 
+OPTFFF 7,30,5,402653184,0,57,57,0,<.\src\devices\dev_GSM.h><dev_GSM.h> { 44,0,0,0,0,0,0,0,1,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,233,255,255,255,110,0,0,0,110,0,0,0,145,3,0,0,96,2,0,0 }
+OPTFFF 7,31,1,318767104,0,195,211,0,<.\src\devices\dev_GSM.c><dev_GSM.c> { 44,0,0,0,0,0,0,0,1,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,233,255,255,255,44,0,0,0,44,0,0,0,79,3,0,0,30,2,0,0 }
+OPTFFF 7,32,5,318767104,0,111,132,0,<.\src\devices\dev_GSM_util.h><dev_GSM_util.h> { 44,0,0,0,0,0,0,0,1,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,233,255,255,255,0,0,0,0,0,0,0,0,35,3,0,0,242,1,0,0 }
+OPTFFF 7,33,1,2,0,642,672,0,<.\src\devices\dev_GSM_util.c><dev_GSM_util.c> { 44,0,0,0,2,0,0,0,3,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,233,255,255,255,220,0,0,0,220,0,0,0,241,4,0,0,208,2,0,0 }
+OPTFFF 7,34,1,486539264,0,0,0,0,<.\src\devices\dev_GPS.c><dev_GPS.c> 
+
+
+TARGOPT 1, (SGPSV01)
+ ADSCLK=8000000
+  OPTTT 1,1,1,0
+  OPTHX 1,65535,0,0,0
+  OPTLX 79,66,8,<.\Output\List\>
+  OPTOX 16
+  OPTLT 1,1,1,0,1,1,0,1,0,0,0,0
+  OPTXL 1,1,1,1,1,1,1,0,0
+  OPTFL 1,0,1
+  OPTAX 255
+  OPTDL (SARMCM3.DLL)()(DARMSTM.DLL)(-pSTM32F103VE)(SARMCM3.DLL)()(TARMSTM.DLL)(-pSTM32F103VE)
+  OPTDBG 49150,1,()()()()()()()()()() (BIN\UL2CM3.DLL)()()()
+  OPTKEY 0,(DLGARARM)((6000=229,433,825,842,0))
+  OPTKEY 0,(DLGTARM)((1010=0,165,366,708,0)(1007=105,133,282,394,0)(1008=-1,-1,-1,-1,0)(1009=120,149,354,683,0)(100=15,35,651,694,0)(110=-1,-1,-1,-1,0)(111=-1,-1,-1,-1,0)(1011=-1,-1,-1,-1,0)(180=-1,-1,-1,-1,0)(120=75,100,486,491,0)(121=-1,-1,-1,-1,0)(122=-1,-1,-1,-1,0)(123=-1,-1,-1,-1,0)(124=-1,-1,-1,-1,0)(125=-1,-1,-1,-1,0)(126=-1,-1,-1,-1,0)(140=-1,-1,-1,-1,0)(240=-1,-1,-1,-1,0)(190=-1,-1,-1,-1,0)(200=-1,-1,-1,-1,0)(170=-1,-1,-1,-1,0)(130=150,182,734,862,0)(131=-1,-1,-1,-1,0)(132=-1,-1,-1,-1,0)(133=-1,-1,-1,-1,0)(160=640,342,1078,742,0)(161=798,558,1236,958,0)(162=-1,-1,-1,-1,0)(210=-1,-1,-1,-1,0)(211=-1,-1,-1,-1,0)(220=-1,-1,-1,-1,0)(221=-1,-1,-1,-1,0)(230=-1,-1,-1,-1,0)(231=-1,-1,-1,-1,0)(232=-1,-1,-1,-1,0)(233=-1,-1,-1,-1,0)(150=-1,-1,-1,-1,0)(151=-1,-1,-1,-1,0))
+  OPTKEY 0,(ARMDBGFLAGS)()
+  OPTKEY 0,(DLGUARM)((105=-1,-1,-1,-1,0)(106=-1,-1,-1,-1,0)(107=-1,-1,-1,-1,0))
+  OPTKEY 0,(UL2CM3)(-U-O14 -O14 -S0 -C0 -N00("ARM Cortex-M3") -D00(1BA00477) -L00(4) -TO18 -TC10000000 -TP21 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO15 -FD20000000 -FC800 -FN1 -FF0STM32F10x_512 -FS08000000 -FL080000)
+  OPTWA 0,1,(tsk_GPS_id)
+  OPTWA 1,1,(uart4_ctrl)
+  OPTWA 2,1,(rx_buffer,0x0A)
+  OPTWA 3,1,(sms)
+  OPTWA 4,1,(gsm_control)
+  OPTMM 1,8,(0x200035D6)
+  OPTDF 0x82
+  OPTLE <>
+  OPTLC <>
+EndOpt
+

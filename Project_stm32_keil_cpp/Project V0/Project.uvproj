@@ -360,10 +360,10 @@
             <uC99>1</uC99>
             <useXO>0</useXO>
             <VariousControls>
-              <MiscControls></MiscControls>
+              <MiscControls>--exceptions</MiscControls>
               <Define>USE_STDPERIPH_DRIVER, STM32F10X_MD</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\CMSIS\Core\CM3;..\Libraries\STM32F10x_StdPeriph_Driver\inc;.\inc;.\src;.\src\drivers;.\src\devices\dev_IR;.\src\devices\dev_Buzzer;.\src\devices\dev_GPS;.\src\devices\dev_Keypad;.\src\devices\dev_Bat;.\src\user_APIs\GPS;..\..\src\mmf_c\os;..\..\src\mmf_c\port;..\..\src\app\topics</IncludePath>
+              <IncludePath>..\Libraries\CMSIS\Core\CM3;..\Libraries\STM32F10x_StdPeriph_Driver\inc;.\inc;.\src;.\src\drivers;.\src\user_APIs\GPS;..\..\src\mmf_0.10.13042015002\cpp\os;..\..\src\mmf_0.10.13042015002\cpp\port</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -408,43 +408,6 @@
         </Group>
         <Group>
           <GroupName>topics</GroupName>
-          <Files>
-            <File>
-              <FileName>InputTopics.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\app\topics\InputTopics.c</FilePath>
-            </File>
-            <File>
-              <FileName>OutputTopics.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\app\topics\OutputTopics.c</FilePath>
-            </File>
-            <File>
-              <FileName>UartTopics.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\app\topics\UartTopics.c</FilePath>
-            </File>
-            <File>
-              <FileName>SystemTopics.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\app\topics\SystemTopics.c</FilePath>
-            </File>
-            <File>
-              <FileName>TimeTopics.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\app\topics\TimeTopics.c</FilePath>
-            </File>
-            <File>
-              <FileName>GpsTopics.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\app\topics\GpsTopics.c</FilePath>
-            </File>
-            <File>
-              <FileName>RcTopics.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\app\topics\RcTopics.c</FilePath>
-            </File>
-          </Files>
         </Group>
         <Group>
           <GroupName>libs</GroupName>
@@ -457,32 +420,47 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>mmf_c</GroupName>
+          <GroupName>mmf</GroupName>
           <Files>
             <File>
-              <FileName>Exception.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\mmf_c\os\Exception.c</FilePath>
+              <FileName>Exception.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\src\mmf_0.10.13042015002\cpp\os\Exception.cpp</FilePath>
             </File>
             <File>
-              <FileName>OS.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\mmf_c\os\OS.c</FilePath>
+              <FileName>Fifo.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\src\mmf_0.10.13042015002\cpp\os\Fifo.cpp</FilePath>
             </File>
             <File>
-              <FileName>Task.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\mmf_c\os\Task.c</FilePath>
+              <FileName>List.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\src\mmf_0.10.13042015002\cpp\os\List.cpp</FilePath>
             </File>
             <File>
-              <FileName>Timer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\mmf_c\os\Timer.c</FilePath>
+              <FileName>Memory.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\src\mmf_0.10.13042015002\cpp\os\Memory.cpp</FilePath>
             </File>
             <File>
-              <FileName>Topic.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\mmf_c\os\Topic.c</FilePath>
+              <FileName>OS.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\src\mmf_0.10.13042015002\cpp\os\OS.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>Task.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\src\mmf_0.10.13042015002\cpp\os\Task.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>Timer.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\src\mmf_0.10.13042015002\cpp\os\Timer.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>Topic.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\src\mmf_0.10.13042015002\cpp\os\Topic.cpp</FilePath>
             </File>
           </Files>
         </Group>
@@ -493,14 +471,9 @@
           <GroupName>bsp_drivers</GroupName>
           <Files>
             <File>
-              <FileName>drv_UART1.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\drivers\drv_UART1.c</FilePath>
-            </File>
-            <File>
-              <FileName>drv_UART2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\drivers\drv_UART2.c</FilePath>
+              <FileName>drv_GPIO.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\drivers\drv_GPIO.h</FilePath>
             </File>
             <File>
               <FileName>drv_GPIO.c</FileName>
@@ -508,9 +481,19 @@
               <FilePath>.\src\drivers\drv_GPIO.c</FilePath>
             </File>
             <File>
+              <FileName>drv_TIM3.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\drivers\drv_TIM3.h</FilePath>
+            </File>
+            <File>
               <FileName>drv_TIM3.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\drivers\drv_TIM3.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_RTC.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\drivers\drv_RTC.h</FilePath>
             </File>
             <File>
               <FileName>drv_RTC.c</FileName>
@@ -518,9 +501,24 @@
               <FilePath>.\src\drivers\drv_RTC.c</FilePath>
             </File>
             <File>
+              <FileName>drv_POW.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\drivers\drv_POW.h</FilePath>
+            </File>
+            <File>
               <FileName>drv_POW.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\drivers\drv_POW.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_UART.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\drivers\drv_UART.h</FilePath>
+            </File>
+            <File>
+              <FileName>drv_UART.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\drivers\drv_UART.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -543,9 +541,9 @@
               <FilePath>.\src\stm32f10x_it.c</FilePath>
             </File>
             <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\main.c</FilePath>
+              <FileName>main.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\main.cpp</FilePath>
             </File>
           </Files>
         </Group>
