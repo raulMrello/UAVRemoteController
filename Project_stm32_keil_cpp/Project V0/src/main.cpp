@@ -22,6 +22,7 @@
 #include "stm32f10x.h"
 #include "core_cm3.h"
 
+#include "mmf.h"
 
 /** \def 	SYSTICK_PERIOD_MILLISECONDS
   * @brief  Convert a milliseconds period into systick ticks, according with selected system frequency.
@@ -32,6 +33,9 @@
 int main(void){
 	// Setup STM32 system (clock, PLL and Flash configuration)
   	SystemInit();		
+	
+	MMF::OS::init(1,10);
+	
 	// Setup SysTick interrupts
 	SysTick_Config(SYSTICK_PERIOD_MILLISECONDS(10));
 	// Infinite loop
@@ -45,6 +49,7 @@ int main(void){
   */
 
 void SysTick_Handler(void){	
+	MMF::OS::tick();
 //	OS_tick(&e);
 //	catch(&e){
 //		while(1){ }

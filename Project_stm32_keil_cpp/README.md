@@ -16,6 +16,13 @@ This project will include next modules:
 
 ## Changelog
 
+> 13.04.2015-002 branch: master --------------
+ - Redesigned drivers. Unified drv_UART
+ - Loaded MMF release 0.10.13042015003
+ - NEXT STEPS:
+	- Add tasks (LoggerTask in stead Link for serial debug trace)
+	- Add code to main
+
 > 13.04.2015-001 branch: master --------------
  - Redefine drivers with callback installation in stead of topics
  - Redefine modules in C++

@@ -42,7 +42,14 @@ void Topic::notify(void * data, int datasize,  TopicConsumedCallback done, Topic
 	for(;;){
 		_count++;
 		// inserts into the topic pool
-		TopicData td = (TopicData){_id, _name, _data, _datasize, &_count, done, publisher};
+		TopicData td;
+		td.id = _id;
+		td.name = _name;
+		td.datasize = _datasize;
+		td.pcount = &_count;
+		td.done = done;
+		td.publisher = publisher;
+
 		try{
 			t->addTopic(&td);
 		}
