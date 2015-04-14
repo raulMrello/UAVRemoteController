@@ -5,13 +5,13 @@ This project is the stm32 implementation under KEIL uVision to develope and test
 ## Features
 This project is structured as follows:
 
-- Active_Modules: user active module files (acts as Tasks) <MODULE>.cpp|h
-- User_Libs: user library files lib_<FEATURE>.c|h
+- Active_Modules: user active module files (acts as Tasks) MODULE.cpp|h
+- User_Libs: user library files lib_FEATURE.c|h
 - MMF: multithreaded RTC-kernel [see Github project](https://github.com/raulMrello/MMF_C)
-- Bsp_Drivers: board specific drivers files drv_<DRIVER>.c|h
-- Sysconfig: system configuration files <device>_conf.h, <device>_it.c|h and entry point file main.cpp
-- StdPeriph_Drivers: stm32 standard peripheral library files <device>_<periph>.c|h
-- CMSIS-CORE: stm32f10x files startup_<device>.s, system_<device>.c|h, core_<cpu>.c|h
+- Bsp_Drivers: board specific drivers files drv_DRIVER.c|h
+- Sysconfig: system configuration files device_conf.h, device_it.c|h and entry point file main.cpp
+- StdPeriph_Drivers: stm32 standard peripheral library files device_periph.c|h
+- CMSIS-CORE: stm32f10x files startup_device.s, system_device.c|h, core_cpu.c|h
 
 ## Contents
 Important project files are placed on next folders:
