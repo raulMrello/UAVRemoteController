@@ -20,6 +20,9 @@ This controller has three main functions:
 
 ## Changelog
 
+> 14.04.2015-004 branch: master --------------
+ - See README.md in project "stm32_keil_cpp"
+ 
 > 13.04.2015-001 branch: master --------------
  - Added project "stm32_keil_cpp"
  - See README.md in project "stm32_keil_cpp"

@@ -1,20 +1,36 @@
-# UAVRC_stm32_keil
-This project is the stm32 implementation under KEIL uVision to develope and test final releases.
+# UAVRC_stm32_keil_cpp
+This project is the stm32 implementation under KEIL uVision to develope and test final releases in C++.
 
 
 ## Features
-This project will include next modules:
+This project is structured as follows:
 
-1. RcTask, manages user inputs, like pushbuttons and switch selectors. According with those inputs, this module generates /rc topics to be send to the TelemetryReceiver.
-2. GpsTask, reads NMEA/UBX streams from the serial GPS module. It extract useful information and generates /gps topics for the TelemetryReceiver.
-3. CommTask, receives /rc and /gps topics from the other modules and sends them to the TelemetryReceiver. Also it receives /ack topics from the TelemetryReceiver
-4. Drivers, will adapt old source code to BSP_STM32 board.
+- Active_Modules: user active module files (acts as Tasks) <MODULE>.cpp|h
+- User_Libs: user library files lib_<FEATURE>.c|h
+- MMF: multithreaded RTC-kernel [see Github project](https://github.com/raulMrello/MMF_C)
+- Bsp_Drivers: board specific drivers files drv_<DRIVER>.c|h
+- Sysconfig: system configuration files <device>_conf.h, <device>_it.c|h and entry point file main.cpp
+- StdPeriph_Drivers: stm32 standard peripheral library files <device>_<periph>.c|h
+- CMSIS-CORE: stm32f10x files startup_<device>.s, system_<device>.c|h, core_<cpu>.c|h
 
 ## Contents
-- ../src/mmf_c/*: Multithreaded kernel code [see Github project](https://github.com/raulMrello/MMF_C)
-- ../src/app/*: Application source code (tasks, topics, ...)
+Important project files are placed on next folders:
+
+- Project V0: Keil project files incluiding (Active_Modules, Topics, User_Libs, Bsp_Drivers, Sysconfig files).
+- Libraries: Stm32 and CMSIS files
+- Cubemx: Board description and pinout configuration
+- Models: UML models explaining UAVRC behaviour.
 
 ## Changelog
+
+> 14.04.2015-002 branch: master --------------
+ - Added GpsTopic module
+ - Finished GpsReader module
+ - NEXT STEPS:
+	- Define Lib_GPS module content and libgps_ProcessData public primitive.
+	- Code KeyReader active module (and also KeyTopic)
+	- Code Router active module
+	- Code SysManager active module
 
 > 14.04.2015-001 branch: master --------------
  - Designing Active modules (GpsReader)

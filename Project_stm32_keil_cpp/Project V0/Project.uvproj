@@ -121,7 +121,7 @@
             <Oh166RecLen>16</Oh166RecLen>
           </OPTHX>
           <Simulator>
-            <UseSimulator>0</UseSimulator>
+            <UseSimulator>1</UseSimulator>
             <LoadApplicationAtStartup>1</LoadApplicationAtStartup>
             <RunToMain>1</RunToMain>
             <RestoreBreakpoints>1</RestoreBreakpoints>
@@ -129,11 +129,11 @@
             <RestoreMemoryDisplay>1</RestoreMemoryDisplay>
             <RestoreFunctions>1</RestoreFunctions>
             <RestoreToolbox>1</RestoreToolbox>
-            <LimitSpeedToRealTime>0</LimitSpeedToRealTime>
+            <LimitSpeedToRealTime>1</LimitSpeedToRealTime>
             <RestoreSysVw>1</RestoreSysVw>
           </Simulator>
           <Target>
-            <UseTarget>1</UseTarget>
+            <UseTarget>0</UseTarget>
             <LoadApplicationAtStartup>1</LoadApplicationAtStartup>
             <RunToMain>1</RunToMain>
             <RestoreBreakpoints>1</RestoreBreakpoints>
@@ -145,7 +145,7 @@
             <RestoreSysVw>1</RestoreSysVw>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
-          <TargetSelection>1</TargetSelection>
+          <TargetSelection>0</TargetSelection>
           <SimDlls>
             <CpuDll></CpuDll>
             <CpuDllArguments></CpuDllArguments>
@@ -363,7 +363,7 @@
               <MiscControls>--exceptions</MiscControls>
               <Define>USE_STDPERIPH_DRIVER, STM32F10X_MD</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\CMSIS\Core\CM3;..\Libraries\STM32F10x_StdPeriph_Driver\inc;.\inc;.\src;.\src\drivers;.\src\user_APIs\GPS;..\..\src\mmf_0.10.13042015002\cpp\os;..\..\src\mmf_0.10.13042015002\cpp\port;.\src\Active_Modules</IncludePath>
+              <IncludePath>..\Libraries\CMSIS\Core\CM3;..\Libraries\STM32F10x_StdPeriph_Driver\inc;.\inc;.\src;.\src\drivers;.\src\user_APIs\GPS;..\..\src\mmf_0.10.13042015002\cpp\os;..\..\src\mmf_0.10.13042015002\cpp\port;.\src\Active_Modules;.\src\Topics</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -414,10 +414,17 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>topics</GroupName>
+          <GroupName>Topics</GroupName>
+          <Files>
+            <File>
+              <FileName>GpsTopic.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Topics\GpsTopic.cpp</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
-          <GroupName>libs</GroupName>
+          <GroupName>User_Libs</GroupName>
           <Files>
             <File>
               <FileName>Lib_GPS.c</FileName>
@@ -427,7 +434,7 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>mmf</GroupName>
+          <GroupName>MMF</GroupName>
           <Files>
             <File>
               <FileName>Exception.cpp</FileName>
@@ -472,7 +479,7 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Bsp_drivers</GroupName>
+          <GroupName>Bsp_Drivers</GroupName>
           <Files>
             <File>
               <FileName>drv_GPIO.h</FileName>
@@ -552,8 +559,13 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>CMSIS</GroupName>
+          <GroupName>CMSIS-CORE</GroupName>
           <Files>
+            <File>
+              <FileName>startup_stm32f10x_md.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\Libraries\CMSIS\Core\CM3\startup\arm\startup_stm32f10x_md.s</FilePath>
+            </File>
             <File>
               <FileName>core_cm3.h</FileName>
               <FileType>5</FileType>
@@ -572,7 +584,7 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>StdPeriph_Driver</GroupName>
+          <GroupName>StdPeriph_Drivers</GroupName>
           <Files>
             <File>
               <FileName>stm32f10x_usart.c</FileName>
@@ -638,16 +650,6 @@
               <FileName>stm32f10x_bkp.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_bkp.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>RVMDK</GroupName>
-          <Files>
-            <File>
-              <FileName>startup_stm32f10x_md.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\Libraries\CMSIS\Core\CM3\startup\arm\startup_stm32f10x_md.s</FilePath>
             </File>
           </Files>
         </Group>

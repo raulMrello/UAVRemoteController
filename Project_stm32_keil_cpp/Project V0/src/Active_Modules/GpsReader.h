@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include "drv_UART.h"
+#include "GpsTopic.h"
 #include "mmf.h"
 using namespace MMF;
 
@@ -54,13 +55,15 @@ public:
 	virtual ~GpsReader();
 private:
 	GpsReaderFlags _mode;
+	GpsTopic::Data_t _gpsdata;
 	drv_UART _uart;
+
 	/** Task interface */
-	void init();
-	void onYieldTurn();
-	void onResume();
-	void onEventFlag(uint16_t event);
-	void onTopicUpdate(TopicData * topicdata);
+	virtual void init();
+	virtual void onYieldTurn();
+	virtual void onResume();
+	virtual void onEventFlag(uint16_t event);
+	virtual void onTopicUpdate(TopicData * topicdata);
 };
 
 

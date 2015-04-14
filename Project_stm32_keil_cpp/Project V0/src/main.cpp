@@ -18,38 +18,45 @@
   * <h2><center>&copy; COPYRIGHT 2009 STMicroelectronics</center></h2>
   */ 
 
+
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 #include "core_cm3.h"
-
+#include "GpsReader.h"
+#include "GpsTopic.h"
 #include "mmf.h"
 
-/** \def 	SYSTICK_PERIOD_MILLISECONDS
-  * @brief  Convert a milliseconds period into systick ticks, according with selected system frequency.
-  */
+/** Convert a milliseconds period into systick ticks, according with selected system frequency */
 #define SYSTICK_PERIOD_MILLISECONDS(ms)		(int)(((SystemFrequency/8)*1000000*(ms))/1000)
 
-#include "drv_UART.h"
-#include "drv_GPIO.h"
-#include "drv_TIM.h"
-#include "drv_RTC.h"
-#include "drv_POW.h"
-void ISRCallback(void * handler){
-}
-
+/** Program entry point */
 int main(void){
 	// Setup STM32 system (clock, PLL and Flash configuration)
   	SystemInit();		
-	drv_UART_Init(1, 64, 64, ISRCallback, ISRCallback, 0);
-	drv_GPIO_Init(ISRCallback, 0);
-	drv_TIM_Init(TIM_CHANNEL_PWM, 2000, 0);
-	drv_RTC_Init(ISRCallback, 0);
-	drv_POW_Init();
 	
-	MMF::OS::init(1,10);
-	
-	// Setup SysTick interrupts
-	SysTick_Config(SYSTICK_PERIOD_MILLISECONDS(10));
+	try{
+		// Init kernel
+		MMF::OS::init(	1,		// Max number of tasks
+						10000	// systick period in microseconds
+						);	
+		
+		// Creates and initializes topics
+		GpsTopic("/gps");
+		
+		// Create Active modules (Tasks)
+		new GpsReader("GpsReader", 0, GpsReader::GPS_MODE_NMEA);
+
+		// Setup SysTick interrupts
+		SysTick_Config(SYSTICK_PERIOD_MILLISECONDS(10));
+		
+		// Starts kernel scheduling
+		MMF::OS::schedule();
+
+	}
+	catch(Exception &e){
+		e.getMessage();
+		return -1;
+	}
 	// Infinite loop
   	for(;;); 		
 }

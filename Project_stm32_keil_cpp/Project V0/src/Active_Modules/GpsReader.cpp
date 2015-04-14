@@ -18,7 +18,7 @@
 
 
 //------------------------------------------------------------------------------------
-//-- PRIVATE MEMBERS -----------------------------------------------------------------
+//-- STATIC MEMBERS ------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
 static void UartDataReadyISRCallback(UartHandlerObj handler){
@@ -44,127 +44,59 @@ GpsReader::~GpsReader() {
 
 //------------------------------------------------------------------------------------
 void GpsReader::init(){
-	_uart = drv_UART_Init(1, 64, 64, UartDataSentISRCallback, UartDataSentISRCallback, this);
+	// setup uart1 peripheral
+	_uart = drv_UART_Init(1, 64, 64, UartDataReadyISRCallback, UartDataSentISRCallback, this);
 }
 
 //------------------------------------------------------------------------------------
 void GpsReader::onYieldTurn(){
-	
-
-	switch(counter){
-		// in this case checks task suspension
-		case 1:{
-			try{
-				suspend(20000);
-			}
-			catch(Exception &e){
-				//printf("Exception on GpsReader_OnYieldTurn: %s\r\n", e.msg);
-			}
-			return;
-		}
-		// in this case sends a topic update
-		case 2:{
-			try{
-				MyTopic::publish(&counter, sizeof(int), topicDone, this);
-			}
-			catch(Exception &e){
-				e.getMessage();
-			}
-			break;
-		}
-		// in this case sends event 1
-		case 3:{
-			try{
-				OS::sendEvent(0, "subscriber", 1);
-			}
-			catch(Exception &e){
-				e.getMessage();
-			}
-			break;
-		}
-		// in this case sends event 2
-		case 4:{
-			try{
-				OS::sendEvent(0, "subscriber", 2);
-			}
-			catch(Exception &e){
-				e.getMessage();
-			}
-			break;
-		}
-		// in this case sends event 8
-		case 5:{
-			try{
-				OS::sendEvent(0, "subscriber", 8);
-			}
-			catch(Exception &e){
-				e.getMessage();
-			}
-			break;
-		}
-		// in this case sends event 16
-		case 6:{
-			try{
-				OS::sendEvent(0, "subscriber", 16);
-			}
-			catch(Exception &e){
-				e.getMessage();
-			}
-			break;
-		}
-		// in this case sends event 1 and post topic update
-		case 7:{
-			try{
-				OS::sendEvent(0, "subscriber", 1);
-				MyTopic::publish(&counter, sizeof(int), topicDone, this);
-			}
-			catch(Exception &e){
-				e.getMessage();
-			}
-			break;
-		}
-		// in this case sends an event to an unknown task
-		case 8:{
-			try{
-				OS::sendEvent(0, "subscriBER", 1);
-			}
-			catch(Exception &e){
-				e.getMessage();
-			}
-			break;
-		}
-		// in this case colapses susbscriber topic pool
-		case 9:{
-			int j;
-			for(j=0;j<10;j++){
-				try{
-					MyTopic::publish(&counter, sizeof(int), topicDone, this);
-				}
-				catch(Exception &e){
-					e.getMessage();
-				}
-			}
-			break;
-		}
-	}
-
-	// keeps task running
-	yield();	///< IMPORTANT!!! in order to get control later, else it won't be executed
+	// enable uart rx interrupts
+	drv_UART_endisRx(_uart, 1);
+	// wait for uart rx event during 5 seconds
+	wait_and(GPS_EV_DATAREADY, 5000000);
 }
 
 
 //------------------------------------------------------------------------------------
 void GpsReader::onResume(){
-	// keeps task running
-	yield();	///< IMPORTANT!!! in order to get control later, else it won't be executed
+	// timeout occur due to some cause. Reinit uart peripheral 
+	// setup uart1 peripheral
+	_uart = drv_UART_Init(1, 64, 64, UartDataSentISRCallback, UartDataSentISRCallback, this);
+	// yields to restart interrupts and wait events
+	yield();
 }
 
 //------------------------------------------------------------------------------------
 void GpsReader::onEventFlag(uint16_t event){
-
+	// on data received from uart...
+	if((event & GPS_EV_DATAREADY) != 0){		
+		// stops suspension timer and sets waiting mode again
+		resume(1);	
+		wait_and(GPS_EV_DATAREADY, 5000000);		
+		// while received data, pass to gps NMEA/UBX processor
+		char data;
+		bool ready = false;
+		while(drv_UART_read(_uart, &data, 1) > 0){			
+			#warning TODO gps data processor 
+			/* >>> add code here <<<
+			 * ready = libgps_ProcessData(&_gpsdata, data);
+			 */			
+			// if data ready, publish topic update
+			if(ready){
+				ready = false;
+				GpsTopic::publish(&_gpsdata, sizeof(GpsTopic::Data_t),  0, 0);
+			}
+		}
+	}
 }
 
 //------------------------------------------------------------------------------------
 void GpsReader::onTopicUpdate(TopicData * td){
+	/** Never should reach this point */
+	throw Exception(Exception::UNKNOWN_EXCEPTION, "GpsReader::onTopicUpdate never should occur");
 }
+
+//------------------------------------------------------------------------------------
+//-- PROTECTED/PRIVATE FUNCTIONS -----------------------------------------------------
+//------------------------------------------------------------------------------------
 

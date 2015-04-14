@@ -7,6 +7,11 @@
 #ifndef __Lib_GPS_H__
 #define __Lib_GPS_H__
 
+#ifdef __cplusplus
+ extern "C" {
+#endif 
+
+
 /****************************************************************************************************//**
  *                        REQUIRED LIBRARIES
  ********************************************************************************************************/
@@ -78,6 +83,12 @@ uint8_t GPS_GetData				(uint8_t data);
 void 	GPS_CheckFrame			(STRGps *gpsPos, void (*INotify)(uint8_t *,uint16_t));
 void 	GPS_LatitudeToString	(STRGps *gpsPos, char *lat);
 void 	GPS_LongitudeToString	(STRGps *gpsPos, char *lon);
+
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 
