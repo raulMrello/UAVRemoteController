@@ -8,10 +8,29 @@
  
 #include "drv_GPIO.h"
 
+//------------------------------------------------------------------------------------
+//-- PRIVATE TYPEDEFS ----------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+
+/** GPIO data structure */
+typedef struct  {
+	GpioFlags in;       	//!< input channel bitmask
+	GpioFlags out;   		//!< output channel bitmask
+	GpioFlags evmask;  		//!< input event mask
+	OnGpioInputChange cbInputChange;	//!< input change callback
+	GpioHandlerObj cbHandler;			//!< callback handler
+}GpioCtrl_t;
+
+
 
 //------------------------------------------------------------------------------------
 //-- PRIVATE DEFINITIONS -------------------------------------------------------------
 //------------------------------------------------------------------------------------
+
+/** All input/ouput bitmask definition */
+#define ALL_INPUTS	(IC_N|IC_NE|IC_E|IC_ES|IC_S|IC_SW|IC_W|IC_WN|IC_ARM|IC_LOC|IC_ALT|IC_RTH)
+#define ALL_OUTPUTS	(OC_0|OC_1)
 
 /** Keyboard */
 
@@ -71,34 +90,17 @@
 //-- PRIVATE MEMBERS -----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-static KEY_TOPIC_DATA_T keyTopicData;
-static Topic * keyTopic;
-static Topic * outTopic;
+static GpioCtrl_t gpio;
 
+//------------------------------------------------------------------------------------
+static void NULL_CALLBACK(GpioHandlerObj handler){
+	(void)handler;	// param not used
+}
+
+//------------------------------------------------------------------------------------
 /** \fun configPin
  *  \brief Gonfigures GPIO pin
  */
-static void configPin(uint16_t pin,GPIO_TypeDef * port,GPIOMode_TypeDef mode,GPIOSpeed_TypeDef speed);
-
-/** \fun readInputs
- *  \brief Read keyboard and selector pins
- *  \return Bitmask combination of the input pins status
- */
-static int readInputs(void);
-
-/** \fun setOutput
- *  \brief Set the output to a logic value
- *  \param id OutputId (0 or 1)
- *  \return value Output logic value (0 or 1)
- */
-static void setOutput(int id, int value);
-
-
-//------------------------------------------------------------------------------------
-//-- IMPLEMENTATION  -----------------------------------------------------------------
-//------------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------------
 static void configPin(uint16_t pin,GPIO_TypeDef * port,GPIOMode_TypeDef mode,GPIOSpeed_TypeDef speed){
 	GPIO_InitTypeDef GPIO_InitStructure;
    	GPIO_InitStructure.GPIO_Pin = pin;
@@ -108,54 +110,74 @@ static void configPin(uint16_t pin,GPIO_TypeDef * port,GPIOMode_TypeDef mode,GPI
 }
 
 //------------------------------------------------------------------------------------
-static int readInputs(void) {
-	int result = 0;
+/** \fun readInputs
+ *  \brief Read keyboard and selector pins
+ *  \return Bitmask combination of the input pins status
+ */
+static GpioFlags readInputs(void) {
+	GpioFlags result = 0;
 	if (GPIO_ReadInputDataBit(KEY_N_PORT,KEY_N_PIN)==0)
-		result |= KEY_N;
+		result |= IC_N;
 	if (GPIO_ReadInputDataBit(KEY_NE_PORT,KEY_NE_PIN)==0)
-		result |= KEY_NE;
+		result |= IC_NE;
 	if (GPIO_ReadInputDataBit(KEY_E_PORT,KEY_E_PIN)==0)
-		result |= KEY_E;
+		result |= IC_E;
 	if (GPIO_ReadInputDataBit(KEY_ES_PORT,KEY_ES_PIN)==0)
-		result |= KEY_ES;
+		result |= IC_ES;
 	if (GPIO_ReadInputDataBit(KEY_S_PORT,KEY_S_PIN)==0)
-		result |= KEY_S;
+		result |= IC_S;
 	if (GPIO_ReadInputDataBit(KEY_SW_PORT,KEY_SW_PIN)==0)
-		result |= KEY_SW;
+		result |= IC_SW;
 	if (GPIO_ReadInputDataBit(KEY_W_PORT,KEY_W_PIN)==0)
-		result |= KEY_W;
+		result |= IC_W;
 	if (GPIO_ReadInputDataBit(KEY_WN_PORT,KEY_WN_PIN)==0)
-		result |= KEY_WN;
+		result |= IC_WN;
 	if (GPIO_ReadInputDataBit(SEL_LOC_PORT,SEL_LOC_PIN)==0)
-		result |= KEY_LOC;
+		result |= IC_LOC;
 	if (GPIO_ReadInputDataBit(SEL_ARM_PORT,SEL_ARM_PIN)==0)
-		result |= KEY_ARM;
+		result |= IC_ARM;
 	if (GPIO_ReadInputDataBit(SEL_ALT_PORT,SEL_ALT_PIN)==0)
-		result |= KEY_ALT;
+		result |= IC_ALT;
 	if (GPIO_ReadInputDataBit(SEL_RTH_PORT,SEL_RTH_PIN)==0)
-		result |= KEY_RTH;
+		result |= IC_RTH;
 	return result;
 }
 
 //------------------------------------------------------------------------------------
-static void setOutput(int id, int value){
-	if(id == 0){
+/** \fun setOutput
+ *  \brief Set the output to a logic value
+ *  \param id OutputId (0 or 1)
+ *  \return value Output logic value (0 or 1)
+ */
+static GpioFlags setOutput(GpioFlags id, int value){
+	GpioFlags result = 0;
+	if((id & OC_0) != 0){
 		if(value == 0)
 			GPIO_ResetBits(OUT_0_PORT,OUT_0_PIN);
-		else
+		else{
 			GPIO_SetBits(OUT_0_PORT,OUT_0_PIN);
+			result |= OC_0;
+		}
 	}
-	if(id == 1){
+	if((id & OC_1) != 0){
 		if(value == 0)
 			GPIO_ResetBits(OUT_1_PORT,OUT_1_PIN);
-		else
+		else {
 			GPIO_SetBits(OUT_1_PORT,OUT_1_PIN);
+			result |= OC_1;
+		}
 	}
+	return result;
 }
 
-//------------------------------------------------------------------------------------
-void drv_GPIO_Init(Exception *ex){
 
+//------------------------------------------------------------------------------------
+//-- PUBLIC FUNCTIONS  ---------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+
+drv_GPIO drv_GPIO_Init(	OnGpioInputChange cbInputChange, GpioHandlerObj handler){
+	
 	/** Port clocks enable */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
@@ -249,28 +271,32 @@ void drv_GPIO_Init(Exception *ex){
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 
-	/** Subscribe to OutputTopics update and attach callback function */
-	outTopic = OutputTopic_getRef("/out", ex);
-	catch(ex){
-		return;
-	}
-	Topic_attach(outTopic, 0, ex);
-	catch(ex){
-		return;
-	}
+	/** member initialization */
+	gpio.in = readInputs();
+	gpio.evmask = ALL_INPUTS;
+	gpio.out = 0;
+	gpio.cbHandler = handler;
+	gpio.cbInputChange = (cbInputChange)? cbInputChange : NULL_CALLBACK;
+	return (drv_GPIO)&gpio;
 }
 
 //------------------------------------------------------------------------------------
-void drv_GPIO_OnTopicUpdate(void * obj, TopicData * td){
-	(void)obj;	// param not used
-	//topic checking
-	if(td->id == (int)outTopic){
-		OUT_TOPIC_DATA_T* topic = (OUT_TOPIC_DATA_T*)td->data;
-		if((topic->queries & (OUT_SET_OFF | OUT_SET_ON)) != 0){
-			setOutput(topic->output_id, topic->status);
-		}
-	}	
+void drv_GPIO_endisEvents(drv_GPIO drv, GpioFlags channels, uint8_t endis_flag){
 }
+
+//------------------------------------------------------------------------------------
+void drv_GPIO_write(drv_GPIO drv, GpioFlags channels, int value){
+	GpioCtrl_t * gc = (GpioCtrl_t*)drv;
+	gc->out = setOutput((ALL_OUTPUTS & channels), value);
+}
+
+//------------------------------------------------------------------------------------
+GpioFlags drv_GPIO_read(drv_GPIO drv){
+	GpioCtrl_t * gc = (GpioCtrl_t*)drv;
+	gc->in = readInputs();
+	return gc->in;
+}
+
 
 //------------------------------------------------------------------------------------
 //-- INTERRUPTS  ---------------------------------------------------------------------
@@ -278,51 +304,45 @@ void drv_GPIO_OnTopicUpdate(void * obj, TopicData * td){
 
 //------------------------------------------------------------------------------------
 void EXTI1_IRQHandler(void){
-	Exception e;
-	keyTopicData.keys = readInputs();
 	EXTI_ClearFlag(EXTI_Line1);
-	Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
+	gpio.in = readInputs();
+	gpio.cbInputChange(gpio.cbHandler);
 }
 
 //------------------------------------------------------------------------------------
 void EXTI2_IRQHandler(void){
-	Exception e;
-	keyTopicData.keys = readInputs();
 	EXTI_ClearFlag(EXTI_Line2);
-	Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
+	gpio.in = readInputs();
+	gpio.cbInputChange(gpio.cbHandler);
 }
 
 //------------------------------------------------------------------------------------
 void EXTI3_IRQHandler(void){
-	Exception e;
-	keyTopicData.keys = readInputs();
 	EXTI_ClearFlag(EXTI_Line3);
-	Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
+	gpio.in = readInputs();
+	gpio.cbInputChange(gpio.cbHandler);
 }
 
 //------------------------------------------------------------------------------------
 void EXTI4_IRQHandler(void){
-	Exception e;
-	keyTopicData.keys = readInputs();
 	EXTI_ClearFlag(EXTI_Line4);
-	Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
+	gpio.in = readInputs();
+	gpio.cbInputChange(gpio.cbHandler);
 }
 
 //------------------------------------------------------------------------------------
 void EXTI9_5_IRQHandler(void){
-	Exception e;
-	keyTopicData.keys = readInputs();
 	EXTI_ClearFlag(EXTI_Line5|EXTI_Line6|EXTI_Line7|EXTI_Line8|EXTI_Line9);
-	Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
+	gpio.in = readInputs();
+	gpio.cbInputChange(gpio.cbHandler);
 }
 
 
 //------------------------------------------------------------------------------------
 void EXTI15_10_IRQHandler(void){
-	Exception e;
-	keyTopicData.keys = readInputs();
 	EXTI_ClearFlag(EXTI_Line10|EXTI_Line11|EXTI_Line12|EXTI_Line13|EXTI_Line14);
-	Topic_notify(outTopic, &keyTopicData, sizeof(KEY_TOPIC_DATA_T), 0, 0, &e);
+	gpio.in = readInputs();
+	gpio.cbInputChange(gpio.cbHandler);
 }
 
 

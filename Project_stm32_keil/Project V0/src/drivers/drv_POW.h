@@ -21,33 +21,57 @@
 #ifndef __DRV_POW_H__
 #define __DRV_POW_H__
 
+#ifdef __cplusplus
+ extern "C" {
+#endif 
 
+
+//------------------------------------------------------------------------------------
+//-- DEPENDENCIES --------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+
+#include <stdint.h>
 #include "stm32f10x.h"	    	///< STM32F10x Library Definitions
-#include "SystemTopics.h"		///< required to receive /sys topic updates
-#include "mmf.h"				///< required for external TopicData type
-
 
 //------------------------------------------------------------------------------------
-//-- BSP DEFINES  --------------------------------------------------------------------
+//-- TYPEDEFS ------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-#define BSP_POW_init				drv_POW_Init
-#define BSP_POW_OnTopicUpdate		drv_POW_OnTopicUpdate
+/** Pow reference */
+typedef struct PowCtrl_t* drv_POW;
 
+/** Pow status enum */
+typedef enum {
+	POW_RUN_MODE = (1 << 0)
+}PowStatusEnum;
+
+/** Pow status flag combination */
+typedef uint32_t PowFlags;
 
 //------------------------------------------------------------------------------------
+//-- PROTOTYPES ----------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
 
 /** \fun drv_POW_Init
  *  \brief Initializes POW peripheral
  *	\param e Exception handler
  */
-void drv_POW_Init(Exception *e);
+drv_POW drv_POW_Init(void);
 
-/** \fn drv_POW_OnTopicUpdate
- *  \brief Interface to receive topic updates from external objects
- *  \param obj Void pointer to the object who manages this callback
- *  \param td Reference to the topic data which has been updated
+/** \fn drv_POW_setStop
+ *  \brief Set stop mode
+ *  \param drv Pow reference
+*	\param mode Mode
  */
-void drv_POW_OnTopicUpdate(void * obj, TopicData * td);
+void drv_POW_setMode(drv_POW drv, PowFlags mode);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+
 
 #endif	//__DRV_POW_H__

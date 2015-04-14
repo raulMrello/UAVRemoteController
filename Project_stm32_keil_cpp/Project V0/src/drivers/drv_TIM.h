@@ -1,14 +1,14 @@
 /*
- * drv_TIM3.h
+ * drv_TIM.h
  *
  *  Created on: 07/04/2015
  *      Author: raulMrello
  *
- *  TIM3 driver for STM32F103C8T6. It controls:
+ *  TIM driver for STM32F103C8T6. It controls:
  *
  *  	- Buzzer output (pwm) (resonant freq = 4KHz)
  *
- *  On initialization "drv_TIM3_Init()", port is configured as:
+ *  On initialization "drv_TIM_Init()", port is configured as:
  *
  *  	- TIM3 clock comes from APB1 (HCLK/2) and HCLK=72MHz, then 36MHz
  *		- Is desired a tick = 1us, then max PWM period can reach 65.5ms (65535 ticks)
@@ -22,8 +22,8 @@
  *		2. After a /pwm topic update it manages accordingly.
  */
  
-#ifndef __DRV_TIM3_H__
-#define __DRV_TIM3_H__
+#ifndef __DRV_TIM_H__
+#define __DRV_TIM_H__
 
 #ifdef __cplusplus
  extern "C" {
@@ -72,7 +72,7 @@ typedef uint32_t TimFlags;
  *	\param duty Duty in % (0 = 0.00%, 10000 = 100.00%)
  *	\return Reference to TIM or null.
  */
-drv_TIM drv_TIM_Init(	uint8_t channel, uint32_t period, uint16_t duty);
+drv_TIM drv_TIM_Init(uint8_t channel, uint32_t period, uint16_t duty);
 
 /** \fun drv_TIM_update
  *  \brief Updates TIM duty

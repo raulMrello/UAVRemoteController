@@ -30,10 +30,23 @@
 #define SYSTICK_PERIOD_MILLISECONDS(ms)		(int)(((SystemFrequency/8)*1000000*(ms))/1000)
 
 static Exception e = Exception_INIT();
+#include "drv_UART.h"
+#include "drv_GPIO.h"
+#include "drv_TIM3.h"
+#include "drv_RTC.h"
+#include "drv_POW.h"
+void ISRCallback(void * handler){
+}
 
 int main(void){
 	// Setup STM32 system (clock, PLL and Flash configuration)
   	SystemInit();		
+	drv_UART_Init(1, 64, 64, ISRCallback, ISRCallback, 0);
+	drv_GPIO_Init(ISRCallback, 0);
+	drv_TIM_Init(TIM_CHANNEL_PWM, 2000, 0);
+	drv_RTC_Init(ISRCallback, 0);
+	drv_POW_Init();
+	
 	// Setup SysTick interrupts
 	SysTick_Config(SYSTICK_PERIOD_MILLISECONDS(10));
 	// Infinite loop

@@ -67,4 +67,11 @@ drv_POW drv_POW_Init(void);
  */
 void drv_POW_setMode(drv_POW drv, PowFlags mode);
 
+
+#ifdef __cplusplus
+}
+#endif
+
+
+
 #endif	//__DRV_POW_H__

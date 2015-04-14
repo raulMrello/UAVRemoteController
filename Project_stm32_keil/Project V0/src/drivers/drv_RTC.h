@@ -22,34 +22,78 @@
 #ifndef __DRV_RTC_H__
 #define __DRV_RTC_H__
 
+#ifdef __cplusplus
+ extern "C" {
+#endif 
 
+
+//------------------------------------------------------------------------------------
+//-- DEPENDENCIES --------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+
+#include <stdint.h>
 #include "stm32f10x.h"	    	///< STM32F10x Library Definitions
-#include "SystemTopics.h"		///< required to receive /sys topic updates
-#include "TimeTopics.h"			///< required to publish /time topic updates
-#include "mmf.h"				///< required for external TopicData type
 
 
 //------------------------------------------------------------------------------------
-//-- BSP DEFINES  --------------------------------------------------------------------
+//-- TYPEDEFS ------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-#define BSP_RTC_init				drv_RTC_Init
-#define BSP_RTC_OnTopicUpdate		drv_RTC_OnTopicUpdate
+/** Rtc reference */
+typedef struct RtcCtrl_t* drv_RTC;
 
+/** Callbacks for time events and handler objects */
+typedef void* RtcHandlerObj;
+typedef void (*OnRtcTimeEvent)(RtcHandlerObj handler);
+
+/** Rtc status enumeration */
+typedef enum{
+	RTC_EVENTS_ENABLED = (1 << 0)
+}RtcStatusEnum;
+
+/** Rtc status flag combination */
+typedef uint32_t RtcFlags;
+
+//------------------------------------------------------------------------------------
+//-- PROTOTYPES ----------------------------------------------------------------------
+//------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------
 
 /** \fun drv_RTC_Init
  *  \brief Initializes RTC peripheral
- *	\param e Exception handler
+ *	\param cbTimeEvent Time events callback
+ *	\param handler Callback handler
+ *	\return Rtc driver reference
  */
-void drv_RTC_Init(Exception *e);
+drv_RTC drv_RTC_Init(OnRtcTimeEvent cbTimeEvent, RtcHandlerObj handler);
 
-/** \fn drv_RTC_OnTopicUpdate
- *  \brief Interface to receive topic updates from external objects
- *  \param obj Void pointer to the object who manages this callback
- *  \param td Reference to the topic data which has been updated
+/** \fn drv_RTC_endisEvents
+ *  \brief Enables/Disables Rtc 1-second events
+ *  \param drv Rtc reference
+ *  \param endis En/dis flag
  */
-void drv_RTC_OnTopicUpdate(void * obj, TopicData * td);
+void drv_RTC_endisEvents(drv_RTC drv, uint8_t flag);
+
+/** \fn drv_RTC_getTime
+ *  \brief Get Rtc time
+ *  \param drv Rtc reference
+ *  \return time
+ */
+uint32_t drv_RTC_getTime(drv_RTC drv);
+
+/** \fn drv_RTC_setTime
+ *  \brief Get Rtc time
+ *  \param drv Rtc reference
+ *  \param time New time
+ */
+void drv_RTC_setTime(drv_RTC drv, uint32_t time);
+
+#ifdef __cplusplus
+}
+#endif
+
+
 
 #endif	//__DRV_RTC_H__

@@ -25,43 +25,72 @@
 #ifndef __DRV_TIM3_H__
 #define __DRV_TIM3_H__
 
+#ifdef __cplusplus
+ extern "C" {
+#endif 
 
+
+//------------------------------------------------------------------------------------
+//-- DEPENDENCIES --------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+
+#include <stdint.h>
 #include "stm32f10x.h"	    	///< STM32F10x Library Definitions
-#include "OutputTopics.h"		///< required to receive /pwm topic updates
-#include "mmf.h"				///< required for external TopicData type
 
 
 //------------------------------------------------------------------------------------
-//-- BSP DEFINES  --------------------------------------------------------------------
+//-- DEFINES -------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-#define BPS_BUZZER
-//#define BSP_PPM
-
-#if defined(BSP_BUZZER)
-#define BSP_BUZZER_init					drv_TIM3_Init
-#define BSP_BUZZER_OnTopicUpdate		drv_TIM3_OnTopicUpdate
-#endif
-#if defined(BSP_PPM)
-#define BSP_PPM_init					drv_TIM3_Init
-#define BSP_PPM_OnTopicUpdate			drv_TIM3_OnTopicUpdate
-#endif
+/** Channel attached to pwm output */	 
+#define TIM_CHANNEL_PWM		3
 
 //------------------------------------------------------------------------------------
+//-- TYPEDEFS ------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
 
-/** \fun drv_TIM3_Init
- *  \brief Initializes TIM3 peripheral
- *	\param e Exception handler
+/** Uart reference */
+typedef struct TimCtrl_t* drv_TIM;
+
+/** Tim status enum */
+typedef enum {
+	TIM_TIMMING = (1 << 0)
+}TimStatusEnum;
+
+/** Tim flag combination */
+typedef uint32_t TimFlags;
+
+//------------------------------------------------------------------------------------
+//-- PROTOTYPES ----------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+/** \fun drv_TIM_Init
+ *  \brief Initializes TIM peripheral
+ *	\param channel TIM channel
+ *	\param period Period in microseconds
+ *	\param duty Duty in % (0 = 0.00%, 10000 = 100.00%)
+ *	\return Reference to TIM or null.
  */
-void drv_TIM3_Init(Exception *e);
+drv_TIM drv_TIM_Init(	uint8_t channel, uint32_t period, uint16_t duty);
 
-/** \fn drv_TIM3_OnTopicUpdate
- *  \brief Interface to receive topic updates from external objects
- *  \param obj Void pointer to the object who manages this callback
- *  \param td Reference to the topic data which has been updated
+/** \fun drv_TIM_update
+ *  \brief Updates TIM duty
+ *	\param drv Tim reference
+ *	\param duty New duty
  */
-void drv_TIM3_OnTopicUpdate(void * obj, TopicData * td);
+void drv_TIM_update(drv_TIM drv, uint16_t duty);
 
+/** \fun drv_TIM_getStatus
+ *  \brief Get TIM status
+ *	\param drv Tim reference
+ */
+TimFlags drv_TIM_getStatus(drv_TIM drv);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif	//__DRV_TIM3_H__

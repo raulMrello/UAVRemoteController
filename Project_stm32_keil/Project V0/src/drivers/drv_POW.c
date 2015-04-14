@@ -9,39 +9,27 @@
 #include "drv_POW.h"
 
 //------------------------------------------------------------------------------------
-//-- PRIVATE DEFINITIONS -------------------------------------------------------------
+//-- PRIVATE TYPEDEFS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
+
+/** Pow driver data structure */
+typedef struct{
+	PowFlags status;
+}PowCtrl_t;
+	
 
 //------------------------------------------------------------------------------------
 //-- PRIVATE MEMBERS -----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-static void setStopMode(void);
-static void restartClocks(void);
-static SYS_TOPIC_DATA_T sysTopicData;
-static Topic * sysTopic;
+static PowCtrl_t pow;
 
-/** \fun setStopMode
- *  \brief Sets stop mode
- */
-static void setStopMode(void);
 
+
+//------------------------------------------------------------------------------------
 /** \fun restartClocks
  *  \brief Restart clocks after exiting from stop mode
  */
-static void restartClocks(void);
-
-//------------------------------------------------------------------------------------
-//-- IMPLEMENTATION  -----------------------------------------------------------------
-//------------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------------
-static void setStopMode(void){
-	sysTopicData.status &= ~SYS_CPU_RUN;
-	PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFE);
-}
-
-//------------------------------------------------------------------------------------
 static void restartClocks(void){
 	ErrorStatus HSEStartUpStatus;
 
@@ -73,37 +61,35 @@ static void restartClocks(void){
 		/* Wait till PLL is used as system clock source */
 		while(RCC_GetSYSCLKSource() != 0x08){ }
 	}
-	sysTopicData.status |= SYS_CPU_RUN;
+}
+
+
+//------------------------------------------------------------------------------------
+//-- PUBLIC FUNCTIONS ----------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+drv_POW drv_POW_Init(void){
+	pow.status |= POW_RUN_MODE;
+	return (drv_POW)&pow;
 }
 
 //------------------------------------------------------------------------------------
-void drv_POW_Init(Exception *e){
-	/** Subscribe to SystemTopics update and attach callback function */
-	sysTopic = SystemTopic_getRef("/sys", e);
-	catch(e){
-		return;
+void drv_POW_setMode(drv_POW drv, PowFlags mode){
+	PowCtrl_t* pc = (PowCtrl_t*)drv;
+	if((pc->status & POW_RUN_MODE) == 0 && (mode & POW_RUN_MODE) != 0){		
+		restartClocks();
+		pc->status |= POW_RUN_MODE;
 	}
-	Topic_attach(sysTopic, 0, e);
-	catch(e){
-		return;
+	else if((pc->status & POW_RUN_MODE) != 0 && (mode & POW_RUN_MODE) == 0){
+		pc->status &= ~POW_RUN_MODE;
+		PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFE);
+		
+		/*** ................ ***/
+		/******* STOP MODE ******/
+		/*** ................ ***/
+		
+		restartClocks();
+		pc->status |= POW_RUN_MODE;
 	}
-	// sets default value for topic handler 
-	sysTopicData.status |= SYS_CPU_RUN;
-	sysTopicData.queries = SYS_NO_QUERIES;
-}
-
-//------------------------------------------------------------------------------------
-void drv_POW_OnTopicUpdate(void * obj, TopicData * td){
-	(void)obj;	// param not used
-	//topic checking
-	if(td->id == (int)sysTopic){
-		SYS_TOPIC_DATA_T *topic = (SYS_TOPIC_DATA_T*)td->data;
-		if((sysTopicData.status & SYS_CPU_RUN) == 0 && (topic->queries & SYS_CPU_SET_RUN) != 0){
-			restartClocks();
-		}
-		else if((sysTopicData.status & SYS_CPU_RUN) != 0 && (topic->queries & SYS_CPU_SET_STOP) != 0){
-			setStopMode();
-		}
-	}	
 }
 

@@ -9,6 +9,18 @@
 #include "drv_TIM3.h"
 
 //------------------------------------------------------------------------------------
+//-- PRIVATE TYPEDEFS ----------------------------------------------------------------
+//------------------------------------------------------------------------------------
+
+
+/** TIM data structure */
+typedef struct  {
+	TimFlags status; 	 	//!< tim status
+	uint32_t period;    	//!< Next In index
+	uint16_t duty;   		//!< Next Out index
+}TimCtrl_t;
+
+//------------------------------------------------------------------------------------
 //-- PRIVATE DEFINITIONS -------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
@@ -19,30 +31,20 @@
 //-- PRIVATE MEMBERS -----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-static PWM_TOPIC_DATA_T pwmTopicData;
-static Topic * pwmTopic;
-
-/** \fun restart
- *  \brief Restarts the peripheral with a new period/duty configuration
- */
-static void restart(void);
+static TimCtrl_t pwm;
 
 /** \fun updateDuty
  *  \brief Updates duty
  */
-static void updateDuty(void);
-
-//------------------------------------------------------------------------------------
-//-- IMPLEMENTATION  -----------------------------------------------------------------
-//------------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------------
-static void updateDuty(void){
-	TIM_SetCompare3(TIM3, (uint16_t)((pwmTopicData.duty * pwmTopicData.period)/100));
+static void updateDuty(TimCtrl_t * tc){
+	TIM_SetCompare3(TIM3, (uint16_t)((tc->duty * tc->period)/100));
 }
 
 //------------------------------------------------------------------------------------
-static void restart(void){
+/** \fun restart
+ *  \brief Restarts the peripheral with a new period/duty configuration
+ */
+static void restart(TimCtrl_t * tc){
   	/* TIM3 disable counter */
  	TIM_Cmd(TIM3, DISABLE);
 	
@@ -57,7 +59,7 @@ static void restart(void){
 //	GPIO_TIM3_as_timer();
 
 	// Configuracion TIM
-	TIM_TimeBaseStructure.TIM_Period = pwmTopicData.period;
+	TIM_TimeBaseStructure.TIM_Period = tc->period;
 	TIM_TimeBaseStructure.TIM_Prescaler = DEFAULT_PREESCALER;
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
@@ -75,44 +77,38 @@ static void restart(void){
  
    	/* TIM3 enable counter */
    	TIM_Cmd(TIM3, ENABLE);
-	updateDuty();
+	updateDuty(tc);
 }
 
 //------------------------------------------------------------------------------------
-void drv_TIM3_Init(Exception *e){
+//-- PUBLIC FUNCTIONS ----------------------------------------------------------------
+//------------------------------------------------------------------------------------
 
-	/** Subscribe to OutputTopics update and attach callback function */
-	pwmTopic = OutputTopic_getRef("/pwm", e);
-	catch(e){
-		return;
-	}
-	Topic_attach(pwmTopic, 0, e);
-	catch(e){
-		return;
-	}
+drv_TIM drv_TIM_Init(uint8_t channel, uint32_t period, uint16_t duty){
+	if(channel != 3)
+		return 0;
 	// sets default value for topic handler (duty=0%) and stops PWM generation
-	pwmTopicData.period = DEFAULT_PERIOD;
-	pwmTopicData.duty = 0;
-	pwmTopicData.queries = PWM_NO_QUERIES;
-	restart();
+	pwm.period = DEFAULT_PERIOD;
+	pwm.duty = 0;
+	pwm.status = 0;
+	restart(&pwm);
+	return (drv_TIM)&pwm;
 }
 
 //------------------------------------------------------------------------------------
-void drv_TIM3_OnTopicUpdate(void * obj, TopicData * td){
-	(void)obj;	// param not used
-	//topic checking
-	if(td->id == (int)pwmTopic){
-		PWM_TOPIC_DATA_T * topic = (PWM_TOPIC_DATA_T*)td->data;
-		if((topic->queries & PWM_SET_PERIOD) != 0){
-			pwmTopicData.period = topic->period;
-			restart();
-		}
-		if((topic->queries & PWM_SET_DUTY) != 0){
-			pwmTopicData.duty = topic->duty;
-			updateDuty();
-		}
-	}	
+void drv_TIM_update(drv_TIM drv, uint16_t duty){
+	TimCtrl_t * tc = (TimCtrl_t*)drv;
+	tc->duty = duty;
+	if(!duty)
+		tc->status &= ~TIM_TIMMING;
+	else
+		tc->status |= TIM_TIMMING;
+	
+	restart((TimCtrl_t*)drv);
 }
 
-
-  
+//------------------------------------------------------------------------------------
+TimFlags drv_TIM_getStatus(drv_TIM drv){
+	TimCtrl_t * tc = (TimCtrl_t*)drv;
+	return tc->status;	
+}

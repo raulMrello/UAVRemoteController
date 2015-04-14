@@ -16,6 +16,12 @@ This project will include next modules:
 
 ## Changelog
 
+> 14.04.2015-001 branch: master --------------
+ - Designing Active modules (GpsReader)
+ - Project configured with MicroLib reduces huge quantity of footprint
+ - NEXT STEPS:
+	- Keep coding
+
 > 13.04.2015-002 branch: master --------------
  - Redesigned drivers. Unified drv_UART
  - Loaded MMF release 0.10.13042015003

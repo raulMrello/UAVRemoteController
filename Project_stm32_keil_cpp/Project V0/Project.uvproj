@@ -222,7 +222,7 @@
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
-            <useUlib>0</useUlib>
+            <useUlib>1</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
             <RoSelD>3</RoSelD>
@@ -363,7 +363,7 @@
               <MiscControls>--exceptions</MiscControls>
               <Define>USE_STDPERIPH_DRIVER, STM32F10X_MD</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\CMSIS\Core\CM3;..\Libraries\STM32F10x_StdPeriph_Driver\inc;.\inc;.\src;.\src\drivers;.\src\user_APIs\GPS;..\..\src\mmf_0.10.13042015002\cpp\os;..\..\src\mmf_0.10.13042015002\cpp\port</IncludePath>
+              <IncludePath>..\Libraries\CMSIS\Core\CM3;..\Libraries\STM32F10x_StdPeriph_Driver\inc;.\inc;.\src;.\src\drivers;.\src\user_APIs\GPS;..\..\src\mmf_0.10.13042015002\cpp\os;..\..\src\mmf_0.10.13042015002\cpp\port;.\src\Active_Modules</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -404,7 +404,14 @@
       </TargetOption>
       <Groups>
         <Group>
-          <GroupName>tasks</GroupName>
+          <GroupName>Active_Modules</GroupName>
+          <Files>
+            <File>
+              <FileName>GpsReader.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Active_Modules\GpsReader.cpp</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>topics</GroupName>
@@ -465,10 +472,7 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>bsp_devices</GroupName>
-        </Group>
-        <Group>
-          <GroupName>bsp_drivers</GroupName>
+          <GroupName>Bsp_drivers</GroupName>
           <Files>
             <File>
               <FileName>drv_GPIO.h</FileName>
@@ -479,16 +483,6 @@
               <FileName>drv_GPIO.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\drivers\drv_GPIO.c</FilePath>
-            </File>
-            <File>
-              <FileName>drv_TIM3.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\drivers\drv_TIM3.h</FilePath>
-            </File>
-            <File>
-              <FileName>drv_TIM3.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\drivers\drv_TIM3.c</FilePath>
             </File>
             <File>
               <FileName>drv_RTC.h</FileName>
@@ -519,6 +513,16 @@
               <FileName>drv_UART.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\drivers\drv_UART.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_TIM.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\drivers\drv_TIM.h</FilePath>
+            </File>
+            <File>
+              <FileName>drv_TIM.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\drivers\drv_TIM.c</FilePath>
             </File>
           </Files>
         </Group>

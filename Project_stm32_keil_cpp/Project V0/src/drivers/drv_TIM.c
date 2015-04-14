@@ -1,12 +1,12 @@
 /*
- * drv_TIM3.c
+ * drv_TIM.c
  *
  *  Created on: 07/04/2015
  *      Author: raulMrello
  *
  */
  
-#include "drv_TIM3.h"
+#include "drv_TIM.h"
 
 //------------------------------------------------------------------------------------
 //-- PRIVATE TYPEDEFS ----------------------------------------------------------------
@@ -85,6 +85,7 @@ static void restart(TimCtrl_t * tc){
 //------------------------------------------------------------------------------------
 
 drv_TIM drv_TIM_Init(uint8_t channel, uint32_t period, uint16_t duty){
+	// by default only TIM3 as PWM generator is developed
 	if(channel != 3)
 		return 0;
 	// sets default value for topic handler (duty=0%) and stops PWM generation
