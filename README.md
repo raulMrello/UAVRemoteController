@@ -20,6 +20,9 @@ This controller has three main functions:
 
 ## Changelog
 
+> 16.04.2015-001 branch: master --------------
+ - Added project "mbed_stm32f10x"
+ 
 > 14.04.2015-004 branch: master --------------
  - See README.md in project "stm32_keil_cpp"
  
