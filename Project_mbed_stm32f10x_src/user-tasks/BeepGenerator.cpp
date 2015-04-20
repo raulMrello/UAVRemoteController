@@ -1,11 +1,11 @@
 /*
- * GpsReader.cpp
+ * BeepGenerator.cpp
  *
- *  Created on: 14/04/2015
+ *  Created on: 20/04/2015
  *      Author: raulMrello
  */
 
-#include "GpsReader.h"
+#include "BeepGenerator.h"
 
 //------------------------------------------------------------------------------------
 //-- PRIVATE TYPEDEFS ----------------------------------------------------------------
@@ -15,72 +15,87 @@
 //-- PRIVATE DEFINITIONS -------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
+
 //------------------------------------------------------------------------------------
 //-- STATIC FUNCTIONS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
+
+static void beepTimer(void const *handler){
+	BeepGenerator * me = (BeepGenerator*)handler;
+	switch((int)me->_status){
+		case BeepGenerator::STOPPED:{
+			me->_tmr->stop();
+			break;
+		}
+		case BeepGenerator::BEEP:{
+			me->_buzzer->period_us(0);
+			me->_status = BeepGenerator::SILENCE;
+			break;
+		}
+		case BeepGenerator::SILENCE:{
+			if(--me->_shots == 0){
+				if(me->_repeat == BeepGenerator::NO_REPEAT){
+					me->_tmr->stop();
+					me->_status = BeepGenerator::STOPPED;
+					return;
+				}
+				if(me->_repeat == BeepGenerator::REPEAT_FOREVER){
+					me->_tmr->stop();
+					me->_tmr->start(9 * BeepGenerator::SHORT_TIME);
+					me->_status = BeepGenerator::WAIT_CYCLE;
+					return;
+				}
+			}
+			break;
+		}
+		case BeepGenerator::WAIT_CYCLE:{
+			me->_shots = me->_mode;
+			me->_status = BeepGenerator::BEEP;
+			me->_buzzer->period_us(125);
+			me->_tmr->start(me->_time);
+			break;
+		}
+	}
+}
 
 //------------------------------------------------------------------------------------
 //-- PUBLIC FUNCTIONS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-GpsReader::GpsReader(osPriority prio, GpsReader::ModeEnum mode, Serial *serial) {
-	_th = new Thread(&GpsReader::task, this, prio);
-	_mode = (uint32_t)mode;
-	_serial = serial;
+BeepGenerator::BeepGenerator(PwmOut *buzzer) {
+	_buzzer = buzzer;
+	_status = STOPPED;
+	_tmr = new RtosTimer(beepTimer, osTimerPeriodic, this);
 }
 
 //------------------------------------------------------------------------------------
-GpsReader::~GpsReader() {
-	// TODO Auto-generated destructor stub
+BeepGenerator::~BeepGenerator() {
+	_tmr->stop();
+	delete(_tmr);
 }
 
 //------------------------------------------------------------------------------------
-Thread * GpsReader::getThread() {
-	return _th;
+void BeepGenerator::beepStart(ShotModeEnum mode, ShotTimeEnum time, ShotRepeatEnum repeat){
+	_tmr->stop();
+	_mode = mode;
+	_time = time;
+	_repeat = repeat;
+	_buzzer->period_us(125);
+	_status = BEEP;
+	_shots = _mode;
+	_tmr->start(_time);
 }
 
-//------------------------------------------------------------------------------------
-void GpsReader::RxISRCallback(void){
-	_th->signal_set(GPS_EV_DATAREADY);
-}
 
 //------------------------------------------------------------------------------------
-void GpsReader::TxISRCallback(void){
-	_th->signal_set(GPS_EV_DATASENT);
-}
-
-//------------------------------------------------------------------------------------
-void GpsReader::run(){
-	// Attaches to installed serial peripheral
-	_serial->attach(this, &GpsReader::RxISRCallback, (SerialBase::IrqType)RxIrq);
-	_serial->attach(this, &GpsReader::TxISRCallback, (SerialBase::IrqType)TxIrq);
-	
-	
-	// Starts execution 
-	for(;;){
-		// Wait incoming data forever ... 
-		_th->signal_wait(GPS_EV_DATAREADY, osWaitForever);
-		while(_serial->readable()){
-			char data;
-			bool ready = false;
-			// reads data and pass to gps processor
-			data = (char) _serial->getc();
-			#warning TODO: ready = libgps_ProcessData(&_gpsdata, data);					
-			// if data ready, publish "/gps" topic 
-			if(ready){
-				ready = false;
-				MsgBroker::Exception e = MsgBroker::NO_ERRORS;
-				MsgBroker::publish("/gps", &_gpsdata, sizeof(GpsReader::GpsData_t), &e);
-				if(e != MsgBroker::NO_ERRORS){
-					// TODO: add error handling ...
-				}
-			}
-		}
-	}	
+void BeepGenerator::beepStop() {
+	_tmr->stop();
+	_buzzer->period_us(0);
+	_status = STOPPED;
+	_shots = 0;
 }
 
 //------------------------------------------------------------------------------------
 //-- PROTECTED/PRIVATE FUNCTIONS -----------------------------------------------------
 //------------------------------------------------------------------------------------
-
 

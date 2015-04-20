@@ -16,6 +16,12 @@ This controller has three main functions:
 
 ## Changelog
 
+> 20.04.2015-001 
+	- Designing VirtualReceiver
+	- Added KeyDecoder, SysManager and BeepGenerator.
+	- NEXT STEPS:
+		- Finish VirtualReceiver
+
 > 17.04.2015-002 
 	- Release with mbed sources. In parallel project "Mbed_to_Keil" I work to strip most of the driver code.
 	- NEXT STEPS:

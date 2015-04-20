@@ -83,7 +83,7 @@
 //   <o>Idle stack size [bytes] <64-4096:8><#/4>
 //   <i> D64fines default stack size for the Idle thread.
 #ifndef OS_IDLESTKSIZE
- #define OS_IDLESTKSIZE         128
+ #define OS_IDLESTKSIZE         64
 #endif
 
 //   <o>Timer Thread stack size [bytes] <64-4096:8><#/4>

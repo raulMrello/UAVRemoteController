@@ -360,10 +360,10 @@
             <uC99>0</uC99>
             <useXO>0</useXO>
             <VariousControls>
-              <MiscControls>--gnu --no_rtti --exceptions</MiscControls>
+              <MiscControls>--gnu --no_rtti</MiscControls>
               <Define>TARGET_NUCLEO_F103RB,  TARGET_M3,  TARGET_CORTEX_M,  TARGET_STM,  TARGET_STM32F1,  TARGET_STM32F103RB,  TOOLCHAIN_ARM_MICRO,  TOOLCHAIN_ARM,  __CORTEX_M3,  ARM_MATH_CM3,  MBED_BUILD_TIMESTAMP=1429167707.34,  __MBED__=1,  TARGET_FF_ARDUINO,  TARGET_FF_MORPHO,  __ASSERT_MSG,</Define>
               <Undefine></Undefine>
-              <IncludePath>.;mbed-rtos;mbed-rtos/rtos;mbed-rtos/rtx;mbed-rtos/rtx/TARGET_CORTEX_M;mbed-rtos/rtx/TARGET_CORTEX_M/TARGET_M3;mbed-rtos/rtx/TARGET_CORTEX_M/TARGET_M3/TOOLCHAIN_ARM;mbed-src;mbed-src/common;mbed-src/hal;mbed-src/api;mbed-src/targets;mbed-src/targets/cmsis;mbed-src/targets/cmsis/TARGET_STM;mbed-src/targets/cmsis/TARGET_STM/TARGET_STM32F1;mbed-src/targets/cmsis/TARGET_STM/TARGET_STM32F1/TARGET_NUCLEO_F103RB;mbed-src/targets/cmsis/TARGET_STM/TARGET_STM32F1/TARGET_NUCLEO_F103RB/TOOLCHAIN_ARM_MICRO;mbed-src/targets/hal;mbed-src/targets/hal/TARGET_STM;mbed-src/targets/hal/TARGET_STM/TARGET_STM32F1;mbed-src/targets/hal/TARGET_STM/TARGET_STM32F1/TARGET_NUCLEO_F103RB;.\user-tasks;.\user-modules</IncludePath>
+              <IncludePath>.;mbed-rtos;mbed-rtos/rtos;mbed-rtos/rtx;mbed-rtos/rtx/TARGET_CORTEX_M;mbed-rtos/rtx/TARGET_CORTEX_M/TARGET_M3;mbed-rtos/rtx/TARGET_CORTEX_M/TARGET_M3/TOOLCHAIN_ARM;mbed-src;mbed-src/common;mbed-src/hal;mbed-src/api;mbed-src/targets;mbed-src/targets/cmsis;mbed-src/targets/cmsis/TARGET_STM;mbed-src/targets/cmsis/TARGET_STM/TARGET_STM32F1;mbed-src/targets/cmsis/TARGET_STM/TARGET_STM32F1/TARGET_NUCLEO_F103RB;mbed-src/targets/cmsis/TARGET_STM/TARGET_STM32F1/TARGET_NUCLEO_F103RB/TOOLCHAIN_ARM_MICRO;mbed-src/targets/hal;mbed-src/targets/hal/TARGET_STM;mbed-src/targets/hal/TARGET_STM/TARGET_STM32F1;mbed-src/targets/hal/TARGET_STM/TARGET_STM32F1/TARGET_NUCLEO_F103RB;.\user-tasks;.\user-modules;.\user-common</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -435,6 +435,26 @@
               <FileName>GpsReader.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\user-tasks\GpsReader.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>KeyDecoder.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-tasks\KeyDecoder.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>SysManager.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-tasks\SysManager.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>BeepGenerator.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-tasks\BeepGenerator.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>VirtualReceiver.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-tasks\VirtualReceiver.cpp</FilePath>
             </File>
           </Files>
         </Group>
@@ -589,6 +609,11 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
+            </File>
+            <File>
+              <FileName>Topics.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\user-common\Topics.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -6597,10 +6622,10 @@
             <uC99>0</uC99>
             <useXO>0</useXO>
             <VariousControls>
-              <MiscControls>--gnu --no_rtti --exceptions</MiscControls>
+              <MiscControls>--gnu --no_rtti</MiscControls>
               <Define>PROCESADOR_STM32F103C8 TARGET_NUCLEO_F103RB,  TARGET_M3,  TARGET_CORTEX_M,  TARGET_STM,  TARGET_STM32F1,  TARGET_STM32F103RB,  TOOLCHAIN_ARM_MICRO,  TOOLCHAIN_ARM,  __CORTEX_M3,  ARM_MATH_CM3,  MBED_BUILD_TIMESTAMP=1429167707.34,  __MBED__=1,  TARGET_FF_ARDUINO,  TARGET_FF_MORPHO,  __ASSERT_MSG,</Define>
               <Undefine></Undefine>
-              <IncludePath>.;mbed-rtos;mbed-rtos/rtos;mbed-rtos/rtx;mbed-rtos/rtx/TARGET_CORTEX_M;mbed-rtos/rtx/TARGET_CORTEX_M/TARGET_M3;mbed-rtos/rtx/TARGET_CORTEX_M/TARGET_M3/TOOLCHAIN_ARM;mbed-src;mbed-src/common;mbed-src/hal;mbed-src/api;mbed-src/targets;mbed-src/targets/cmsis;mbed-src/targets/cmsis/TARGET_STM;mbed-src/targets/cmsis/TARGET_STM/TARGET_STM32F1;mbed-src/targets/cmsis/TARGET_STM/TARGET_STM32F1/TARGET_NUCLEO_F103RB;mbed-src/targets/cmsis/TARGET_STM/TARGET_STM32F1/TARGET_NUCLEO_F103RB/TOOLCHAIN_ARM_MICRO;mbed-src/targets/hal;mbed-src/targets/hal/TARGET_STM;mbed-src/targets/hal/TARGET_STM/TARGET_STM32F1;mbed-src/targets/hal/TARGET_STM/TARGET_STM32F1/TARGET_NUCLEO_F103RB;.\user-tasks;.\user-modules</IncludePath>
+              <IncludePath>.;mbed-rtos;mbed-rtos/rtos;mbed-rtos/rtx;mbed-rtos/rtx/TARGET_CORTEX_M;mbed-rtos/rtx/TARGET_CORTEX_M/TARGET_M3;mbed-rtos/rtx/TARGET_CORTEX_M/TARGET_M3/TOOLCHAIN_ARM;mbed-src;mbed-src/common;mbed-src/hal;mbed-src/api;mbed-src/targets;mbed-src/targets/cmsis;mbed-src/targets/cmsis/TARGET_STM;mbed-src/targets/cmsis/TARGET_STM/TARGET_STM32F1;mbed-src/targets/cmsis/TARGET_STM/TARGET_STM32F1/TARGET_NUCLEO_F103RB;mbed-src/targets/cmsis/TARGET_STM/TARGET_STM32F1/TARGET_NUCLEO_F103RB/TOOLCHAIN_ARM_MICRO;mbed-src/targets/hal;mbed-src/targets/hal/TARGET_STM;mbed-src/targets/hal/TARGET_STM/TARGET_STM32F1;mbed-src/targets/hal/TARGET_STM/TARGET_STM32F1/TARGET_NUCLEO_F103RB;.\user-tasks;.\user-modules;.\user-common</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -6672,6 +6697,26 @@
               <FileName>GpsReader.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\user-tasks\GpsReader.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>KeyDecoder.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-tasks\KeyDecoder.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>SysManager.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-tasks\SysManager.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>BeepGenerator.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-tasks\BeepGenerator.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>VirtualReceiver.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-tasks\VirtualReceiver.cpp</FilePath>
             </File>
           </Files>
         </Group>
@@ -6826,6 +6871,11 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
+            </File>
+            <File>
+              <FileName>Topics.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\user-common\Topics.h</FilePath>
             </File>
           </Files>
         </Group>

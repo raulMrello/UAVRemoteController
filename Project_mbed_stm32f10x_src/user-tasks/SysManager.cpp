@@ -1,11 +1,11 @@
 /*
- * GpsReader.cpp
+ * SysManager.cpp
  *
- *  Created on: 14/04/2015
+ *  Created on: 20/04/2015
  *      Author: raulMrello
  */
 
-#include "GpsReader.h"
+#include "SysManager.h"
 
 //------------------------------------------------------------------------------------
 //-- PRIVATE TYPEDEFS ----------------------------------------------------------------
@@ -19,62 +19,70 @@
 //-- STATIC FUNCTIONS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
+static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
+	SysManager *me = (SysManager*)subscriber;
+	if(strcmp(topicname, "/alarm") == 0){
+		me->notifyUpdate(SysManager::ALARM_EV_READY);
+		return;
+	}
+	if(strcmp(topicname, "/keyb") == 0){
+		me->notifyUpdate(SysManager::KEY_EV_READY);
+		return;
+	}
+	if(strcmp(topicname, "/gps") == 0){
+		me->notifyUpdate(SysManager::GPS_EV_READY);
+		return;
+	}
+}
+
 //------------------------------------------------------------------------------------
 //-- PUBLIC FUNCTIONS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-GpsReader::GpsReader(osPriority prio, GpsReader::ModeEnum mode, Serial *serial) {
-	_th = new Thread(&GpsReader::task, this, prio);
-	_mode = (uint32_t)mode;
-	_serial = serial;
+void SysManager::init(osPriority prio, DigitalOut *led) {
+	_th = new Thread(&SysManager::task, this, prio);
+	_led = led;
 }
 
 //------------------------------------------------------------------------------------
-GpsReader::~GpsReader() {
-	// TODO Auto-generated destructor stub
+SysManager::~SysManager() {
+
 }
 
 //------------------------------------------------------------------------------------
-Thread * GpsReader::getThread() {
+Thread * SysManager::getThread() {
 	return _th;
 }
 
 //------------------------------------------------------------------------------------
-void GpsReader::RxISRCallback(void){
-	_th->signal_set(GPS_EV_DATAREADY);
+void SysManager::notifyUpdate(uint32_t event){
+	_th->signal_set(event);
 }
 
-//------------------------------------------------------------------------------------
-void GpsReader::TxISRCallback(void){
-	_th->signal_set(GPS_EV_DATASENT);
-}
 
 //------------------------------------------------------------------------------------
-void GpsReader::run(){
-	// Attaches to installed serial peripheral
-	_serial->attach(this, &GpsReader::RxISRCallback, (SerialBase::IrqType)RxIrq);
-	_serial->attach(this, &GpsReader::TxISRCallback, (SerialBase::IrqType)TxIrq);
-	
-	
+void SysManager::run(){
+	// attaches to topic updates 
+	MsgBroker::Exception e;
+	MsgBroker::attach("/gps", this, OnTopicUpdateCallback, &e);
+	MsgBroker::attach("/keyb", this, OnTopicUpdateCallback, &e);
+	MsgBroker::attach("/alarm", this, OnTopicUpdateCallback, &e);
+	_timeout = osWaitForever;
 	// Starts execution 
 	for(;;){
-		// Wait incoming data forever ... 
-		_th->signal_wait(GPS_EV_DATAREADY, osWaitForever);
-		while(_serial->readable()){
-			char data;
-			bool ready = false;
-			// reads data and pass to gps processor
-			data = (char) _serial->getc();
-			#warning TODO: ready = libgps_ProcessData(&_gpsdata, data);					
-			// if data ready, publish "/gps" topic 
-			if(ready){
-				ready = false;
-				MsgBroker::Exception e = MsgBroker::NO_ERRORS;
-				MsgBroker::publish("/gps", &_gpsdata, sizeof(GpsReader::GpsData_t), &e);
-				if(e != MsgBroker::NO_ERRORS){
-					// TODO: add error handling ...
-				}
-			}
+		// Wait topic updates changes ... 
+		osEvent oe = _th->signal_wait((GPS_EV_READY | KEY_EV_READY | ALARM_EV_READY), _timeout);
+		// if /alarm topic update
+		if(oe.status == osEventSignal && (oe.value.signals & ALARM_EV_READY) != 0){	
+			beepStart(QUAD_SHOT, SHORT_TIME, REPEAT_FOREVER);
+		}
+		// if /keyb topic update, starts one short beep
+		if(oe.status == osEventSignal && (oe.value.signals & KEY_EV_READY) != 0){
+			beepStart(ONE_SHOT, SHORT_TIME, NO_REPEAT);
+		}
+		// if /gps topic update
+		if(oe.status == osEventSignal && (oe.value.signals & GPS_EV_READY) != 0){
+			beepStart(DUAL_SHOT, SHORT_TIME, NO_REPEAT);
 		}
 	}	
 }
@@ -82,5 +90,4 @@ void GpsReader::run(){
 //------------------------------------------------------------------------------------
 //-- PROTECTED/PRIVATE FUNCTIONS -----------------------------------------------------
 //------------------------------------------------------------------------------------
-
 

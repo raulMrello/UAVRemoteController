@@ -20,6 +20,7 @@
 #include "mbed.h"
 #include "rtos.h"
 #include "MsgBroker.h"
+#include "Topics.h"
 
 //------------------------------------------------------------------------------------
 //-- TYPEDEFS ------------------------------------------------------------------------
@@ -36,15 +37,7 @@ public:
 		GPS_MODE_NMEA = (1 << 0),
 		GPS_MODE_UBX  = (1 << 1)
 	}ModeEnum;
-	
-	/** Gps topic data structure */
-	typedef struct {
-		float lat;	///< latitude -100º to +100º
-		float lng;	///< longitude -12h to +12h
-		float alt;	///< altitude -100m to 8000m
-		float hea;	///< heading 0º to 360º
-	}Data_t;
-	
+		
 	/** Constructor, destructor, getter and setter */
 	GpsReader(osPriority prio, GpsReader::ModeEnum mode, Serial *serial);
 	virtual ~GpsReader();
@@ -62,7 +55,7 @@ public:
 
 private:
 	uint32_t _mode;
-	Data_t _gpsdata;
+	Topic::GpsData_t _gpsdata;
 	Serial *_serial;
 	Thread *_th;
 	void run();
