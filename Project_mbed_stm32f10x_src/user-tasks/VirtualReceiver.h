@@ -71,26 +71,26 @@ private:
 	static const uint8_t MAX_SIZE = 32;
 
 	/** Data protocol command types */
-	static const uint8_t CMD_GET_STAT 	= 0x01;
-	static const uint8_t CMD_SET_GPS 	= 0x02;
-	static const uint8_t CMD_SET_KEY 	= 0x03;
-	static const uint8_t CMD_RESP_ACK	= 0x00;
-	static const uint8_t CMD_RESP_NACK	= 0xf0;
-	static const uint8_t CMD_DECODING	= 0x80;
-	static const uint8_t CMD_ERROR		= 0xff;
+	static const uint8_t CMD_SET_GPS 	= 0x01;
+	static const uint8_t CMD_SET_KEY 	= 0x02;
+	static const uint8_t CMD_DECODING	= 0x03;
+	static const uint8_t CMD_ERROR		= 0x04;
+	static const uint8_t CMD_READY		= 0x05;
+	static const uint8_t CMD_ACK		= 0x00;	// on response _rxpdu.data[0] = CMD_ACK/NACK | OPERATION
+	static const uint8_t CMD_NACK		= 0x80;	// on response _rxpdu.data[0] = CMD_ACK/NACK | OPERATION
+	/** Data protocol state machine */
+	enum ProtocolStat{
+		STAT_WAIT_COMMAND,
+		STAT_WAIT_RESPONSE,
+		STAT_RECV_HEAD,
+		STAT_RECV_SIZE,
+		STAT_RECV_DATA
+	};
 	/** Data protocol structure */
 	struct PDU{
 		uint8_t head;
 		uint8_t size;
 		uint8_t data[MAX_SIZE];	//data[0]=>Command, data[1..N-1]=>PDU, data[N]=>CRC
-	};
-	
-	/** Data protocol state machine */
-	enum ProtocolStat{
-		STAT_WAITING,
-		STAT_RECV_HEAD,
-		STAT_RECV_SIZE,
-		STAT_RECV_DATA
 	};
 	
 	/** Private variables */
@@ -105,7 +105,7 @@ private:
 	ProtocolStat _protostat;
 
 	void run();
-	bool send();
+	void send();
 	uint8_t decodePdu(uint8_t data);
 
 };

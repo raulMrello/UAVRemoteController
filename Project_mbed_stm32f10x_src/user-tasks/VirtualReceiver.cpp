@@ -15,6 +15,9 @@
 //-- PRIVATE DEFINITIONS -------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
+/** Time to get a valid response after sending a commando (default: 5000 ms) */
+# define TIME_TO_VALID_RESPONSE		5000
+
 //------------------------------------------------------------------------------------
 //-- STATIC FUNCTIONS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
@@ -84,17 +87,22 @@ void VirtualReceiver::notifyUpdate(uint32_t event){
 }
 
 //------------------------------------------------------------------------------------
+//-- PROTECTED/PRIVATE FUNCTIONS -----------------------------------------------------
+//------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------
 void VirtualReceiver::run(){
-	// Attaches to installed serial peripheral
+	// Attaches to serial peripheral
 	_serial->attach(this, &VirtualReceiver::RxISRCallback, (SerialBase::IrqType)RxIrq);
 	_serial->attach(this, &VirtualReceiver::TxISRCallback, (SerialBase::IrqType)TxIrq);
 	
 	// Attaches to topic updates
+	MsgBroker::Exception e;
 	MsgBroker::attach("/gps", this, OnTopicUpdateCallback, &e);
 	MsgBroker::attach("/keyb", this, OnTopicUpdateCallback, &e);
 
 	// starts waiting events...
-	_protostat = STAT_WAITING;	
+	_protostat = STAT_WAIT_COMMAND;	
 	_errcount = 0;
 	_timeout = osWaitForever;
 	for(;;){
@@ -102,96 +110,88 @@ void VirtualReceiver::run(){
 		osEvent oe = _th->signal_wait((VR_EV_DATAREADY | KEY_EV_READY | GPS_EV_READY), _timeout);
 		// if timeout...
 		if(oe.status == osEventTimeout){
-			
+			// if waiting response, active alarm ALARM_MISSING_RESPONSE
+			if(_protostat >= STAT_WAIT_RESPONSE){
+				if(_protostat == STAT_WAIT_RESPONSE){
+					_alarmdata.alarm[0] = (uint8_t)Topic::ALARM_MISSING_RESPONSE;
+				}
+				else{
+					_alarmdata.alarm[0] = (uint8_t)Topic::ALARM_WRONG_RESPONSE;
+				}
+				MsgBroker::publish("/alarm", &_alarmdata, sizeof(Topic::AlarmData_t), &e);
+				_timeout = osWaitForever;
+				_protostat = STAT_WAIT_COMMAND;
+			}			
 		}
 		if(oe.status == osEventSignal && (oe.value.signals & VR_EV_DATAREADY) != 0){		
-					
+			while(_serial->readable()){
+				uint8_t cmd;
+				// reads data and executes protocol state machine
+				cmd = decodePdu((uint8_t)_serial->getc());
+				switch(cmd){
+					case CMD_ERROR:{
+						// nothing done, if error persists, EV_TIMEOUT will raise later
+						break;
+					}
+					case CMD_READY:{
+						// if NACK received, transmission wan't understood, raise alarm and continue
+						if((_rxpdu.data[0] & CMD_NACK) != 0){
+						}
+						// publish /stat topic
+						else{
+							memcpy(&_statdata, &_rxpdu.data[1], sizeof(Topic::StatusData_t));
+							MsgBroker::publish("/stat", &_alarmdata, sizeof(Topic::AlarmData_t), &e);
+							_timeout = osWaitForever;
+							_protostat = STAT_WAIT_COMMAND;
+						}
+						break;
+					}
+					default: /*CMD_DECODING*/{
+						// nothing done, decoding reception stream
+						break;
+					}
+				}
+			}
 		}
 		if(oe.status == osEventSignal && (oe.value.signals & KEY_EV_READY) != 0){		
-					
+			Topic::KeyData_t * keydata = (Topic::KeyData_t *)MsgBroker::getTopicData("/keyb", &e);
+			memcpy(&_txpdu.data[1], keydata, sizeof(Topic::KeyData_t));
+			MsgBroker::consumed("/keyb", &e);
+			_txpdu.size = sizeof(Topic::KeyData_t)+1;
+			_txpdu.data[0] = CMD_SET_KEY;
+			send();		
+			_timeout = TIME_TO_VALID_RESPONSE;
+			_protostat = STAT_WAIT_RESPONSE;
 		}
-		if(oe.status == osEventSignal && (oe.value.signals & GPS_EV_READY) != 0){		
-			_txpdu.head = HEAD_FLAG;
-			_txpdu.size = sizeof()
+		if(oe.status == osEventSignal && (oe.value.signals & GPS_EV_READY) != 0){	
+			Topic::GpsData_t * gpsdata = (Topic::GpsData_t *)MsgBroker::getTopicData("/gps", &e);
+			memcpy(&_txpdu.data[1], gpsdata, sizeof(Topic::GpsData_t));
+			MsgBroker::consumed("/gps", &e);
+			_txpdu.size = sizeof(Topic::GpsData_t)+1;
+			_txpdu.data[0] = CMD_SET_GPS;
+			send();
+			_timeout = TIME_TO_VALID_RESPONSE;
+			_protostat = STAT_WAIT_RESPONSE;
 		}
 	}	
 }
 
 //------------------------------------------------------------------------------------
-bool VirtualReceiver::send(){
-	// restart state machine, error counter and resp timeout
-	_protostat = STAT_WAITING;	
-	_errcount = 0;
-	_timeout = 5000;
+void VirtualReceiver::send(){
 	// build tx pdu: head, crc
 	_txpdu.head = HEAD_FLAG;
 	_txpdu.data[_txpdu.size] = getCRC(&_txpdu.size, _txpdu.size + 1);
 	// sends 
-	while(_errcount < 5){
-		for(int i=0;i<_txpdu.size+3;i++){
-			_serial->putc(((char *)(&_txpdu))[i]);
-		}
-		for(;;){
-			// Wait incoming data ... 
-			osEvent oe = _th->signal_wait(VR_EV_DATAREADY, _timeout);
-			// if timeout, then resends last command and increase error count
-			if(oe.status == osEventTimeout){
-				_errcount++;
-				break; //resend
-			}
-			if(oe.status == osEventSignal && (oe.value.signals & VR_EV_DATAREADY) != 0){		
-				bool rxerror = false;
-				while(_serial->readable()){
-					uint8_t data;
-					// reads data and executes protocol state machine
-					data = (uint8_t) _serial->getc();
-					switch(decodePdu(data)){
-						case CMD_ALARM_DATA:{
-							MsgBroker::Exception e = MsgBroker::NO_ERRORS;
-							MsgBroker::publish("/alarm", &_alarmdata, sizeof(AlarmData_t), &e);
-							if(e != MsgBroker::NO_ERRORS){
-								// TODO: add error handling ...
-							}
-							return true;
-						}
-						case CMD_STATUS_DATA:{
-							MsgBroker::Exception e = MsgBroker::NO_ERRORS;
-							MsgBroker::publish("/stat", &_statdata, sizeof(StatusData_t), &e);
-							if(e != MsgBroker::NO_ERRORS){
-								// TODO: add error handling ...
-							}
-							return true;
-						}
-						case CMD_RESP_ACK:{
-							return true;
-						}
-						case CMD_ERROR:
-						case CMD_RESP_NACK: {
-							rxerror = true;
-							break;
-						}
-						case CMD_DECODING: {
-							break;
-						}
-					}
-				}
-				if(rxerror){
-					break;//resend
-				}
-			}
-		}	
+	for(int i=0;i<_txpdu.size+3;i++){
+		_serial->putc(((char *)(&_txpdu))[i]);
 	}
-	return false;
 }
 
 //------------------------------------------------------------------------------------
-//-- PROTECTED/PRIVATE FUNCTIONS -----------------------------------------------------
-//------------------------------------------------------------------------------------
-
 uint8_t VirtualReceiver::decodePdu(uint8_t data){
 	static uint8_t datasize = 0;
 	switch((int)_protostat){
-		case STAT_WAITING:{
+		case STAT_WAIT_RESPONSE:{
 			if(data != HEAD_FLAG){
 				return CMD_ERROR;
 			}
@@ -201,7 +201,6 @@ uint8_t VirtualReceiver::decodePdu(uint8_t data){
 		}
 		case STAT_RECV_HEAD:{
 			if(data >= MAX_SIZE){
-				_protostat = STAT_WAITING;
 				return CMD_ERROR;
 			}
 			_rxpdu.size = data;
@@ -213,18 +212,17 @@ uint8_t VirtualReceiver::decodePdu(uint8_t data){
 			_rxpdu.data[datasize++] = data;
 			if(datasize >= _rxpdu.size){
 				_protostat = STAT_RECV_DATA;
-				return CMD_DECODING;
 			}
 			return CMD_DECODING;
 		}
 		case STAT_RECV_DATA:{
 			_rxpdu.data[datasize] = data;
-			_protostat = STAT_WAITING;
 			if(checkCRC(&_rxpdu.size, _rxpdu.data[datasize], datasize+1)){
-				return _rxpdu.data[0];
+				return CMD_READY;
 			}
 			return CMD_ERROR;
 		}
 	}
+	return CMD_ERROR;
 }
 

@@ -175,7 +175,7 @@ void KeyDecoder::run(){
 		// if publishing enabled, publish topic update
 		if(publish){
 			MsgBroker::Exception e = MsgBroker::NO_ERRORS;
-			MsgBroker::publish("/keyb", &_keydata, sizeof(KeyDecoder::KeyData_t), &e);
+			MsgBroker::publish("/keyb", &_keydata, sizeof(Topic::KeyData_t), &e);
 			if(e != MsgBroker::NO_ERRORS){
 				// TODO: add error handling ...
 			}

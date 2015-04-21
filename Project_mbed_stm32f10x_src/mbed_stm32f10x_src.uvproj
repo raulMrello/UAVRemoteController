@@ -456,6 +456,11 @@
               <FileType>8</FileType>
               <FilePath>.\user-tasks\VirtualReceiver.cpp</FilePath>
             </File>
+            <File>
+              <FileName>LedFlasher.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-tasks\LedFlasher.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -6717,6 +6722,11 @@
               <FileName>VirtualReceiver.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\user-tasks\VirtualReceiver.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>LedFlasher.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-tasks\LedFlasher.cpp</FilePath>
             </File>
           </Files>
         </Group>

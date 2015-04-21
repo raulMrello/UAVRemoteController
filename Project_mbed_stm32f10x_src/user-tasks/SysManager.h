@@ -24,6 +24,7 @@
 #include "rtos.h"
 #include "MsgBroker.h"
 #include "BeepGenerator.h"
+#include "LedFlasher.h"
 
 //------------------------------------------------------------------------------------
 //-- TYPEDEFS ------------------------------------------------------------------------
@@ -34,12 +35,12 @@
 //-- CLASS ---------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-class SysManager : public BeepGenerator {
+class SysManager : public BeepGenerator, public LedFlasher {
 public:
 	
 	/** Constructor, destructor, getter and setter */
-	SysManager(	osPriority prio, DigitalOut *led, PwmOut *buzzer) : BeepGenerator(buzzer) {
-		init(prio, led);
+	SysManager(	osPriority prio, DigitalOut *led, PwmOut *buzzer) : BeepGenerator(buzzer), LedFlasher(led) {
+		_th = new Thread(&SysManager::task, this, prio);
 	}
 	
 	virtual ~SysManager();
@@ -52,7 +53,8 @@ public:
 	typedef enum {
 		GPS_EV_READY 	= (1 << 0),
 		KEY_EV_READY 	= (1 << 1),
-		ALARM_EV_READY 	= (1 << 2)
+		ALARM_EV_READY 	= (1 << 2),
+		STAT_EV_READY 	= (1 << 3),
 	}EventEnum;	
 	
 	/** Task */
@@ -63,11 +65,9 @@ public:
 
 private:
 	Thread *_th;
-	DigitalOut *_led;
 	uint32_t _timeout;
 
 	void run();
-	void init(osPriority prio, DigitalOut *led);
 
 };
 

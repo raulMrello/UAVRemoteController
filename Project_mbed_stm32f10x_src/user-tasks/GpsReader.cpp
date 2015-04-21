@@ -70,7 +70,7 @@ void GpsReader::run(){
 			if(ready){
 				ready = false;
 				MsgBroker::Exception e = MsgBroker::NO_ERRORS;
-				MsgBroker::publish("/gps", &_gpsdata, sizeof(GpsReader::GpsData_t), &e);
+				MsgBroker::publish("/gps", &_gpsdata, sizeof(Topic::GpsData_t), &e);
 				if(e != MsgBroker::NO_ERRORS){
 					// TODO: add error handling ...
 				}
