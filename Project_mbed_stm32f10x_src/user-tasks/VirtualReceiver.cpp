@@ -57,8 +57,9 @@ static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
 //------------------------------------------------------------------------------------
 
 VirtualReceiver::VirtualReceiver(osPriority prio, Serial *serial) {
-	_th = new Thread(&VirtualReceiver::task, this, prio);
 	_serial = serial;
+	_serial->baud(115200);
+	_th = new Thread(&VirtualReceiver::task, this, prio);
 }
 
 //------------------------------------------------------------------------------------

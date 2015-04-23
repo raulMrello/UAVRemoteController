@@ -24,9 +24,10 @@
 //------------------------------------------------------------------------------------
 
 GpsReader::GpsReader(osPriority prio, GpsReader::ModeEnum mode, Serial *serial) {
-	_th = new Thread(&GpsReader::task, this, prio);
 	_mode = (uint32_t)mode;
 	_serial = serial;
+	_serial->baud(9600);
+	_th = new Thread(&GpsReader::task, this, prio);
 }
 
 //------------------------------------------------------------------------------------
