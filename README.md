@@ -19,6 +19,21 @@ This controller has three main functions:
 
 ## Changelog
 
+> 24.04.2015-001 
+	- Improving Tasks execution
+	- Checking KeyDecoder
+	- Solved gpio problems
+	- NEXT STEPS:
+		- Finish startup code
+		- Write a functional spec
+		- Test and configure GPS with UBLOX tool
+		- Adapt lib_gps according with the NMEA/UBX reception
+		- Define error conditions and refactor application tasks (/user-tasks/*)
+		- Mount final assembly (keyboards, selectors, buzzer, led, battery, wifimodule)
+	- MBED ISSUES:
+		- **Thread[.cpp|.h]**: added function *signal_clr* to clear consumed flags.
+		- **pinmap.c**: modified *pin_mode* to setup pullups properly.
+
 > 23.04.2015-001 
 	- Removed unused projects (eclipse, linux, ....)
 	- Debugging code with stm32 platform (PROBLEMS reading InterruptIn pins).
