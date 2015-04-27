@@ -69,7 +69,10 @@ void SysManager::run(){
 	MsgBroker::attach("/alarm", this, OnTopicUpdateCallback, &e);
 	MsgBroker::attach("/stat", this, OnTopicUpdateCallback, &e);
 	_timeout = osWaitForever;
-	ledStop();
+	ledStop(_arm_ch);
+	ledStop(_loc_ch);
+	ledStop(_alt_ch);
+	ledStop(_rth_ch);
 	beepStop();
 	// Starts execution 
 	for(;;){
@@ -96,24 +99,28 @@ void SysManager::run(){
 		if(oe.status == osEventSignal && (oe.value.signals & STAT_EV_READY) != 0){
 			_th->signal_clr(STAT_EV_READY);
 			Topic::StatusData_t * statdata = (Topic::StatusData_t *)MsgBroker::getTopicData("/stat", &e);
+			ledStop(_arm_ch);
+			ledStop(_loc_ch);
+			ledStop(_alt_ch);
+			ledStop(_rth_ch);					
 			switch(statdata->mode){
 				case Topic::MODE_DISARMED:{
-					ledStart(LedFlasher::ON_FOREVER);	// ON forever
 					break;
 				}
 				case Topic::MODE_MANUAL:{
-					ledStart(LedFlasher::SLOW_FLASHING);	// 1s ON, 1s OFF, forever
+					ledStart(_arm_ch, LedFlasher::SLOW_FLASHING);	// 1s ON, 1s OFF, forever
 					break;
 				}
 				default: { /* LOC, ALT, RTH combination flags */
+					ledStart(_arm_ch, LedFlasher::ON_FOREVER);
 					if((statdata->mode & Topic::MODE_LOC) != 0 ){
-						ledStart(LedFlasher::SINGLE_FAST_FLASHING);	// 500ms ON, 1s OFF, forever
+						ledStart(_loc_ch, LedFlasher::SINGLE_FAST_FLASHING);	// 500ms ON, 1s OFF, forever
 					}
 					if((statdata->mode & Topic::MODE_ALT) != 0 ){
-						ledStart(LedFlasher::DUAL_FAST_FLASHING);	// 500ms ON, 500mss OFF, twice-shots forever
+						ledStart(_alt_ch, LedFlasher::DUAL_FAST_FLASHING);	// 500ms ON, 500mss OFF, twice-shots forever
 					}
 					if((statdata->mode & Topic::MODE_RTH) != 0 ){
-						ledStart(LedFlasher::CONTINUOUS_FAST_FLASHING);	// 500ms ON, 500ms OFF, forever
+						ledStart(_rth_ch, LedFlasher::CONTINUOUS_FAST_FLASHING);	// 500ms ON, 500ms OFF, forever
 					}
 					break;
 				}

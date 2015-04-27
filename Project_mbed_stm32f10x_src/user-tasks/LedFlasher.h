@@ -24,6 +24,7 @@
 //------------------------------------------------------------------------------------
 
 
+
 //------------------------------------------------------------------------------------
 //-- CLASS ---------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
@@ -56,20 +57,25 @@ public:
 		TIME_WAIT = 1500		///< 1.5
 	};
 	
+	struct LedChannel{
+		DigitalOut *led;
+		ShotModeEnum mode;
+		ShotTimeEnum on_time;
+		ShotTimeEnum off_time; 
+		ShotTimeEnum wait_time;
+		ShotStatusEnum status;
+		RtosTimer * tmr;
+		uint8_t shots;
+	};	
 	/** Constructor, destructor, getter and setter */
-	LedFlasher(DigitalOut *led);
-	
+	LedFlasher(uint8_t led_channels);	
 	virtual ~LedFlasher();
 	
-	void ledStart(ShotModeEnum mode);
-	void ledStop();
-
-	DigitalOut *_led;
-	ShotModeEnum _mode;
-	ShotTimeEnum _on_time, _off_time, _wait_time;
-	ShotStatusEnum _status;
-	RtosTimer *_tmr;
-	uint8_t _shots;
+	int8_t addLedChannel(DigitalOut *led);
+	void ledStart(int8_t channel, ShotModeEnum mode);
+	void ledStop(int8_t channel);
+	uint8_t _channels;
+	LedChannel *_led_list;
 };
 
 

@@ -1,23 +1,41 @@
 # UAVRC_mbed_stm32f10x_src
-This is the project implementation under keil from mbed ide with mbed sources and rtos-rtx.
+Implementación en keil uv5 utilizando las fuentes de mbed y mbed-rtos
 
 ## Features
-This controller has three main functions:
+Las funciones principales del equipo son:
 
-1. Translate user input commands (pushbuttons) into RC positioning signals for the UAV.
-2. Capture user's gps location and transmit to UAV flight controller to allow waypoint navigation with aerial photography.
-3. Receive status/alarms from the UAV, to manage critical situations, (like: inmediate landing, collision avoidance...).
+1. Convertir las pulsaciones del teclado en comandos RC para el receptor de telemetría
+2. Obtener la localización gps y enviarla al receptor de telemetría
+3. Recibir el estado del dron, así como indicadores de alarma
 
 ## Contents
-- ../docs/TaskModel.odp: Sketch of the system firmware. Tasks, devices, and topics.
-- ../Cubemx/ Pinout board assignment
-- /user-modues/ External library modules (MsgBroker, ...)
-- /user-common/ Common application definitions (Topics, ...)
-- /user-tasks/ Tasks (small independent applications)
-- /mbed-src/ mbed source code
-- /mbed-rtos/ mbed rtos source code
+- ../docs/ Bocetos y demás
+- /user-modues/ Software accesorio (MsgBroker, ...)
+- /user-common/ Software que depende de la aplicación (Topics, ...)
+- /user-tasks/ Tareas 
+- /mbed-src/ Código fuente del repositorio mbed-src
+- /mbed-rtos/ Código fuente del repositorio mbed-rtos
 
 ## Changelog
+
+> 27.04.2015-003 
+	- Modificado módulo LedFlasher para que pueda controlar diversos canales led en paralelo.
+	- Modificado módulo SysConfig para controlar 4 leds
+	- Se añaden nuevas salidas digitales para los 4 leds
+	- Test y montaje del dispositivo (hardware):
+		- Teclado:...........TEST(x) MONTADO( )
+		- Puerto serie GPS:..TEST( ) MONTADO( )
+		- Puerto serie Wifi:.TEST( ) MONTADO( )
+		- Leds:..............TEST( ) MONTADO( )
+		- Zumbador:..........TEST( ) MONTADO( )
+	- NEXT STEPS:
+		- Probar y montar el hardware
+		- Configurar los GPS con la herramiento de UBLOX
+		- Adaptar la librería gps con las tramas deseadas
+		- Definir el funcionamiento básico y los casos de error
+	- MBED ISSUES:
+		- **Thread[.cpp|.h]**: added function *signal_clr* to clear consumed flags.
+		- **pinmap.c**: modified *pin_mode* to setup pullups properly.
 
 > 27.04.2015-001 
 	- Saved project in uv5 format

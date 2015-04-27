@@ -20,7 +20,10 @@ InterruptIn key_LOC(PB_12);
 InterruptIn key_ALT(PB_13);
 InterruptIn key_RTH(PB_14);
 
-DigitalOut led(PA_8);
+DigitalOut led_arm(PA_8);
+DigitalOut led_loc(PB_15);
+DigitalOut led_alt(PB_5);
+DigitalOut led_rth(PB_6);
 PwmOut buzzer(PB_0);
 
 Serial gps(PA_2,PA_3);
@@ -47,7 +50,7 @@ int main() {
 									&key_S, &key_SW, &key_W, &key_WN, &key_ARM, &key_LOC,
 									&key_ALT, &key_RTH);
 	GpsReader *gr = new GpsReader(osPriorityAboveNormal, GpsReader::GPS_MODE_UBX, &gps);
-	SysManager *sm = new SysManager(osPriorityNormal, &led, &buzzer);
+	SysManager *sm = new SysManager(osPriorityNormal, &led_arm, &led_loc, &led_alt, &led_rth, &buzzer);
 	
 	/** main is lowest priority task, hence manage low power conditions */
     while(1) {

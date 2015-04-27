@@ -39,7 +39,12 @@ class SysManager : public BeepGenerator, public LedFlasher {
 public:
 	
 	/** Constructor, destructor, getter and setter */
-	SysManager(	osPriority prio, DigitalOut *led, PwmOut *buzzer) : BeepGenerator(buzzer), LedFlasher(led) {
+	SysManager(	osPriority prio, DigitalOut *led_arm, DigitalOut *led_loc, DigitalOut *led_alt, DigitalOut *led_rth, PwmOut *buzzer) : BeepGenerator(buzzer), LedFlasher(4) {
+		// setup led flasher channels
+		_arm_ch = addLedChannel(led_arm);
+		_loc_ch = addLedChannel(led_loc);
+		_alt_ch = addLedChannel(led_alt);
+		_rth_ch = addLedChannel(led_rth);		
 		_th = 0;
 		_th = new Thread(&SysManager::task, this, prio);
 	}
@@ -65,9 +70,13 @@ public:
 	}	
 
 private:
+	int8_t _arm_ch;
+	int8_t _loc_ch;
+	int8_t _alt_ch;
+	int8_t _rth_ch;
 	Thread *_th;
 	uint32_t _timeout;
-
+	
 	void run();
 
 };
