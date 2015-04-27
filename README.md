@@ -20,6 +20,7 @@ This controller has three main functions:
 ## Changelog
 
 > 27.04.2015-001 
+	- Saved project in uv5 format
 	- Testing modules:
 		- Keyboard (x)
 		- Serial GPS ( )
