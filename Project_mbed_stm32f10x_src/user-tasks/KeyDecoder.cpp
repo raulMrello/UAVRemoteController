@@ -16,7 +16,7 @@
 //------------------------------------------------------------------------------------
 
 /** Milliseconds timeout to publish a /key update when a key is pressed */
-#define REPEAT_TIMEOUT	200
+#define REPEAT_TIMEOUT	500
 
 /** Keyboard codes */
 #define KEY_NONE 0u
@@ -189,23 +189,19 @@ void KeyDecoder::run(){
 			_th->signal_clr(KEY_EV_PRESSED|KEY_EV_RELEASED);
 			_currentkey = readKeyboard();
 			_keydata.data.keycode = (_currentkey ^ _lastkey);
-			publish = true;			
+			publish = true;		
+			_timeout = REPEAT_TIMEOUT;			
 			if(!_currentkey){
 				_timeout = osWaitForever;
-			}
-			else{
-			_timeout = REPEAT_TIMEOUT;
-			}
+			}			
 		}
 		// if repeated event, enables publishing
 		if(oe.status == osEventTimeout){
 			_currentkey = readKeyboard();
 			publish = true;	
+			_timeout = REPEAT_TIMEOUT;
 			if(!_currentkey){
 				_timeout = osWaitForever;
-			}
-			else{
-			_timeout = REPEAT_TIMEOUT;
 			}
 		}
 		// if publishing enabled, publish topic update
