@@ -18,6 +18,26 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 30.04.2015-001 
+	- *Añado directorio /docs/ublox con información sobre la configuración del GPS y código fuente de ejemplo.*
+	- Modificado módulo LedFlasher para que pueda controlar diversos canales led en paralelo.
+	- Modificado módulo SysConfig para controlar 4 leds
+	- Se añaden nuevas salidas digitales para los 4 leds
+	- Test y montaje del dispositivo (hardware):
+		- Teclado:...........TEST(x) MONTADO( )
+		- Puerto serie GPS:..TEST( ) MONTADO( )
+		- Puerto serie Wifi:.TEST( ) MONTADO( )
+		- Leds:..............TEST( ) MONTADO( )
+		- Zumbador:..........TEST( ) MONTADO( )
+	- NEXT STEPS:
+		- Probar y montar el hardware
+		- Configurar los GPS con la herramiento de UBLOX
+		- Adaptar la librería gps con las tramas deseadas
+		- Definir el funcionamiento básico y los casos de error
+	- MBED ISSUES:
+		- **Thread[.cpp|.h]**: added function *signal_clr* to clear consumed flags.
+		- **pinmap.c**: modified *pin_mode* to setup pullups properly.
+
 > 27.04.2015-003 
 	- Modificado módulo LedFlasher para que pueda controlar diversos canales led en paralelo.
 	- Modificado módulo SysConfig para controlar 4 leds
