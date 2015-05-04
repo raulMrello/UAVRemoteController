@@ -18,13 +18,16 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 04.05.2015-003
+	- Actualizo /docs añadiendo documentación de diseño y montaje
+	
 > 04.05.2015-002 
 	- Importo librería mbed de la rama [all_my_changes](https://github.com/raulMrello/mbed/tree/all_my_changes) utilizando el porting al F103C8T6.
 	
-> 04.05.2015-001 
+> 04.05.2015-001
 	- Añado directorio para cmsis.h para solventar error en compilación.
 	
-> 30.04.2015-001 
+> 30.04.2015-001
 	- Añado directorio /docs/ublox con información sobre la configuración del GPS y código fuente de ejemplo.
 	- Modificado módulo LedFlasher para que pueda controlar diversos canales led en paralelo.
 	- Modificado módulo SysConfig para controlar 4 leds
