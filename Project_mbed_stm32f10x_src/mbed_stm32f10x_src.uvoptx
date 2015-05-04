@@ -600,7 +600,7 @@
 
   <Group>
     <GroupName>user-tasks</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -3419,8 +3419,8 @@
   </Group>
 
   <Group>
-    <GroupName>mbed-targets-cmsis-stm32f103rb</GroupName>
-    <tvExp>1</tvExp>
+    <GroupName>mbed-targets-cmsis-stm32f103c8t6</GroupName>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -3432,7 +3432,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\cmsis.h</PathWithFileName>
+      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\cmsis.h</PathWithFileName>
       <FilenameWithoutPath>cmsis.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -3445,7 +3445,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\cmsis_nvic.c</PathWithFileName>
+      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\cmsis_nvic.c</PathWithFileName>
       <FilenameWithoutPath>cmsis_nvic.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -3458,7 +3458,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\cmsis_nvic.h</PathWithFileName>
+      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\cmsis_nvic.h</PathWithFileName>
       <FilenameWithoutPath>cmsis_nvic.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -3471,7 +3471,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\hal_tick.c</PathWithFileName>
+      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\hal_tick.c</PathWithFileName>
       <FilenameWithoutPath>hal_tick.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -3484,7 +3484,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\hal_tick.h</PathWithFileName>
+      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\hal_tick.h</PathWithFileName>
       <FilenameWithoutPath>hal_tick.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -3497,7 +3497,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\stm32f1xx.h</PathWithFileName>
+      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\stm32f1xx.h</PathWithFileName>
       <FilenameWithoutPath>stm32f1xx.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -3510,7 +3510,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\stm32f103xb.h</PathWithFileName>
+      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\stm32f103xb.h</PathWithFileName>
       <FilenameWithoutPath>stm32f103xb.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -3523,7 +3523,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\system_stm32f1xx.c</PathWithFileName>
+      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\system_stm32f1xx.c</PathWithFileName>
       <FilenameWithoutPath>system_stm32f1xx.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -3536,7 +3536,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\system_stm32f1xx.h</PathWithFileName>
+      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\system_stm32f1xx.h</PathWithFileName>
       <FilenameWithoutPath>system_stm32f1xx.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -3544,7 +3544,7 @@
   </Group>
 
   <Group>
-    <GroupName>mbed-targets-cmsis-smt32f103rb-arm-micro</GroupName>
+    <GroupName>mbed-targets-cmsis-smt32f103c8t6-arm-micro</GroupName>
     <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
@@ -3557,7 +3557,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\TOOLCHAIN_ARM_MICRO\startup_stm32f103xb.s</PathWithFileName>
+      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\TOOLCHAIN_ARM_MICRO\startup_stm32f103xb.s</PathWithFileName>
       <FilenameWithoutPath>startup_stm32f103xb.s</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -3570,7 +3570,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\TOOLCHAIN_ARM_MICRO\sys.cpp</PathWithFileName>
+      <PathWithFileName>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\TOOLCHAIN_ARM_MICRO\sys.cpp</PathWithFileName>
       <FilenameWithoutPath>sys.cpp</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -3868,7 +3868,7 @@
 
   <Group>
     <GroupName>rtos-rtos</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -4032,7 +4032,7 @@
 
   <Group>
     <GroupName>rtos-rtx-cortexm</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -4417,7 +4417,7 @@
 
   <Group>
     <GroupName>rtos-rtx-cortexm-m3-arm</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

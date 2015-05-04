@@ -100,6 +100,12 @@ typedef enum {
     PB_14 = 0x1E,
     PB_15 = 0x1F,
 
+    // Generic signals namings
+    SERIAL_TX   = PA_2,
+    SERIAL_RX   = PA_3,
+    USBTX       = PA_2,
+    USBRX       = PA_3,
+
     // Not connected
     NC = (int)0xFFFFFFFF
 } PinName;

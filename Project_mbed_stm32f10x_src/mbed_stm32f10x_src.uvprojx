@@ -1531,67 +1531,67 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>mbed-targets-cmsis-stm32f103rb</GroupName>
+          <GroupName>mbed-targets-cmsis-stm32f103c8t6</GroupName>
           <Files>
             <File>
               <FileName>cmsis.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\cmsis.h</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\cmsis.h</FilePath>
             </File>
             <File>
               <FileName>cmsis_nvic.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\cmsis_nvic.c</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\cmsis_nvic.c</FilePath>
             </File>
             <File>
               <FileName>cmsis_nvic.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\cmsis_nvic.h</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\cmsis_nvic.h</FilePath>
             </File>
             <File>
               <FileName>hal_tick.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\hal_tick.c</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\hal_tick.c</FilePath>
             </File>
             <File>
               <FileName>hal_tick.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\hal_tick.h</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\hal_tick.h</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\stm32f1xx.h</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\stm32f1xx.h</FilePath>
             </File>
             <File>
               <FileName>stm32f103xb.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\stm32f103xb.h</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\stm32f103xb.h</FilePath>
             </File>
             <File>
               <FileName>system_stm32f1xx.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\system_stm32f1xx.c</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\system_stm32f1xx.c</FilePath>
             </File>
             <File>
               <FileName>system_stm32f1xx.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\system_stm32f1xx.h</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\system_stm32f1xx.h</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>mbed-targets-cmsis-smt32f103rb-arm-micro</GroupName>
+          <GroupName>mbed-targets-cmsis-smt32f103c8t6-arm-micro</GroupName>
           <Files>
             <File>
               <FileName>startup_stm32f103xb.s</FileName>
               <FileType>2</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\TOOLCHAIN_ARM_MICRO\startup_stm32f103xb.s</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\TOOLCHAIN_ARM_MICRO\startup_stm32f103xb.s</FilePath>
             </File>
             <File>
               <FileName>sys.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\TOOLCHAIN_ARM_MICRO\sys.cpp</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\TOOLCHAIN_ARM_MICRO\sys.cpp</FilePath>
             </File>
           </Files>
         </Group>
@@ -2331,7 +2331,7 @@
             <TextAddressRange>0x00000000</TextAddressRange>
             <DataAddressRange>0x10000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\TOOLCHAIN_ARM_MICRO\stm32f103xb.sct</ScatterFile>
+            <ScatterFile>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\TOOLCHAIN_ARM_MICRO\stm32f103xb.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc></Misc>
@@ -3467,67 +3467,67 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>mbed-targets-cmsis-stm32f103rb</GroupName>
+          <GroupName>mbed-targets-cmsis-stm32f103c8t6</GroupName>
           <Files>
             <File>
               <FileName>cmsis.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\cmsis.h</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\cmsis.h</FilePath>
             </File>
             <File>
               <FileName>cmsis_nvic.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\cmsis_nvic.c</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\cmsis_nvic.c</FilePath>
             </File>
             <File>
               <FileName>cmsis_nvic.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\cmsis_nvic.h</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\cmsis_nvic.h</FilePath>
             </File>
             <File>
               <FileName>hal_tick.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\hal_tick.c</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\hal_tick.c</FilePath>
             </File>
             <File>
               <FileName>hal_tick.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\hal_tick.h</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\hal_tick.h</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\stm32f1xx.h</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\stm32f1xx.h</FilePath>
             </File>
             <File>
               <FileName>stm32f103xb.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\stm32f103xb.h</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\stm32f103xb.h</FilePath>
             </File>
             <File>
               <FileName>system_stm32f1xx.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\system_stm32f1xx.c</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\system_stm32f1xx.c</FilePath>
             </File>
             <File>
               <FileName>system_stm32f1xx.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\system_stm32f1xx.h</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\system_stm32f1xx.h</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>mbed-targets-cmsis-smt32f103rb-arm-micro</GroupName>
+          <GroupName>mbed-targets-cmsis-smt32f103c8t6-arm-micro</GroupName>
           <Files>
             <File>
               <FileName>startup_stm32f103xb.s</FileName>
               <FileType>2</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\TOOLCHAIN_ARM_MICRO\startup_stm32f103xb.s</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\TOOLCHAIN_ARM_MICRO\startup_stm32f103xb.s</FilePath>
             </File>
             <File>
               <FileName>sys.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB\TOOLCHAIN_ARM_MICRO\sys.cpp</FilePath>
+              <FilePath>.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6\TOOLCHAIN_ARM_MICRO\sys.cpp</FilePath>
             </File>
           </Files>
         </Group>

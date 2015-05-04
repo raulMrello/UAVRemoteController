@@ -18,6 +18,9 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 04.05.2015-002 
+	- Importo librería mbed de la rama [all_my_changes](https://github.com/raulMrello/mbed/tree/all_my_changes) utilizando el porting al F103C8T6.
+	
 > 04.05.2015-001 
 	- Añado directorio para cmsis.h para solventar error en compilación.
 	
