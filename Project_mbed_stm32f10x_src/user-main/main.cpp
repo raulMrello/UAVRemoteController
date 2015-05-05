@@ -7,27 +7,28 @@
 #include "MsgBroker.h"
 #include "Topics.h"
 
-InterruptIn key_N(PA_4);
-InterruptIn key_NE(PA_5);
-InterruptIn key_E(PA_6);
-InterruptIn key_ES(PA_7);
-InterruptIn key_S(PB_1);
-InterruptIn key_SW(PB_2);
-InterruptIn key_W(PB_9);
-InterruptIn key_WN(PB_10);
+InterruptIn key_S(PB_1);	//<-- CAMBIAR A ENTER_A
+InterruptIn key_SW(PB_2);	//<-- CAMBIAR A ENTER_B
+InterruptIn key_N(PA_4);  	//<-- CAMBIAR A JOYSTICK_A1 (THROTTLE)
+InterruptIn key_NE(PA_5); 	//<-- CAMBIAR A JOYSTICK_A2
+InterruptIn key_E(PA_6);  	//<-- CAMBIAR A JOYSTICK_B1
+InterruptIn key_ES(PA_7); 	//<-- CAMBIAR A JOYSTICK_B2 
 InterruptIn key_ARM(PB_11);
 InterruptIn key_LOC(PB_12);
 InterruptIn key_ALT(PB_13);
 InterruptIn key_RTH(PB_14);
-
 DigitalOut led_arm(PA_8);
 DigitalOut led_loc(PB_15);
 DigitalOut led_alt(PB_5);
 DigitalOut led_rth(PB_6);
 PwmOut buzzer(PB_0);
-
 Serial gps(PA_2,PA_3);
 Serial lnk(PA_9,PA_10);
+
+InterruptIn key_W(PB_9);	//<-- CAMBIAR A NO_USAR
+InterruptIn key_WN(PB_10);	//<-- CAMBIAR A NO_USAR 
+
+
 
 int main() {
 		

@@ -18,6 +18,12 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 05.05.2015-001
+	- Actualizo /docs añadiendo pptx con la asignación de pines.
+	- Añado comentarios en main.cpp con la nueva asignación de pines
+	NEXT STEPS:
+		- Añadir módulo de lectura de joysticks (JoystickDecoder)
+	
 > 04.05.2015-003
 	- Actualizo /docs añadiendo documentación de diseño y montaje
 	
