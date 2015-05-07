@@ -1,0 +1,44 @@
+
+************** CHECK AT POWER UP ****************
+
+Test AT is ready		AT  
+						------>
+							<------ OK
+							
+************** WIFI SETUP ****************
+
+
+Setup UART				AT+UART_DEF=115200,8,1,0,0			
+						------>
+							<------ OK
+
+Setup softAP mode		AT+CWMODE_DEF=2					
+						------>
+							<------ OK
+
+Config softAP mode		AT+CWSAP_DEF="ESP-TR","eagleQUAD",5,3					
+						------>
+							<------ OK | ERROR
+
+Set softAP IPaddr		AT+CIPAP_DEF="192.168.7.10",“192.168.7.10”,“255.255.255.0”
+						------>
+							<------ OK
+							
+Disables DHCP			AT+CWDHCP_DEF=0,0			
+						------>
+							<------ OK
+							
+************** TCP SERVER SETUP ****************
+
+Config as TCP server	AT+ CIPMUX=1						
+						------>
+							<------ OK
+						AT+ CIPSERVER=1,3000	
+						------>
+							<------ OK
+						AT+CIPSTO=10												
+							
+Get Client IP			AT+ CWLIF				
+						------>
+							<------ IP,MAC
+									OK

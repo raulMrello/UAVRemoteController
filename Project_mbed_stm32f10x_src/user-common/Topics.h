@@ -16,10 +16,16 @@ namespace Topic {
 	//------------------------------------------------------------------------------------
 	/** Gps topic data structure */
 	struct GpsData_t{
-		float lat;	///< latitude -100º to +100º
-		float lng;	///< longitude -12h to +12h
-		float alt;	///< altitude -100m to 8000m
-		float hea;	///< heading 0º to 360º
+		long time;		///< GPS Millisecond Time of Week
+		long lat;     	///< Geographic coordinates
+		long lng;
+		long alt;
+		long gspeed;	///< Ground speed
+		long speed3d;   ///< Speed (3-D)
+		long gcourse;	///< Ground Course
+		uint8_t sats;   ///< Number of visible satelites
+		uint8_t fix;    ///< 1:GPS FIX   0:No FIX (normal logic)
+		uint8_t timeout;///< Timeout error flag
 	};
 
 
@@ -59,21 +65,25 @@ namespace Topic {
 		union {
 			uint32_t keycode;
 			struct {
-				unsigned key_N	:1; //bit 0
-				unsigned key_NE	:1;
-				unsigned key_E	:1;
-				unsigned key_ES	:1;
-				unsigned key_S	:1;
-				unsigned key_SW	:1;
-				unsigned key_W	:1;
-				unsigned key_WN	:1;
-				unsigned key_ARM:1;
-				unsigned key_LOC:1;
-				unsigned key_ALT:1;
-				unsigned key_RTH:1;
-				unsigned keys_UNUSED:21;
+				unsigned key_A_Ok    :1;
+				unsigned key_B_Ok    :1;
+				unsigned key_ARM     :1;
+				unsigned key_LOC     :1;
+				unsigned key_ALT     :1;
+				unsigned key_RTH     :1;
+				unsigned keys_UNUSED :27;
 			}keys;
 		}data;	
+	};
+
+	
+	//------------------------------------------------------------------------------------
+	/** Joystick topic data structure */
+	struct JoystickData_t{
+		float valueA1;	///< value 0.0 to 1.0
+		float valueA2;	///< value 0.0 to 1.0
+		float valueB1;	///< value 0.0 to 1.0
+		float valueB2;	///< value 0.0 to 1.0
 	};
 
 

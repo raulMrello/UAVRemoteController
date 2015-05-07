@@ -20,18 +20,12 @@
 
 /** Keyboard codes */
 #define KEY_NONE 0u
-#define KEY_N	(uint32_t)(1 << 0)
-#define KEY_NE	(uint32_t)(1 << 1)
-#define KEY_E	(uint32_t)(1 << 2)
-#define KEY_ES	(uint32_t)(1 << 3)
-#define KEY_S	(uint32_t)(1 << 4)
-#define KEY_SW	(uint32_t)(1 << 5)
-#define KEY_W	(uint32_t)(1 << 6)
-#define KEY_WN	(uint32_t)(1 << 7)
-#define KEY_ARM	(uint32_t)(1 << 8)
-#define KEY_LOC	(uint32_t)(1 << 9)
-#define KEY_ALT	(uint32_t)(1 << 10)
-#define KEY_RTH	(uint32_t)(1 << 11)
+#define KEY_A_OK	(uint32_t)(1 << 0)
+#define KEY_B_OK	(uint32_t)(1 << 1)
+#define KEY_ARM		(uint32_t)(1 << 2)
+#define KEY_LOC		(uint32_t)(1 << 3)
+#define KEY_ALT		(uint32_t)(1 << 4)
+#define KEY_RTH		(uint32_t)(1 << 5)
 
 //------------------------------------------------------------------------------------
 //-- STATIC FUNCTIONS ----------------------------------------------------------------
@@ -41,60 +35,21 @@
 //-- PUBLIC FUNCTIONS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-KeyDecoder::KeyDecoder(	osPriority prio, InterruptIn *ii_N, InterruptIn *ii_NE,
-						InterruptIn *ii_E, InterruptIn *ii_ES, InterruptIn *ii_S,
-						InterruptIn *ii_SW, InterruptIn *ii_W, InterruptIn *ii_WN,
-						InterruptIn *ii_ARM, InterruptIn *ii_LOC, InterruptIn *ii_ALT,
-						InterruptIn *ii_RTH) {
+KeyDecoder::KeyDecoder(	osPriority prio, InterruptIn *ii_A_Ok, InterruptIn *ii_B_Ok,
+						InterruptIn *ii_ARM, InterruptIn *ii_LOC, InterruptIn *ii_ALT, InterruptIn *ii_RTH) {
 
-	ii_N->fall(this, &KeyDecoder::KeyPressedISRCallback);
-	ii_N->rise(this, &KeyDecoder::KeyReleasedISRCallback);
-	ii_N->disable_irq();
-	ii_N->mode(PullUp);
-	_ii_N = ii_N;
+	_ii_A_Ok->fall(this, &KeyDecoder::KeyPressedISRCallback);
+	_ii_A_Ok->rise(this, &KeyDecoder::KeyReleasedISRCallback);
+	_ii_A_Ok->disable_irq();
+	_ii_A_Ok->mode(PullUp);
+	_ii_A_Ok = ii_A_Ok;
 
-	ii_NE->fall(this, &KeyDecoder::KeyPressedISRCallback);
-	ii_NE->rise(this, &KeyDecoder::KeyReleasedISRCallback);
-	ii_NE->disable_irq();
-	ii_NE->mode(PullUp);
-	_ii_NE = ii_NE;
+	_ii_B_Ok->fall(this, &KeyDecoder::KeyPressedISRCallback);
+	_ii_B_Ok->rise(this, &KeyDecoder::KeyReleasedISRCallback);
+	_ii_B_Ok->disable_irq();
+	_ii_B_Ok->mode(PullUp);
+	_ii_B_Ok = ii_B_Ok;
 							
-	ii_E->fall(this, &KeyDecoder::KeyPressedISRCallback);
-	ii_E->rise(this, &KeyDecoder::KeyReleasedISRCallback);
-	ii_E->disable_irq();
-	ii_E->mode(PullUp);
-	_ii_E = ii_E;
-
-	ii_ES->fall(this, &KeyDecoder::KeyPressedISRCallback);
-	ii_ES->rise(this, &KeyDecoder::KeyReleasedISRCallback);
-	ii_ES->disable_irq();
-	ii_ES->mode(PullUp);
-	_ii_ES = ii_ES;
-
-	ii_S->fall(this, &KeyDecoder::KeyPressedISRCallback);
-	ii_S->rise(this, &KeyDecoder::KeyReleasedISRCallback);
-	ii_S->disable_irq();
-	ii_S->mode(PullUp);
-	_ii_S = ii_S;
-
-	ii_SW->fall(this, &KeyDecoder::KeyPressedISRCallback);
-	ii_SW->rise(this, &KeyDecoder::KeyReleasedISRCallback);
-	ii_SW->disable_irq();
-	ii_SW->mode(PullUp);
-	_ii_SW = ii_SW;
-
-	ii_W->fall(this, &KeyDecoder::KeyPressedISRCallback);
-	ii_W->rise(this, &KeyDecoder::KeyReleasedISRCallback);
-	ii_W->disable_irq();
-	ii_W->mode(PullUp);
-	_ii_W = ii_W;
-
-	ii_WN->fall(this, &KeyDecoder::KeyPressedISRCallback);
-	ii_WN->rise(this, &KeyDecoder::KeyReleasedISRCallback);
-	ii_WN->disable_irq();
-	ii_WN->mode(PullUp);
-	_ii_WN = ii_WN;
-
 	ii_ARM->fall(this, &KeyDecoder::KeyPressedISRCallback);
 	ii_ARM->rise(this, &KeyDecoder::KeyReleasedISRCallback);
 	ii_ARM->disable_irq();
@@ -125,14 +80,8 @@ KeyDecoder::KeyDecoder(	osPriority prio, InterruptIn *ii_N, InterruptIn *ii_NE,
 
 //------------------------------------------------------------------------------------
 KeyDecoder::~KeyDecoder() {
-	_ii_N->disable_irq();
-	_ii_NE->disable_irq();
-	_ii_E->disable_irq();
-	_ii_ES->disable_irq();
-	_ii_S->disable_irq();
-	_ii_SW->disable_irq();
-	_ii_W->disable_irq();
-	_ii_WN->disable_irq();
+	_ii_A_Ok->disable_irq();
+	_ii_B_Ok->disable_irq();
 	_ii_ARM->disable_irq();
 	_ii_LOC->disable_irq();
 	_ii_ALT->disable_irq();
@@ -164,14 +113,8 @@ void KeyDecoder::run(){
 		_currentkey = readKeyboard();
 	}while(_currentkey != KEY_NONE);
 	_lastkey = _currentkey;
-	_ii_N->enable_irq();
-	_ii_NE->enable_irq();
-	_ii_E->enable_irq();
-	_ii_ES->enable_irq();
-	_ii_S->enable_irq();
-	_ii_SW->enable_irq();
-	_ii_W->enable_irq();
-	_ii_WN->enable_irq();
+	_ii_A_Ok->enable_irq();
+	_ii_B_Ok->enable_irq();
 	_ii_ARM->enable_irq();
 	_ii_LOC->enable_irq();
 	_ii_ALT->enable_irq();
@@ -221,22 +164,10 @@ void KeyDecoder::run(){
 
 uint32_t KeyDecoder::readKeyboard(){
 	uint32_t result = KEY_NONE;
-	if(_ii_N->read() == 0)
-		result |= KEY_N;
-	if(_ii_NE->read() == 0)
-		result |= KEY_NE;
-	if(_ii_E->read() == 0)
-		result |= KEY_E;
-	if(_ii_ES->read() == 0)
-		result |= KEY_ES;
-	if(_ii_S->read() == 0)
-		result |= KEY_S;
-	if(_ii_SW->read() == 0)
-		result |= KEY_SW;
-	if(_ii_W->read() == 0)
-		result |= KEY_W;
-	if(_ii_WN->read() == 0)
-		result |= KEY_WN;
+	if(_ii_A_Ok->read() == 0)
+		result |= KEY_A_OK;
+	if(_ii_B_Ok->read() == 0)
+		result |= KEY_B_OK;
 	if(_ii_ARM->read() == 0)
 		result |= KEY_ARM;
 	if(_ii_LOC->read() == 0)

@@ -1,0 +1,42 @@
+
+************** CHECK AT POWER UP ****************
+
+Test AT is ready		AT  
+						------>
+							<------ OK
+				
+************** WIFI SETUP ****************
+
+Setup UART				AT+UART_DEF=115200,8,1,0,0			
+						------>
+							<------ OK
+
+Setup station mode		AT+CWMODE_DEF=1					
+						------>
+							<------ OK
+
+Disables DHCP			AT+CWDHCP_DEF=1,0			
+						------>
+							<------ OK
+
+Set station IPaddr		AT+CIPSTA_DEF="192.168.7.1",“192.168.7.10”,“255.255.255.0”
+						------>
+							<------ OK
+
+Connect to AP			AT+CWJAP_DEF="ESP-TR","eagleQUAD"				
+						------>
+							<------ OK | ERROR
+
+							
+************** TCP CLIENT SETUP ****************							
+
+Start connection		AT+CIPSTART=0,"TCP","192.168.7.100","3000",10
+						------>
+							<------ OK | ERROR | ALREADY CONNCT
+
+Send data				AT+CIPSEND=N
+						------>
+							<------ >
+						[N]--->
+							<------ OK | ERROR
+						

@@ -18,6 +18,17 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 07.05.2015-001
+	- Actualizo /docs añadiendo software del ESP-01
+	- Añado librerías GPS_UBLOX y GPS_NMEA.
+	- Finalizo desarrollo de GpsReader.	
+	- Finalizo desarrollo de JoystickSampler
+	NEXT STEPS:
+		- Programar ESP-01 en modo AT y verificar la comunicación bidireccional
+		- Definir los comandos del VirtualReceiver y finalizarlo
+		- Programar tarea de test en rama testing
+		
+	
 > 05.05.2015-001
 	- Actualizo /docs añadiendo pptx con la asignación de pines.
 	- Añado comentarios en main.cpp con la nueva asignación de pines

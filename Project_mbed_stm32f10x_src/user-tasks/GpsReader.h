@@ -21,6 +21,8 @@
 #include "rtos.h"
 #include "MsgBroker.h"
 #include "Topics.h"
+#include "GPS_UBLOX.h"
+#include "GPS_NMEA.h"
 
 //------------------------------------------------------------------------------------
 //-- TYPEDEFS ------------------------------------------------------------------------
@@ -56,6 +58,8 @@ public:
 private:
 	uint32_t _mode;
 	Topic::GpsData_t _gpsdata;
+	GPS_UBLOX ublox;
+	GPS_NMEA nmea;
 	Serial *_serial;
 	Thread *_th;
 	void run();

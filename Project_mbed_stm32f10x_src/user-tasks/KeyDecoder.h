@@ -36,14 +36,8 @@ public:
 	
 	/** Constructor, destructor, getter and setter */
 	KeyDecoder(	osPriority prio, 
-				InterruptIn *ii_N,
-				InterruptIn *ii_NE,
-				InterruptIn *ii_E,
-				InterruptIn *ii_ES,
-				InterruptIn *ii_S,
-				InterruptIn *ii_SW,
-				InterruptIn *ii_W,
-				InterruptIn *ii_WN,
+				InterruptIn *ii_A_Ok,
+				InterruptIn *ii_B_Ok,
 				InterruptIn *ii_ARM,
 				InterruptIn *ii_LOC,
 				InterruptIn *ii_ALT,
@@ -65,14 +59,8 @@ public:
 private:
 	Topic::KeyData_t _keydata;
 	Thread *_th;
-	InterruptIn *_ii_N;
-	InterruptIn *_ii_NE;
-	InterruptIn *_ii_E;
-	InterruptIn *_ii_ES;
-	InterruptIn *_ii_S;
-	InterruptIn *_ii_SW;
-	InterruptIn *_ii_W;
-	InterruptIn *_ii_WN;
+	InterruptIn *_ii_A_Ok;
+	InterruptIn *_ii_B_Ok;
 	InterruptIn *_ii_ARM;
 	InterruptIn *_ii_LOC;
 	InterruptIn *_ii_ALT;

@@ -56,9 +56,11 @@ static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
 //-- PUBLIC FUNCTIONS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-VirtualReceiver::VirtualReceiver(osPriority prio, Serial *serial) {
+VirtualReceiver::VirtualReceiver(osPriority prio, Serial *serial, DigitalOut *endis) {
 	_serial = serial;
 	_serial->baud(115200);
+	_endis = endis;
+	_endis->write(DISABLE);
 	_th = 0;
 	_th = new Thread(&VirtualReceiver::task, this, prio);
 }
@@ -106,6 +108,10 @@ void VirtualReceiver::run(){
 	MsgBroker::attach("/gps", this, OnTopicUpdateCallback, &e);
 	MsgBroker::attach("/keyb", this, OnTopicUpdateCallback, &e);
 
+	// Enables link device
+	_endis->write(ENABLE);
+	Thread::wait(500);
+	
 	// starts waiting events...
 	_protostat = STAT_WAIT_COMMAND;	
 	_errcount = 0;

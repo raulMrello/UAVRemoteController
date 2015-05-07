@@ -39,7 +39,7 @@ public:
 	
 	
 	/** Constructor, destructor, getter and setter */
-	VirtualReceiver(osPriority prio, Serial *serial);
+	VirtualReceiver(osPriority prio, Serial *serial, DigitalOut *endis);
 	virtual ~VirtualReceiver();
 	Thread *getThread();
 	
@@ -65,7 +65,9 @@ public:
 	}	
 
 private:
-	
+
+	enum ControlFlag {DISABLE = 0, ENABLE=1};
+
 	/** Data protocol head flag and max size */
 	static const uint8_t HEAD_FLAG = 0x5A;
 	static const uint8_t MAX_SIZE = 32;
@@ -95,6 +97,7 @@ private:
 	
 	/** Private variables */
 	Serial *_serial;
+	DigitalOut *_endis;
 	Thread *_th;
 	uint32_t _timeout;
 	uint8_t _errcount;
