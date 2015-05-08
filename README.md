@@ -18,6 +18,11 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 08.05.2015-002
+	- Modificando VirtualReceiver. Definiendo las ProtocolActions para simplificar la gestión de las comunicaciones.
+	NEXT STEPS:
+		- Programar tarea de test en rama testing
+		
 > 08.05.2015-001
 	- Actualizo /docs añadiendo comandos AT del ESP-01
 	- Actualizo el ppt de resumen de montaje del RemoteController

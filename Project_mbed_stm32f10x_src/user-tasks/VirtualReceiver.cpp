@@ -11,6 +11,122 @@
 //-- PRIVATE TYPEDEFS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
+
+enum Status{
+	CHECK_MODE = 0,
+	SET_MODE,
+	RESET_LNK,
+	SET_AP_IP,
+	SET_AP_NETWORK,
+	SET_MUX,
+	START_AP_SERVER,
+	SET_AP_TIMEOUT,
+	GET_AP_LIST,
+	CONNECT_TO_AP,
+	CHECK_AP_CONNECTION,
+	START_TCP_CLIENT,
+	CHECK_TCP_STATUS,
+	SEND_TCP_DATA,
+	CLOSE_TCP_CONNECTION,
+};
+struct ProtocolAction{
+	uint8_t stat;
+	const char * at_cmd;
+	const char * response;
+	uint8_t next_stat_ok;
+	uint8_t next_stat_err;
+};
+
+static ProtocolAction actions[] = {
+	{CHECK_MODE,
+	 "AT+CWMODE?", 	
+	 "+CWMODE:3", 
+	 SET_AP_IP,  
+	 SET_MODE},
+	
+	{SET_MODE, 	 
+	 "AT+CWMODE=3", 
+	 "OK", 		 
+	 RESET_LNK,  
+	 SET_MODE},
+	
+	{RESET_LNK,  
+	 "AT+RST", 		
+	 "OK", 		 
+	 CHECK_MODE, 
+	 CHECK_MODE},
+	
+	{SET_AP_IP,  
+	 "AT+CIPAP=""192.168.8.10"",""192.168.8.10"",""255.255.255.0""", 		
+	 "OK", 		 
+	 SET_AP_NETWORK, 
+	 SET_AP_IP},
+	
+	{SET_AP_NETWORK,  
+	 "AT+CWSAP=""EAGLE-REMOTE"",""eagleQUAD"",4,3", 		
+	 "OK", 		 
+	 SET_MUX, 
+	 SET_AP_NETWORK},
+	
+	{SET_MUX,  
+	 "AT+CIPMUX=1", 		
+	 "OK", 		 
+	 START_AP_SERVER, 
+	 SET_MUX},
+	
+	{START_AP_SERVER,  
+	 "AT+CIPSERVER=1,80", 		
+	 "OK", 		 
+	 SET_AP_TIMEOUT, 
+	 START_AP_SERVER},
+	
+	,
+	,
+	GET_AP_LIST,
+	CONNECT_TO_AP,
+	CHECK_AP_CONNECTION,
+	START_TCP_CLIENT,
+	CHECK_TCP_STATUS,
+	SEND_TCP_DATA,
+	CLOSE_TCP_CONNECTION,
+};
+
+static const char * ATcmd[] = {	
+	"AT+CWMODE?",
+	"AT+CWMODE=3",
+	"AT+RST",
+	"AT+CIPAP=""192.168.8.10"",""192.168.8.10"",""255.255.255.0""",
+	"AT+CWSAP=""EAGLE-REMOTE"",""eagleQUAD"",4,3",
+	"AT+CIPMUX=1",
+	"AT+CIPSERVER=1,80",
+	"AT+CIPSTO=7200",
+	"AT+CWLAP",
+	"AT+CWJAP=""EAGLE-TELEMETRY"",""eagleQUAD""",
+	"AT+CWJAP?",
+	"AT+CIPSTART=4,""TCP"",""192.168.7.10"",80"	
+	"AT+CIPSTATUS",
+	"AT+CIPSEND=4,"
+	"AT+CIPCLOSE=4"
+};
+
+static const char * response[] = {	
+	"+CWMODE:3",
+	"ERROR",
+	"+CWJAP:",
+	"4,CONNECT",
+	"0,CONNECT",
+	"+CWLAP:",
+	"+CIPSTATUS:",
+	"busy",
+	"SEND OK",
+	"+IPD,"	
+	"4,CLOSED",
+	"0,CLOSED"
+	"AT+CIPCLOSE=4",
+	"ready",
+	"OK"
+};
+
 //------------------------------------------------------------------------------------
 //-- PRIVATE DEFINITIONS -------------------------------------------------------------
 //------------------------------------------------------------------------------------
@@ -61,6 +177,7 @@ VirtualReceiver::VirtualReceiver(osPriority prio, Serial *serial, DigitalOut *en
 	_serial->baud(115200);
 	_endis = endis;
 	_endis->write(DISABLE);
+	_status = 0;
 	_th = 0;
 	_th = new Thread(&VirtualReceiver::task, this, prio);
 }
@@ -101,7 +218,7 @@ void VirtualReceiver::run(){
 	}
 	// Attaches to serial peripheral
 	_serial->attach(this, &VirtualReceiver::RxISRCallback, (SerialBase::IrqType)RxIrq);
-	_serial->attach(this, &VirtualReceiver::TxISRCallback, (SerialBase::IrqType)TxIrq);
+//	_serial->attach(this, &VirtualReceiver::TxISRCallback, (SerialBase::IrqType)TxIrq);
 	
 	// Attaches to topic updates
 	MsgBroker::Exception e;
@@ -112,59 +229,75 @@ void VirtualReceiver::run(){
 	_endis->write(ENABLE);
 	Thread::wait(500);
 	
-	// starts waiting events...
+	// setup waiting events...
 	_protostat = STAT_WAIT_COMMAND;	
 	_errcount = 0;
-	_timeout = osWaitForever;
+	
+	// starts sending check mode at command
+	_rxbuf.count = 0;
+	_status = CHECK_MODE;
+	_timeout = TIME_TO_VALID_RESPONSE;
+	send(ATcmd[_status]);
 	for(;;){
 		// Wait incoming data ... 
 		osEvent oe = _th->signal_wait((VR_EV_DATAREADY | KEY_EV_READY | GPS_EV_READY), _timeout);
 		// if timeout...
 		if(oe.status == osEventTimeout){
-			// if waiting response, active alarm ALARM_MISSING_RESPONSE
-			if(_protostat >= STAT_WAIT_RESPONSE){
-				if(_protostat == STAT_WAIT_RESPONSE){
-					_alarmdata.alarm[0] = (uint8_t)Topic::ALARM_MISSING_RESPONSE;
-				}
-				else{
-					_alarmdata.alarm[0] = (uint8_t)Topic::ALARM_WRONG_RESPONSE;
-				}
-				MsgBroker::publish("/alarm", &_alarmdata, sizeof(Topic::AlarmData_t), &e);
-				_timeout = osWaitForever;
-				_protostat = STAT_WAIT_COMMAND;
-			}			
+			#warning TODO........
 		}
 		if(oe.status == osEventSignal && (oe.value.signals & VR_EV_DATAREADY) != 0){	
 			_th->signal_clr(VR_EV_DATAREADY);						
 			while(_serial->readable()){
-				uint8_t cmd;
-				// reads data and executes protocol state machine
-				cmd = decodePdu((uint8_t)_serial->getc());
-				switch(cmd){
-					case CMD_ERROR:{
-						// nothing done, if error persists, EV_TIMEOUT will raise later
-						break;
-					}
-					case CMD_READY:{
-						// if NACK received, transmission wan't understood, raise alarm and continue
-						if((_rxpdu.data[0] & CMD_NACK) != 0){
-						}
-						// publish /stat topic
-						else{
-							memcpy(&_statdata, &_rxpdu.data[1], sizeof(Topic::StatusData_t));
-							MsgBroker::publish("/stat", &_alarmdata, sizeof(Topic::AlarmData_t), &e);
-							_timeout = osWaitForever;
-							_protostat = STAT_WAIT_COMMAND;
-						}
-						break;
-					}
-					default: /*CMD_DECODING*/{
-						// nothing done, decoding reception stream
-						break;
-					}
-				}
+				_rxbuf.data[_rxbuf.count++] = (uint8_t)_serial->getc();
+				processResponse();
 			}
 		}
+		
+//		if(oe.status == osEventTimeout){
+//			// if waiting response, active alarm ALARM_MISSING_RESPONSE
+//			if(_protostat >= STAT_WAIT_RESPONSE){
+//				if(_protostat == STAT_WAIT_RESPONSE){
+//					_alarmdata.alarm[0] = (uint8_t)Topic::ALARM_MISSING_RESPONSE;
+//				}
+//				else{
+//					_alarmdata.alarm[0] = (uint8_t)Topic::ALARM_WRONG_RESPONSE;
+//				}
+//				MsgBroker::publish("/alarm", &_alarmdata, sizeof(Topic::AlarmData_t), &e);
+//				_timeout = osWaitForever;
+//				_protostat = STAT_WAIT_COMMAND;
+//			}			
+//		}
+//		if(oe.status == osEventSignal && (oe.value.signals & VR_EV_DATAREADY) != 0){	
+//			_th->signal_clr(VR_EV_DATAREADY);						
+//			while(_serial->readable()){
+//				uint8_t cmd;
+//				// reads data and executes protocol state machine
+//				cmd = decodePdu((uint8_t)_serial->getc());
+//				switch(cmd){
+//					case CMD_ERROR:{
+//						// nothing done, if error persists, EV_TIMEOUT will raise later
+//						break;
+//					}
+//					case CMD_READY:{
+//						// if NACK received, transmission wan't understood, raise alarm and continue
+//						if((_rxpdu.data[0] & CMD_NACK) != 0){
+//						}
+//						// publish /stat topic
+//						else{
+//							memcpy(&_statdata, &_rxpdu.data[1], sizeof(Topic::StatusData_t));
+//							MsgBroker::publish("/stat", &_alarmdata, sizeof(Topic::AlarmData_t), &e);
+//							_timeout = osWaitForever;
+//							_protostat = STAT_WAIT_COMMAND;
+//						}
+//						break;
+//					}
+//					default: /*CMD_DECODING*/{
+//						// nothing done, decoding reception stream
+//						break;
+//					}
+//				}
+//			}
+//		}
 		if(oe.status == osEventSignal && (oe.value.signals & KEY_EV_READY) != 0){		
 			_th->signal_clr(KEY_EV_READY);						
 			Topic::KeyData_t * keydata = (Topic::KeyData_t *)MsgBroker::getTopicData("/keyb", &e);
@@ -188,6 +321,17 @@ void VirtualReceiver::run(){
 			_protostat = STAT_WAIT_RESPONSE;
 		}
 	}	
+}
+
+//------------------------------------------------------------------------------------
+void VirtualReceiver::send(const char * atcmd){
+	int size = strlen(atcmd);
+	// sends 
+	for(int i=0;i<size;i++){
+		_serial->putc(atcmd[i]);
+	}
+	_serial->putc('\r');
+	_serial->putc('\n');
 }
 
 //------------------------------------------------------------------------------------
@@ -240,3 +384,14 @@ uint8_t VirtualReceiver::decodePdu(uint8_t data){
 	return CMD_ERROR;
 }
 
+//------------------------------------------------------------------------------------
+uint8_t VirtualReceiver::processResponse(){
+	uint8_t last = _rxbuf.count-1;
+	if(last < 1){
+		return CMD_DECODING;
+	}
+	if(_rxbuf.data[last-1] != '\r' || _rxbuf.data[last] != '\n'){
+		return CMD_DECODING;
+	}
+	
+}

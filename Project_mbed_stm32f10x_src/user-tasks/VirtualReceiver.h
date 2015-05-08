@@ -68,6 +68,15 @@ private:
 
 	enum ControlFlag {DISABLE = 0, ENABLE=1};
 
+	/** Reception buffer max size */
+	static const uint8_t RX_BUFF_SIZE = 128;
+
+	/** Reception buffer structure */
+	struct RxBuffer{
+		uint8_t count;
+		uint8_t data[RX_BUFF_SIZE];	
+	};
+
 	/** Data protocol head flag and max size */
 	static const uint8_t HEAD_FLAG = 0x5A;
 	static const uint8_t MAX_SIZE = 32;
@@ -95,7 +104,9 @@ private:
 		uint8_t data[MAX_SIZE];	//data[0]=>Command, data[1..N-1]=>PDU, data[N]=>CRC
 	};
 	
+	
 	/** Private variables */
+	RxBuffer _rxbuf;
 	Serial *_serial;
 	DigitalOut *_endis;
 	Thread *_th;
@@ -105,11 +116,16 @@ private:
 	Topic::StatusData_t _statdata;
 	PDU _rxpdu;
 	PDU _txpdu;
+	
+	
 	ProtocolStat _protostat;
+	int8_t _status;
 
 	void run();
 	void send();
+	void send(const char * atcmd);
 	uint8_t decodePdu(uint8_t data);
+	uint8_t processResponse();
 
 };
 
