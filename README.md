@@ -18,6 +18,15 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 08.05.2015-001
+	- Actualizo /docs añadiendo comandos AT del ESP-01
+	- Actualizo el ppt de resumen de montaje del RemoteController
+	NEXT STEPS:
+		- Programar ESP-01 en modo AT y verificar la comunicación bidireccional
+		- Definir los comandos del VirtualReceiver y finalizarlo
+		- Programar tarea de test en rama testing
+		
+	
 > 07.05.2015-001
 	- Actualizo /docs añadiendo software del ESP-01
 	- Añado librerías GPS_UBLOX y GPS_NMEA.

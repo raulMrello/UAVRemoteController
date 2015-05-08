@@ -1,42 +1,213 @@
 
-************** CHECK AT POWER UP ****************
+##### PUESTA EN MARCHA ######
 
-Test AT is ready		AT  
-						------>
-							<------ OK
-				
-************** WIFI SETUP ****************
+1. Chequear si está en modo STA+AP
+AT+CWMODE?$0D$0A
+	> Continuar si la respuesta es +CWMODE:3$0D$0AOK$0D$0A 
+	> Sino 
+		AT+CWMODE=3$0D$0A
+		> Continuar si la respuesta es OK$0D$0A
+		AT+RST$0D$0A
+		> Esperar hasta encontrar la palabra "ready". Volver al paso 1.
 
-Setup UART				AT+UART_DEF=115200,8,1,0,0			
-						------>
-							<------ OK
+2. Cambiar la IP en modo AP
+AT+CIPAP="192.168.8.10","192.168.8.10","255.255.255.0"$0D$0A		
+	> Continuar si la respuesta es OK$0D$0A
+	> Sino, volver a intentar. Tras 20s, volver al paso 1.
 
-Setup station mode		AT+CWMODE_DEF=1					
-						------>
-							<------ OK
+3. Iniciar red AP	
+AT+CWSAP="EAGLE-REMOTE","eagleQUAD",4,3$0D$0A
+	> Continuar si la respuesta es OK$0D$0A
+	> Sino, volver a intentar. Tras 20s, volver al paso 1.
+	
+4. Habilitar conexiones múltiples		
+AT+CIPMUX=1$0D$0A
+	> Continuar si la respuesta es OK$0D$0A
+	> Sino, volver a intentar. Tras 20s, volver al paso 1.
 
-Disables DHCP			AT+CWDHCP_DEF=1,0			
-						------>
-							<------ OK
+5. Iniciar servidor en puerto 80
+AT+CIPSERVER=1,80$0D$0A 	
+	> Continuar si la respuesta es OK$0D$0A
+	> Sino, volver a intentar. Tras 20s, volver al paso 1.
 
-Set station IPaddr		AT+CIPSTA_DEF="192.168.7.1",“192.168.7.10”,“255.255.255.0”
-						------>
-							<------ OK
+6. Establecer el máximo timeout	
+AT+CIPSTO=7200$0D$0A
+	> Continuar si la respuesta es OK$0D$0A
+	> Sino, volver a intentar. Tras 20s, volver al paso 1.
+	
+7. Buscar al servidor del TelemetryReceiver
+AT+CWLAP$0D$0A 		
+	> Si en la respuesta encuentro "OK", buscar la palabra "EAGLE-TELEMETRY"
+	> Sino, esperar 2s y volver a buscar. Tras 20s, volver al paso 1.
 
-Connect to AP			AT+CWJAP_DEF="ESP-TR","eagleQUAD"				
-						------>
-							<------ OK | ERROR
+8. Conectar al AP
+AT+CWJAP="EAGLE-TELEMETRY","eagleQUAD"$0D$0A
+	> Continuar si la respuesta es OK$0D$0A
+	> Sino, volver a intentar. Tras 20s, volver al paso 1.
 
-							
-************** TCP CLIENT SETUP ****************							
+9. Chequear la conexión al AP
+AT+CWJAP?$0D$0A
+	> Continuar si la respuesta es +CWJAP:"EAGLE-TELEMETRY"$0D$0AOK$0D$0A
+	> Sino, volver a intentar. Tras 20s, volver al paso 1.
 
-Start connection		AT+CIPSTART=0,"TCP","192.168.7.100","3000",10
-						------>
-							<------ OK | ERROR | ALREADY CONNCT
+10. Conectar cliente TCP al puerto 80
+AT+CIPSTART=4,"TCP","192.168.7.10",80$0D$0A
+	> Continuar si la respuesta es 4,CONNECT$0D$0AOK$0D$0A
+	> Sino, volver a intentar. Tras 20s, volver al paso 1.
 
-Send data				AT+CIPSEND=N
-						------>
-							<------ >
-						[N]--->
-							<------ OK | ERROR
-						
+
+
+##### FUNCIONAMIENTO NORMAL ######
+
+1. Chequear que la conexión está viva (repetidamente cada 2s)
+AT+CIPSTATUS$0D$0A
+	> Continuar si la respuesta es 	STATUS:3$0D$0A+CIPSTATUS:0,"TCP","192.168.8.11",9594,1$0D$0A+CIPSTATUS:4,"TCP","192.168.7.10",80,0$0D$0AOK$0D$0A
+	> Sino, cerrar (AT+CIPCLOSE=4$0D$0A) y volver a PUESTA EN MARCHA y marcar error de conexión
+
+2. Envío de N datos
+AT+CIPSEND=4,(N+1)$0D$0A	
+	> Continuar si la respuesta es ">"
+	> Sino, volver a intentar. Tras 5 intentos marcar error de envío, cerrar (AT+CIPCLOSE=4$0D$0A) y  volver a PUESTA EN MARCHA
+...datos_ascii...$0D$0A$0D$0A$0D$0A
+	> Continuar si en la respuesta aparece el texto "SEND OK"
+	> Sino esperar. Tras 5s cerrar (AT+CIPCLOSE=4$0D$0A) y volver a PUESTA EN MARCHA
+
+3. Recepción de datos
+	> Si recibo +IPD,x,N+1:datos  (siendo x = 0..4) y N el nº de datos
+	> Espero recibir OK$0D$0A
+	> Proceso los datos recibidos
+
+
+
+##### EN CUALQUIER MOMENTO ######
+
+1. Si recibo una trama desconocida y encuentro "ready", volver a PUESTA EN MARCHA
+
+
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+////////////// LOG TEST
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+AT+CWMODE?
+AT+CWMODE?
++CWMODE:3
+
+OK
+AT+CIPAP="192.168.8.10","192.168.8.10","255.255.255.0"
+AT+CIPAP="192.168.8.10","192.168.8.10","255.255.255.0"
+
+OK
+AT+CWSAP="EAGLE-REMOTE","eagleQUAD",6,3
+AT+CWSAP="EAGLE-REMOTE","eagleQUAD",6,3
+
+OK
+AT+CIPMUX=1
+AT+CIPMUX=1
+
+OK
+AT+CIPSERVER=1,80
+ AT+CIPSERVER=1,80
+ 
+OK
+AT+CIPSTO=7200
+AT+CIPSTO=7200
+
+OK
+AT+CWLAP
+AT+CWLAP
+
+ERROR
+AT+CWLAP
+AT+CWLAP
++CWLAP:(2,"WiFi-Repeater1",-78,"80:3c:08:01:15:cc",1)
++CWLAP:(2,"WLAN_A195",-91,"00:1a:2b:b1:db:95",1)
++CWLAP:(2,"wlanguest",-82,"6a:72:c0:c7:fd:35",1)
++CWLAP:(2,"WLAN_DC1D",-86,"a4:52:6f:f7:dc:1e",1)
++CWLAP:(1,"Invitado",-52,"00:23:5d:8d:da:50",9)
++CWLAP:(4,"Orange-5EEF",-87,"88:03:55:61:5e:f1",2)
++CWLAP:(2,"WLAN_GANGPROGRAMMER",-79,"00:1d:20:fc:a3:d9",3)
++CWLAP:(3,"CALOMETAL",-91,"44:03:a7:09:cf:90",4)
++CWLAP:(4,"Orange-7D18",-84,"1c:c6:3c:c7:7d:1a",5)
++CWLAP:(4,"JAZZTEL_Pcjq",-92,"78:31:2b:dc:70:e0",6)
++CWLAP:(4,"Orange-8e95",-82,"c0:ac:54:02:e2:84",6)
++CWLAP:(2,"vodafoneDF5C",-92,"62:6b:d3:6b:df:5c",9)
++CWLAP:(0,"_AUTO_ONOWiFi",-83,"02:35:3b:96:a4:59",10)
++CWLAP:(1,"Invitado",-60,"00:23:5d:8d:c0:a0",10)
++CWLAP:(4,"ONO77FA",-82,"5c:35:3b:96:a4:58",10)
++CWLAP:(0,"_ONOWiFiGRATIS",-93,"5a:23:8c:03:80:01",11)
++CWLAP:(2,"WLAN_3440",-83,"00:a0:26:7f:34:40",12)
+
+OK
+AT+CWLAP
+AT+CWLAP
++CWLAP:(2,"WiFi-Repeater1",-77,"80:3c:08:01:15:cc",1)
++CWLAP:(2,"WLAN_A195",-93,"00:1a:2b:b1:db:95",1)
++CWLAP:(2,"Vodafone6B87",-90,"e4:c1:46:be:6b:88",1)
++CWLAP:(4,"Orange-5EEF",-89,"88:03:55:61:5e:f1",2)
++CWLAP:(2,"WLAN_GANGPROGRAMMER",-80,"00:1d:20:fc:a3:d9",3)
++CWLAP:(3,"CALOMETAL",-90,"44:03:a7:09:cf:90",4)
++CWLAP:(4,"Orange-7D18",-91,"1c:c6:3c:c7:7d:1a",5)
++CWLAP:(3,"EAGLE-TELEMETRY",-6,"1a:fe:34:9d:63:42",5)
++CWLAP:(4,"Orange-8e95",-82,"c0:ac:54:02:e2:84",6)
++CWLAP:(1,"Invitado",-52,"00:23:5d:8d:da:50",9)
+
+OK
+AT+CWSAP="EAGLE-REMOTE","eagleQUAD",4,3
+AT+CWSAP="EAGLE-REMOTE","eagleQUAD",4,3
+
+OK
+AT+CWLAP
+AT+CWLAP
++CWLAP:(4,"Orange-0095",-88,"9c:80:df:14:00:97",1)
++CWLAP:(2,"JAZZTEL_FD34",-87,"38:72:c0:c7:fd:34",1)
++CWLAP:(2,"wlanguest",-86,"6a:72:c0:c7:fd:35",1)
++CWLAP:(2,"WLAN_DC1D",-92,"a4:52:6f:f7:dc:1e",1)
++CWLAP:(4,"Orange-5EEF",-86,"88:03:55:61:5e:f1",2)
++CWLAP:(2,"WLAN_GANGPROGRAMMER",-81,"00:1d:20:fc:a3:d9",3)
++CWLAP:(3,"CALOMETAL",-92,"44:03:a7:09:cf:90",4)
++CWLAP:(4,"Orange-7D18",-87,"1c:c6:3c:c7:7d:1a",5)
++CWLAP:(3,"EAGLE-TELEMETRY",-5,"1a:fe:34:9d:63:42",5)
++CWLAP:(2,"JAZZTEL_0ED7",-87,"38:72:c0:c5:0e:d7",6)
++CWLAP:(1,"Invitado",-57,"00:23:5d:8d:da:50",9)
++CWLAP:(2,"Vodafone77EG",-86,"d8:61:94:25:77:e1",11)
++CWLAP:(2,"WLAN_3440",-85,"00:a0:26:7f:34:40",12)
+
+OK
+AT+CWJAP="EAGLE-TELEMETRY","eagleQUAD"
+AT+CWJAP="EAGLE-TELEMETRY","eagleQUAD"
+
+OK
+AT+CWJAP?
+AT+CWJAP?
++CWJAP:"EAGLE-TELEMETRY"
+
+OK
+AT+CIPSTART=4,"TCP","192.168.7.10",80
+AT+CIPSTART=4,"TCP","192.168.7.10",80
+4,CONNECT
+
+OK
+0,CONNECT
+AT+CIPSTATUS
+AT+CIPSTATUS
+STATUS:3
++CIPSTATUS:0,"TCP","192.168.8.11",9594,1
++CIPSTATUS:4,"TCP","192.168.7.10",80,0
+
+OK
+AT+CIPSEND=4,5
+AT+CIPSEND=4,5
+> hola
+
+
+holabusy s...
+busy s...
+busy s...
+
+SEND OK
+
++IPD,0,6:adios
+OK
