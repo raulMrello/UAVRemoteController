@@ -41,7 +41,8 @@ public:
 				InterruptIn *ii_ARM,
 				InterruptIn *ii_LOC,
 				InterruptIn *ii_ALT,
-				InterruptIn *ii_RTH);
+				InterruptIn *ii_RTH,
+				bool enableRepeatedEvt = false);
 	
 	virtual ~KeyDecoder();
 	Thread *getThread();
@@ -68,7 +69,7 @@ private:
 	uint32_t _lastkey;
 	uint32_t _currentkey;
 	uint32_t _timeout;
-
+	bool _enableRepeated;
 
 	void run();
 	uint32_t readKeyboard();

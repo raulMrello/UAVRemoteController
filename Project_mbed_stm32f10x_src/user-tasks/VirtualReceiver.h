@@ -54,8 +54,9 @@ public:
 	typedef enum {
 		GPS_EV_READY 	= (1 << 0),
 		KEY_EV_READY 	= (1 << 1),
-		VR_EV_DATAREADY = (1 << 2),
-		VR_EV_DATASENT  = (1 << 3)
+		TIMER_EV_READY	= (1 << 2),
+		VR_EV_DATAREADY = (1 << 3),
+		VR_EV_DATASENT  = (1 << 4)
 	}EventEnum;	
 		
 	/** Task */
@@ -69,17 +70,17 @@ private:
 	enum ControlFlag {DISABLE = 0, ENABLE=1};
 
 	/** Reception buffer max size */
-	static const uint8_t RX_BUFF_SIZE = 128;
+	static const uint8_t BUFF_SIZE = 128;
 
 	/** Reception buffer structure */
-	struct RxBuffer{
+	struct DataBuffer{
 		uint8_t count;
-		uint8_t data[RX_BUFF_SIZE];	
+		uint8_t data[BUFF_SIZE];	
 	};
 
-	/** Data protocol head flag and max size */
-	static const uint8_t HEAD_FLAG = 0x5A;
-	static const uint8_t MAX_SIZE = 32;
+	/** Operational mode flags */
+	static const uint8_t INITIALIZING = 0x01;
+	static const uint8_t READY		  = 0x02;
 
 	/** Data protocol command types */
 	static const uint8_t CMD_SET_GPS 	= 0x01;
@@ -87,45 +88,33 @@ private:
 	static const uint8_t CMD_DECODING	= 0x03;
 	static const uint8_t CMD_ERROR		= 0x04;
 	static const uint8_t CMD_READY		= 0x05;
-	static const uint8_t CMD_ACK		= 0x00;	// on response _rxpdu.data[0] = CMD_ACK/NACK | OPERATION
-	static const uint8_t CMD_NACK		= 0x80;	// on response _rxpdu.data[0] = CMD_ACK/NACK | OPERATION
-	/** Data protocol state machine */
-	enum ProtocolStat{
-		STAT_WAIT_COMMAND,
-		STAT_WAIT_RESPONSE,
-		STAT_RECV_HEAD,
-		STAT_RECV_SIZE,
-		STAT_RECV_DATA
-	};
-	/** Data protocol structure */
-	struct PDU{
-		uint8_t head;
-		uint8_t size;
-		uint8_t data[MAX_SIZE];	//data[0]=>Command, data[1..N-1]=>PDU, data[N]=>CRC
-	};
-	
+	static const uint8_t CMD_RESET		= 0x06;
+	static const uint8_t CMD_ACK		= 0x07;	
+	static const uint8_t CMD_NACK		= 0x08;	
+	static const uint8_t CMD_DATA		= 0x09;	
+		
 	
 	/** Private variables */
-	RxBuffer _rxbuf;
+	DataBuffer _rxbuf;
+	DataBuffer _txbuf;
 	Serial *_serial;
 	DigitalOut *_endis;
 	Thread *_th;
 	uint32_t _timeout;
-	uint8_t _errcount;
 	Topic::AlarmData_t _alarmdata;
 	Topic::StatusData_t _statdata;
-	PDU _rxpdu;
-	PDU _txpdu;
-	
-	
-	ProtocolStat _protostat;
-	int8_t _status;
 
+	int8_t _status;
+	uint8_t _mode;
+	int8_t _errcount;
+	int32_t _signals;
+	RtosTimer * _tmr;
+	
 	void run();
+	int8_t updateStatus(int8_t stat);
 	void send();
 	void send(const char * atcmd);
-	uint8_t decodePdu(uint8_t data);
-	uint8_t processResponse();
+	uint8_t processResponse(char * pdata, int * len);
 
 };
 

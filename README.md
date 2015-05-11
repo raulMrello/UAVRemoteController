@@ -18,6 +18,12 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 11.05.2015-001
+	- Modificando main para ir probando cada módulo de forma independiente. Actualmente probando el GPS (no cambia el baudrate).
+	- Finalizado VirtualReceiver aunque falta depurar en detalle su funcionamiento.
+	NEXT STEPS:
+		- Programar tarea de test en rama testing
+		
 > 08.05.2015-002
 	- Modificando VirtualReceiver. Definiendo las ProtocolActions para simplificar la gestión de las comunicaciones.
 	NEXT STEPS:

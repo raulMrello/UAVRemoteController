@@ -49,9 +49,14 @@ int main() {
 	/** Start tasks */
 	
 	KeyDecoder *kd = new KeyDecoder(osPriorityHigh, &joys_A_Ok, &joys_B_Ok, &key_ARM, &key_LOC, &key_ALT, &key_RTH);
+	#warning ACTIVAR PASO A PASO.....
 	JoystickSampler *js = new JoystickSampler(osPriorityHigh, &joys_A1, &joys_A2, &joys_B1, &joys_B2);
 	GpsReader *gr = new GpsReader(osPriorityAboveNormal, GpsReader::GPS_MODE_UBX, &gps);
+	/*
+	VirtualReceiver *vr = new VirtualReceiver(osPriorityAboveNormal, &lnk, &lnk_endis);
 	SysManager *sm = new SysManager(osPriorityNormal, &led_arm, &led_loc, &led_alt, &led_rth, &buzzer);
+	*/
+	
 	
 	/** main is lowest priority task, hence manage low power conditions */
     while(1) {

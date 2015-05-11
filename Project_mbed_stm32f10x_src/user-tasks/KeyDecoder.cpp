@@ -36,18 +36,19 @@
 //------------------------------------------------------------------------------------
 
 KeyDecoder::KeyDecoder(	osPriority prio, InterruptIn *ii_A_Ok, InterruptIn *ii_B_Ok,
-						InterruptIn *ii_ARM, InterruptIn *ii_LOC, InterruptIn *ii_ALT, InterruptIn *ii_RTH) {
+						InterruptIn *ii_ARM, InterruptIn *ii_LOC, InterruptIn *ii_ALT, InterruptIn *ii_RTH, bool enableRepeatedEvt) {
 
-	_ii_A_Ok->fall(this, &KeyDecoder::KeyPressedISRCallback);
-	_ii_A_Ok->rise(this, &KeyDecoder::KeyReleasedISRCallback);
-	_ii_A_Ok->disable_irq();
-	_ii_A_Ok->mode(PullUp);
+	_enableRepeated = enableRepeatedEvt;
+	ii_A_Ok->fall(this, &KeyDecoder::KeyPressedISRCallback);
+	ii_A_Ok->rise(this, &KeyDecoder::KeyReleasedISRCallback);
+	ii_A_Ok->disable_irq();
+	ii_A_Ok->mode(PullUp);
 	_ii_A_Ok = ii_A_Ok;
 
-	_ii_B_Ok->fall(this, &KeyDecoder::KeyPressedISRCallback);
-	_ii_B_Ok->rise(this, &KeyDecoder::KeyReleasedISRCallback);
-	_ii_B_Ok->disable_irq();
-	_ii_B_Ok->mode(PullUp);
+	ii_B_Ok->fall(this, &KeyDecoder::KeyPressedISRCallback);
+	ii_B_Ok->rise(this, &KeyDecoder::KeyReleasedISRCallback);
+	ii_B_Ok->disable_irq();
+	ii_B_Ok->mode(PullUp);
 	_ii_B_Ok = ii_B_Ok;
 							
 	ii_ARM->fall(this, &KeyDecoder::KeyPressedISRCallback);
@@ -133,10 +134,10 @@ void KeyDecoder::run(){
 			_currentkey = readKeyboard();
 			_keydata.data.keycode = (_currentkey ^ _lastkey);
 			publish = true;		
-			_timeout = REPEAT_TIMEOUT;			
-			if(!_currentkey){
-				_timeout = osWaitForever;
-			}			
+			_timeout = osWaitForever;
+			if(_enableRepeated && _currentkey != KEY_NONE){
+				_timeout = REPEAT_TIMEOUT;			
+			}
 		}
 		// if repeated event, enables publishing
 		if(oe.status == osEventTimeout){
