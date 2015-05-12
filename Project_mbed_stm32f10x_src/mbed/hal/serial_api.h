@@ -67,7 +67,9 @@ typedef enum {
 
 typedef enum {
     RxIrq,
-    TxIrq
+    TxIrq,
+	ErrIrq,		///< Added to support ORE,NE,FE,PE error handling
+	IdleIrq		///< Added to support LineIdle handling
 } SerialIrq;
 
 typedef enum {

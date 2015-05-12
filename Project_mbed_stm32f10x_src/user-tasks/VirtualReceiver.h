@@ -39,12 +39,13 @@ public:
 	
 	
 	/** Constructor, destructor, getter and setter */
-	VirtualReceiver(osPriority prio, Serial *serial, DigitalOut *endis);
+	VirtualReceiver(osPriority prio, RawSerial *serial, DigitalOut *endis);
 	virtual ~VirtualReceiver();
 	Thread *getThread();
 	
 	/** Serial Interrupt callbacks */
 	void RxISRCallback(void);
+	void IdleISRCallback(void);
 	void TxISRCallback(void);
 		
 	/** Topic updates callbacks */
@@ -56,7 +57,8 @@ public:
 		KEY_EV_READY 	= (1 << 1),
 		TIMER_EV_READY	= (1 << 2),
 		VR_EV_DATAREADY = (1 << 3),
-		VR_EV_DATASENT  = (1 << 4)
+		VR_EV_DATAEND	= (1 << 4),
+		VR_EV_DATASENT  = (1 << 5)
 	}EventEnum;	
 		
 	/** Task */
@@ -97,7 +99,7 @@ private:
 	/** Private variables */
 	DataBuffer _rxbuf;
 	DataBuffer _txbuf;
-	Serial *_serial;
+	RawSerial *_serial;
 	DigitalOut *_endis;
 	Thread *_th;
 	uint32_t _timeout;
@@ -109,6 +111,7 @@ private:
 	int8_t _errcount;
 	int32_t _signals;
 	RtosTimer * _tmr;
+	RtosTimer * _rxtmr;
 	
 	void run();
 	int8_t updateStatus(int8_t stat);

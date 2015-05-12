@@ -25,7 +25,7 @@
 //-- PUBLIC FUNCTIONS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-GpsReader::GpsReader(osPriority prio, GpsReader::ModeEnum mode, Serial *serial) {
+GpsReader::GpsReader(osPriority prio, GpsReader::ModeEnum mode, RawSerial *serial) {
 	_mode = (uint32_t)mode;
 	_serial = serial;
 	_serial->baud(38400);

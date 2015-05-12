@@ -181,34 +181,18 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>72</LineNumber>
+          <LineNumber>387</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134218386</Address>
+          <Address>134219534</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\user-tasks\GpsReader.cpp</Filename>
+          <Filename>.\user-tasks\VirtualReceiver.cpp</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\mbed_stm32f10x_src\user-tasks/GpsReader.cpp\72</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>200</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134240964</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\mbed\targets\hal\TARGET_STM\TARGET_STM32F1\serial_api.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\mbed_stm32f10x_src\mbed/targets/hal/TARGET_STM/TARGET_STM32F1/serial_api.c\200</Expression>
+          <Expression>\\mbed_stm32f10x_src\user-tasks/VirtualReceiver.cpp\387</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -252,7 +236,20 @@
           <WinNumber>1</WinNumber>
           <ItemText>UartHandle</ItemText>
         </Ww>
+        <Ww>
+          <count>8</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>_rxbuf</ItemText>
+        </Ww>
       </WatchWindow1>
+      <MemoryWindow1>
+        <Mm>
+          <WinNumber>1</WinNumber>
+          <SubType>8</SubType>
+          <ItemText>actions[_status].response</ItemText>
+          <AccSizeX>0</AccSizeX>
+        </Mm>
+      </MemoryWindow1>
       <Tracepoint>
         <THDelay>0</THDelay>
       </Tracepoint>
@@ -1234,7 +1231,7 @@
 
   <Group>
     <GroupName>mbed-common</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

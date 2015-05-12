@@ -41,7 +41,7 @@ public:
 	}ModeEnum;
 		
 	/** Constructor, destructor, getter and setter */
-	GpsReader(osPriority prio, GpsReader::ModeEnum mode, Serial *serial);
+	GpsReader(osPriority prio, GpsReader::ModeEnum mode, RawSerial *serial);
 	virtual ~GpsReader();
 	Thread *getThread();
 	
@@ -60,7 +60,7 @@ private:
 	Topic::GpsData_t _gpsdata;
 	GPS_UBLOX ublox;
 	GPS_NMEA nmea;
-	Serial *_serial;
+	RawSerial *_serial;
 	Thread *_th;
 	void run();
 

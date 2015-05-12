@@ -53,12 +53,12 @@ static ProtocolAction actions[] = {
 	 CHECK_MODE, 
 	 CHECK_MODE},
 	
-	{"AT+CIPAP=""192.168.8.10"",""192.168.8.10"",""255.255.255.0""", 		
+	{"AT+CIPAP=\"192.168.8.10\",\"192.168.8.10\",\"255.255.255.0\"", 		
 	 "", 		 
 	 SET_AP_NETWORK, 
 	 SET_AP_IP},
 	
-	{"AT+CWSAP=""EAGLE-REMOTE"",""eagleQUAD"",4,3", 		
+	{"AT+CWSAP=\"EAGLE-REMOTE\",\"eagleQUAD\",4,3", 		
 	 "", 		 
 	 SET_MUX, 
 	 SET_AP_NETWORK},
@@ -83,18 +83,18 @@ static ProtocolAction actions[] = {
 	 CONNECT_TO_AP, 
 	 GET_AP_LIST},
 	
-	{"AT+CWJAP=""EAGLE-TELEMETRY"",""eagleQUAD""", 		
+	{"AT+CWJAP=\"EAGLE-TELEMETRY\",\"eagleQUAD\"", 		
 	 "", 		 
 	 CHECK_AP_CONNECTION, 
 	 CONNECT_TO_AP},
 	
 	{"AT+CWJAP?", 		
-	 "+CWJAP:""EAGLE-TELEMETRY""", 		 
+	 "+CWJAP:\"EAGLE-TELEMETRY\"", 		 
 	 START_TCP_CLIENT, 
 	 CHECK_AP_CONNECTION},
 	
-	{"AT+CIPSTART=4,""TCP"",""192.168.7.10"",80", 		
-	 "OK;4,CONNECT;", 		 
+	{"AT+CIPSTART=4,\"TCP\",\"192.168.7.10\",80", 		
+	 "4,CONNECT", 		 
 	 CHECK_TCP_STATUS, 
 	 START_TCP_CLIENT},
 	
@@ -104,7 +104,7 @@ static ProtocolAction actions[] = {
 	 CHECK_AP_CONNECTION},
 	
 	{"AT+CIPSTATUS", 		
-	 "+CIPSTATUS:4,""TCP"",""192.168.7.10"",80,0", 		 
+	 "+CIPSTATUS:4,\"TCP\",\"192.168.7.10\",80,0", 		 
 	 CHECK_TCP_STATUS, 
 	 CLOSE_TCP_CONNECTION},
 	
@@ -123,6 +123,9 @@ static ProtocolAction actions[] = {
 //------------------------------------------------------------------------------------
 //-- PRIVATE DEFINITIONS -------------------------------------------------------------
 //------------------------------------------------------------------------------------
+
+/** Time to idle line after receiving serial data (default: 10 ms) */
+#define TIME_TO_IDLE_LINE			10
 
 /** Time to get a valid response after sending a commando (default: 5000 ms) */
 #define TIME_TO_VALID_RESPONSE		5000
@@ -169,18 +172,25 @@ static void OnTimerUpdateCallback(void const *obj){
 	me->notifyUpdate(VirtualReceiver::TIMER_EV_READY);
 }
 
+//------------------------------------------------------------------------------------
+static void OnRxIdleCallback(void const *obj){
+	VirtualReceiver *me = (VirtualReceiver*)obj;
+	me->notifyUpdate(VirtualReceiver::VR_EV_DATAEND);
+}
+
 
 //------------------------------------------------------------------------------------
 //-- PUBLIC FUNCTIONS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-VirtualReceiver::VirtualReceiver(osPriority prio, Serial *serial, DigitalOut *endis) {
+VirtualReceiver::VirtualReceiver(osPriority prio, RawSerial *serial, DigitalOut *endis) {
 	_serial = serial;
 	_serial->baud(115200);
 	_endis = endis;
 	_endis->write(DISABLE);
 	_status = 0;
 	_tmr = new RtosTimer(OnTimerUpdateCallback, osTimerPeriodic, (void *)this);
+	_rxtmr = new RtosTimer(OnRxIdleCallback, osTimerOnce, (void *)this);
 	_th = 0;
 	_th = new Thread(&VirtualReceiver::task, this, prio);
 }
@@ -196,8 +206,9 @@ Thread * VirtualReceiver::getThread() {
 }
 
 //------------------------------------------------------------------------------------
-void VirtualReceiver::RxISRCallback(void){
-	_th->signal_set(VR_EV_DATAREADY);
+void VirtualReceiver::RxISRCallback(void){	
+	_rxbuf.data[_rxbuf.count++] = (uint8_t)_serial->getc();	
+	_th->signal_set(VR_EV_DATAREADY);	
 }
 
 //------------------------------------------------------------------------------------
@@ -221,7 +232,7 @@ void VirtualReceiver::run(){
 	}
 	// Attaches to serial peripheral
 	_serial->attach(this, &VirtualReceiver::RxISRCallback, (SerialBase::IrqType)RxIrq);
-//	_serial->attach(this, &VirtualReceiver::TxISRCallback, (SerialBase::IrqType)TxIrq);
+	//	_serial->attach(this, &VirtualReceiver::TxISRCallback, (SerialBase::IrqType)TxIrq);
 	
 	// Attaches to topic updates
 	MsgBroker::Exception e;
@@ -236,22 +247,22 @@ void VirtualReceiver::run(){
 	_rxbuf.count = 0;
 	_errcount = 0;
 	_timeout = TIME_TO_VALID_RESPONSE;	
-	_signals = VR_EV_DATAREADY;
+	_signals = (VR_EV_DATAREADY|VR_EV_DATAEND);
 	_mode = INITIALIZING;
 	updateStatus(CHECK_MODE);
 	
 	for(;;){
 		// Wait incoming data ... 
-		osEvent oe = _th->signal_wait(_signals, _timeout);
+		osEvent oe = _th->signal_wait_or(_signals, _timeout);
 		// if timeout...
 		if(oe.status == osEventTimeout){
 			#warning TODO........
 		}
 		if(oe.status == osEventSignal && (oe.value.signals & VR_EV_DATAREADY) != 0){	
-			_th->signal_clr(VR_EV_DATAREADY);						
-			while(_serial->readable()){
-				_rxbuf.data[_rxbuf.count++] = (uint8_t)_serial->getc();
-			}
+			_rxtmr->stop();
+			_rxtmr->start(TIME_TO_IDLE_LINE);
+		}
+		if(oe.status == osEventSignal && (oe.value.signals & VR_EV_DATAEND) != 0){	
 			char *pdata;
 			int len;
 			uint8_t result = processResponse(pdata, &len);
@@ -282,7 +293,6 @@ void VirtualReceiver::run(){
 					break;
 				}
 			}
-			
 		}
 		
 		if(oe.status == osEventSignal && (oe.value.signals & KEY_EV_READY) != 0){		
@@ -373,13 +383,9 @@ void VirtualReceiver::send(){
 
 //------------------------------------------------------------------------------------
 uint8_t VirtualReceiver::processResponse(char * pdata, int * len){
-	uint8_t last = _rxbuf.count-1;
 	char * result;
-	if(last < 1){
-		return CMD_DECODING;
-	}
-	if(_rxbuf.data[last-1] != '\r' || _rxbuf.data[last] != '\n'){
-		return CMD_DECODING;
+	if(_rxbuf.count <= 1){
+		return CMD_ERROR;
 	}
 	// check unhandled conditions
 	if(strstr((char*)_rxbuf.data, "ready")){

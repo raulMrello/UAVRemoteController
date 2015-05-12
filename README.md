@@ -18,6 +18,15 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 12.05.2015-001
+	- Verificando funcionamiento de VirtualReceiver.
+	- Verificado funcionamiento del puerto serie, aunque no funciona la gestión de la interrupción IDLE para detectar el fin de trama. Actualmente lo hago con un RtosTimer.
+	- Añadido pull-request relativo a la gestión de eventos (OR) con Thread::signal_wait_or.
+	- Finalizado VirtualReceiver aunque falta depurar en detalle su funcionamiento.
+	NEXT STEPS:
+		- Cuidado con el descubrimiento de las redes wifi cercanas que puede desbordar mi buffer de recepción. Pensar cómo gestionarlo.
+		- Probar módulos pendientes.
+		
 > 11.05.2015-001
 	- Modificando main para ir probando cada módulo de forma independiente. Actualmente probando el GPS (no cambia el baudrate).
 	- Finalizado VirtualReceiver aunque falta depurar en detalle su funcionamiento.
