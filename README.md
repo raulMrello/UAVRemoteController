@@ -18,6 +18,16 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 13.05.2015-001
+	- Verificando funcionamiento del enlace wifi.
+	- VirtualReceiver:
+		- Modificar las respuestas del enlace wifi añadiendo la solicitud y la respuesta con 0d0d0a0d0a antes del OK.
+		- Añadir gestión de la conexión temporizada. Cambiar nombre de _tmr por _tcptmr, habilitar evento y controlarlo.
+		- Cambiar la gestión de CWLAP y no reenviar la petición hasta recibir un OK. Después buscar la wifi y si no se encuentra, volver a intentar. Ir mirando el buffer de forma periódica para buscar la red.
+	- Verificado funcionamiento del puerto serie, aunque no funciona la gestión de la interrupción IDLE para detectar el fin de trama. Actualmente lo hago con un RtosTimer.
+	NEXT STEPS:
+		- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
+		
 > 12.05.2015-001
 	- Verificando funcionamiento de VirtualReceiver.
 	- Verificado funcionamiento del puerto serie, aunque no funciona la gestión de la interrupción IDLE para detectar el fin de trama. Actualmente lo hago con un RtosTimer.

@@ -181,9 +181,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>387</LineNumber>
+          <LineNumber>412</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134219534</Address>
+          <Address>134219566</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -192,7 +192,23 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>.\user-tasks\VirtualReceiver.cpp</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\mbed_stm32f10x_src\user-tasks/VirtualReceiver.cpp\387</Expression>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>263</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134219854</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>.\user-tasks\VirtualReceiver.cpp</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -246,7 +262,7 @@
         <Mm>
           <WinNumber>1</WinNumber>
           <SubType>8</SubType>
-          <ItemText>actions[_status].response</ItemText>
+          <ItemText>_rxbuf.data</ItemText>
           <AccSizeX>0</AccSizeX>
         </Mm>
       </MemoryWindow1>

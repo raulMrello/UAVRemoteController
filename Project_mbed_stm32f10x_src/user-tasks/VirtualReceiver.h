@@ -69,7 +69,7 @@ public:
 
 private:
 
-	enum ControlFlag {DISABLE = 0, ENABLE=1};
+	enum ControlFlag {DISABLE=0, ENABLE=1};
 
 	/** Reception buffer max size */
 	static const uint8_t BUFF_SIZE = 128;
@@ -78,6 +78,7 @@ private:
 	struct DataBuffer{
 		uint8_t count;
 		uint8_t data[BUFF_SIZE];	
+		bool ovf;
 	};
 
 	/** Operational mode flags */

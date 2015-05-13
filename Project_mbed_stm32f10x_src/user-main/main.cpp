@@ -25,7 +25,7 @@ DigitalOut led_rth(PB_6);
 PwmOut buzzer(PB_0);
 RawSerial gps(PA_2,PA_3);
 RawSerial lnk(PA_9,PA_10);
-DigitalOut lnk_endis(PB_4); // 1-enables esp8266, 0-reset/disables
+DigitalOut lnk_rst(PB_4); // 0-enables esp8266, 1-reset
 
 
 
@@ -50,7 +50,7 @@ int main() {
 	
 	KeyDecoder *kd = new KeyDecoder(osPriorityHigh, &joys_A_Ok, &joys_B_Ok, &key_ARM, &key_LOC, &key_ALT, &key_RTH);
 	JoystickSampler *js = new JoystickSampler(osPriorityHigh, &joys_A1, &joys_A2, &joys_B1, &joys_B2);
-	VirtualReceiver *vr = new VirtualReceiver(osPriorityAboveNormal, &lnk, &lnk_endis);
+	VirtualReceiver *vr = new VirtualReceiver(osPriorityAboveNormal, &lnk, &lnk_rst);
 
 	#warning ACTIVAR PASO A PASO.....
 	/*

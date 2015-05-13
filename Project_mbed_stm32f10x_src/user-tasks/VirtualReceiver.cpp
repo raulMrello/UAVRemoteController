@@ -13,7 +13,8 @@
 
 
 enum Status{
-	CHECK_MODE = 0,
+	POWER_UP = 0,
+	CHECK_MODE,
 	SET_MODE,
 	RESET_LNK,
 	SET_AP_IP,
@@ -38,6 +39,11 @@ struct ProtocolAction{
 };
 
 static ProtocolAction actions[] = {
+	{"", 	
+	 "ready", 
+	 CHECK_MODE,  
+	 POWER_UP},
+	
 	{"AT+CWMODE?", 	
 	 "+CWMODE:3", 
 	 SET_AP_IP,  
@@ -187,7 +193,7 @@ VirtualReceiver::VirtualReceiver(osPriority prio, RawSerial *serial, DigitalOut 
 	_serial = serial;
 	_serial->baud(115200);
 	_endis = endis;
-	_endis->write(DISABLE);
+	_endis->write(VirtualReceiver::DISABLE);
 	_status = 0;
 	_tmr = new RtosTimer(OnTimerUpdateCallback, osTimerPeriodic, (void *)this);
 	_rxtmr = new RtosTimer(OnRxIdleCallback, osTimerOnce, (void *)this);
@@ -207,6 +213,11 @@ Thread * VirtualReceiver::getThread() {
 
 //------------------------------------------------------------------------------------
 void VirtualReceiver::RxISRCallback(void){	
+	if(_rxbuf.count == BUFF_SIZE-1){
+		_rxbuf.data[_rxbuf.count++] = 0;
+		_rxbuf.ovf = true;
+		_rxbuf.count = _rxbuf.count & (BUFF_SIZE-1);
+	}
 	_rxbuf.data[_rxbuf.count++] = (uint8_t)_serial->getc();	
 	_th->signal_set(VR_EV_DATAREADY);	
 }
@@ -230,24 +241,30 @@ void VirtualReceiver::run(){
 	while(_th == 0){
 		Thread::wait(100);
 	}
+	// clears buffer for possible undesired receptions during power up
+	_rxbuf.count = 0;_rxbuf.ovf = false;
+	
 	// Attaches to serial peripheral
 	_serial->attach(this, &VirtualReceiver::RxISRCallback, (SerialBase::IrqType)RxIrq);
 	//	_serial->attach(this, &VirtualReceiver::TxISRCallback, (SerialBase::IrqType)TxIrq);
 	
+	// Enables link device
+	_endis->write(VirtualReceiver::DISABLE);
+	Thread::wait(250);
+	_endis->write(VirtualReceiver::ENABLE);	
+	Thread::wait(1000);
+		
 	// Attaches to topic updates
 	MsgBroker::Exception e;
 	MsgBroker::attach("/gps", this, OnTopicUpdateCallback, &e);
 	MsgBroker::attach("/keyb", this, OnTopicUpdateCallback, &e);
-
-	// Enables link device
-	_endis->write(ENABLE);
-	Thread::wait(500);
 	
-	// starts sending check mode at command
-	_rxbuf.count = 0;
+	// start execution context
+	_rxbuf.count = 0;_rxbuf.ovf = false;
 	_errcount = 0;
 	_timeout = TIME_TO_VALID_RESPONSE;	
-	_signals = (VR_EV_DATAREADY|VR_EV_DATAEND);
+	_signals = (VR_EV_DATAREADY | VR_EV_DATAEND);
+	_th->signal_clr(_signals);
 	_mode = INITIALIZING;
 	updateStatus(CHECK_MODE);
 	
@@ -259,27 +276,32 @@ void VirtualReceiver::run(){
 			#warning TODO........
 		}
 		if(oe.status == osEventSignal && (oe.value.signals & VR_EV_DATAREADY) != 0){	
+			_th->signal_clr(VR_EV_DATAREADY);
 			_rxtmr->stop();
 			_rxtmr->start(TIME_TO_IDLE_LINE);
 		}
 		if(oe.status == osEventSignal && (oe.value.signals & VR_EV_DATAEND) != 0){	
 			char *pdata;
 			int len;
+			_th->signal_clr(VR_EV_DATAEND);
 			uint8_t result = processResponse(pdata, &len);
 			switch(result){
+				case CMD_RESET:{
+					_errcount = 0;
+					updateStatus(CHECK_MODE);
+					break;
+				}
 				case CMD_ACK:{
-					_rxbuf.count = 0;
 					_errcount = 0;
 					updateStatus(actions[_status].next_stat_ok);
 					break;
 				}
 				case CMD_DATA:{
-					_rxbuf.count = 0;
+					#warning PROCESAR DATOS RECIBIDOS...
 					break;
 				}
 				case CMD_NACK:
-				case CMD_ERROR:{
-					_rxbuf.count = 0;
+				case CMD_ERROR:{					
 					if(++_errcount > 5){
 						_errcount = 0;
 						updateStatus(actions[_status].next_stat_err);
@@ -290,6 +312,7 @@ void VirtualReceiver::run(){
 					break;
 				}
 				default:{
+					updateStatus(_status);
 					break;
 				}
 			}
@@ -348,15 +371,15 @@ int8_t VirtualReceiver::updateStatus(int8_t stat){
 	// update waiting signals according with operational mode
 	if(_mode == INITIALIZING && next_mode == READY){
 		_mode = READY;
-		_signals = (VR_EV_DATAREADY | GPS_EV_READY | KEY_EV_READY | TIMER_EV_READY);
+		_signals |= (GPS_EV_READY | KEY_EV_READY | TIMER_EV_READY);
 		_th->signal_clr(GPS_EV_READY | KEY_EV_READY | TIMER_EV_READY);
 		_tmr->start(TIME_TO_CHECK_TCP_STAT);
 	}
 	else if(_mode == READY && next_mode == INITIALIZING){
 		_mode = INITIALIZING;
-		_signals = VR_EV_DATAREADY;
-		_th->signal_clr(GPS_EV_READY | KEY_EV_READY);
 		_tmr->stop();
+		_signals &= ~(GPS_EV_READY | KEY_EV_READY | TIMER_EV_READY);
+		_th->signal_clr(GPS_EV_READY | KEY_EV_READY | TIMER_EV_READY);
 	}
 	//returns actual status
 	return _status;
@@ -365,6 +388,7 @@ int8_t VirtualReceiver::updateStatus(int8_t stat){
 //------------------------------------------------------------------------------------
 void VirtualReceiver::send(const char * atcmd){
 	int size = strlen(atcmd);
+	_rxbuf.count = 0;_rxbuf.ovf = false;
 	// sends 
 	for(int i=0;i<size;i++){
 		_serial->putc(atcmd[i]);
@@ -375,6 +399,7 @@ void VirtualReceiver::send(const char * atcmd){
 
 //------------------------------------------------------------------------------------
 void VirtualReceiver::send(){
+	_rxbuf.count = 0;_rxbuf.ovf = false;
 	// sends 
 	for(int i=0;i<_txbuf.count;i++){
 		_serial->putc(_txbuf.data[i]);
@@ -384,9 +409,11 @@ void VirtualReceiver::send(){
 //------------------------------------------------------------------------------------
 uint8_t VirtualReceiver::processResponse(char * pdata, int * len){
 	char * result;
-	if(_rxbuf.count <= 1){
+	int count = (_rxbuf.ovf)? (BUFF_SIZE-1) : _rxbuf.count;
+	if(count <= 1){
 		return CMD_ERROR;
 	}
+	_rxbuf.data[count]=0; // add termination flag to received string
 	// check unhandled conditions
 	if(strstr((char*)_rxbuf.data, "ready")){
 		return CMD_RESET;
