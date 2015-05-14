@@ -111,7 +111,7 @@ private:
 	uint8_t _mode;
 	int8_t _errcount;
 	int32_t _signals;
-	RtosTimer * _tmr;
+	RtosTimer * _tcptmr;
 	RtosTimer * _rxtmr;
 	
 	void run();

@@ -18,6 +18,16 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 14.05.2015-001
+	- Habilito evento de control para chequear la conexión cada 10s.
+	- Cambio la gestión de CWLAP para no reenviar la petición hasta recibir un OK. Después chequeo que existe la wifi y si no se encuentra, volver a intentar.
+	- VirtualReceiver:
+		- Modificar las respuestas del enlace wifi añadiendo la solicitud y la respuesta con 0d0d0a0d0a antes del OK.		
+	NEXT STEPS:
+		- Definir qué ocurre si dejo de recibir fallos de conexión TCP en VirtualReceiver.
+		- Testear el módulo JoystickSampler y modficarlo de acuerdo a cómo deba comportarse.
+		- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
+		
 > 13.05.2015-001
 	- Verificando funcionamiento del enlace wifi.
 	- VirtualReceiver:

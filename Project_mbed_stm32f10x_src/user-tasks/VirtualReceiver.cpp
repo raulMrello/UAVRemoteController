@@ -23,6 +23,7 @@ enum Status{
 	START_AP_SERVER,
 	SET_AP_TIMEOUT,
 	GET_AP_LIST,
+	CHECK_AP_EXISTS,
 	CONNECT_TO_AP,
 	CHECK_AP_CONNECTION,
 	START_TCP_CLIENT,
@@ -85,6 +86,11 @@ static ProtocolAction actions[] = {
 	 SET_AP_TIMEOUT},
 	
 	{"AT+CWLAP", 		
+	 "", 		 
+	 CHECK_AP_EXISTS, 
+	 GET_AP_LIST},
+	
+	{"", 		
 	 "EAGLE-TELEMETRY", 		 
 	 CONNECT_TO_AP, 
 	 GET_AP_LIST},
@@ -195,7 +201,7 @@ VirtualReceiver::VirtualReceiver(osPriority prio, RawSerial *serial, DigitalOut 
 	_endis = endis;
 	_endis->write(VirtualReceiver::DISABLE);
 	_status = 0;
-	_tmr = new RtosTimer(OnTimerUpdateCallback, osTimerPeriodic, (void *)this);
+	_tcptmr = new RtosTimer(OnTimerUpdateCallback, osTimerPeriodic, (void *)this);
 	_rxtmr = new RtosTimer(OnRxIdleCallback, osTimerOnce, (void *)this);
 	_th = 0;
 	_th = new Thread(&VirtualReceiver::task, this, prio);
@@ -275,6 +281,13 @@ void VirtualReceiver::run(){
 		if(oe.status == osEventTimeout){
 			#warning TODO........
 		}
+		if(oe.status == osEventSignal && (oe.value.signals & TIMER_EV_READY) != 0){	
+			_th->signal_clr(TIMER_EV_READY);
+			// only checks tcp status if required
+			if(_status == CHECK_TCP_STATUS){
+				send(actions[_status].at_cmd);
+			}
+		}
 		if(oe.status == osEventSignal && (oe.value.signals & VR_EV_DATAREADY) != 0){	
 			_th->signal_clr(VR_EV_DATAREADY);
 			_rxtmr->stop();
@@ -346,6 +359,10 @@ int8_t VirtualReceiver::updateStatus(int8_t stat){
 	uint8_t next_mode = INITIALIZING;
 	_status = stat;
 	switch(_status){
+		case CHECK_AP_EXISTS:{
+			_th->signal_set(VR_EV_DATAEND);
+			return _status;
+		}
 		case FINISH_TCP_DATA:
 			send();
 			// continue below...
@@ -373,11 +390,11 @@ int8_t VirtualReceiver::updateStatus(int8_t stat){
 		_mode = READY;
 		_signals |= (GPS_EV_READY | KEY_EV_READY | TIMER_EV_READY);
 		_th->signal_clr(GPS_EV_READY | KEY_EV_READY | TIMER_EV_READY);
-		_tmr->start(TIME_TO_CHECK_TCP_STAT);
+		_tcptmr->start(TIME_TO_CHECK_TCP_STAT);
 	}
 	else if(_mode == READY && next_mode == INITIALIZING){
 		_mode = INITIALIZING;
-		_tmr->stop();
+		_tcptmr->stop();
 		_signals &= ~(GPS_EV_READY | KEY_EV_READY | TIMER_EV_READY);
 		_th->signal_clr(GPS_EV_READY | KEY_EV_READY | TIMER_EV_READY);
 	}
@@ -432,7 +449,7 @@ uint8_t VirtualReceiver::processResponse(char * pdata, int * len){
 		return CMD_DATA;
 	}	
 	if(strlen(actions[_status].response) == 0){
-		if(strstr((char*)_rxbuf.data, "OK")){
+		if(strstr((char*)_rxbuf.data, "\r\nOK\r\n")){
 			return CMD_ACK;			
 		}	
 	}
