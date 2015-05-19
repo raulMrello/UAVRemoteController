@@ -21,9 +21,10 @@
 #include "List.h"
 
 /** Add here your porting code for RTOS-based applications */
-//#include "your_rtos_mutex_header.h"
-#define MUTEX_LOCK()        // your_mutex_lock_function
-#define MUTEX_UNLOCK()      // your_mutex_unlock_function
+#include "rtos.h"
+extern Mutex broker_mutex;
+#define MUTEX_LOCK()        broker_mutex.lock(osWaitForever)
+#define MUTEX_UNLOCK()      broker_mutex.unlock()
 
 
 #ifndef THROW

@@ -80,10 +80,10 @@ namespace Topic {
 	//------------------------------------------------------------------------------------
 	/** Joystick topic data structure */
 	struct JoystickData_t{
-		float valueA1;	///< value 0.0 to 1.0
-		float valueA2;	///< value 0.0 to 1.0
-		float valueB1;	///< value 0.0 to 1.0
-		float valueB2;	///< value 0.0 to 1.0
+		int8_t yaw;			///< value 0=left, 50=center, 100=right
+		int8_t throttle;	///< value 0=dynamic_down, 50, 100=dynamic_up
+		int8_t roll;		///< value 0=left, 50=center, 100=right
+		int8_t pitch;		///< value 0=down, 50=middle, 100=up
 	};
 
 

@@ -18,6 +18,16 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 19.05.2015-001
+	- Modificado JoystickSampler. Probar últimos cambios.	
+	NEXT STEPS:
+		- Habilitar comunicación entre KeyDecoder y JoystickSampler para detectar un DISARM mediante la pulsación de ambos joystick_OK al mismo tiempo.
+		- Definir los modos de fallo de conexión TCP en VirtualReceiver.
+		- Probar lectura de tramas GPS
+		- Diseñar SysManager y finalizar código RC1
+	OPTIONAL:
+		- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
+		
 > 14.05.2015-001
 	- Habilito evento de control para chequear la conexión cada 10s.
 	- Cambio la gestión de CWLAP para no reenviar la petición hasta recibir un OK. Después chequeo que existe la wifi y si no se encuentra, volver a intentar.

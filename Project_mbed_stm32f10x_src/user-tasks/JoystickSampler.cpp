@@ -32,7 +32,8 @@ JoystickSampler::JoystickSampler(osPriority prio, AnalogIn *joystick_A1, AnalogI
 	_joystick_A2 = joystick_A2;
 	_joystick_B1 = joystick_B1;
 	_joystick_B2 = joystick_B2;
-	_th = 0;
+	_throttle_rate = 5;
+	_th = 0;	
 	_th = new Thread(&JoystickSampler::task, this, prio);
 }
 
@@ -47,51 +48,47 @@ Thread * JoystickSampler::getThread() {
 
 //------------------------------------------------------------------------------------
 void JoystickSampler::run(){
-	float ja1z, ja2z, jb1z, jb2z;
-	float ja1last, ja2last, jb1last, jb2last;
+	int8_t ja1z, ja2z, jb1z, jb2z, last_throttle;
 	while(_th == 0){
 		Thread::wait(100);
 	}
 	// get zero values
-	ja1z = _joystick_A1->read();
-	ja2z = _joystick_A2->read();
-	jb1z = _joystick_B1->read();
-	jb2z = _joystick_B2->read();
+	for(int i = 0;i < 3; i++){
+		ja1z = 50-(int8_t)(100*_joystick_A1->read());
+		ja2z = 50-(int8_t)(100*_joystick_A2->read());
+		jb1z = 50-(int8_t)(100*_joystick_B1->read());
+		jb2z = 50-(int8_t)(100*_joystick_B2->read());
+		Thread::wait(REPEAT_TIMEOUT);
+	}
 	// initializes data
-	_joystickdata.valueA1 = 0;
-	_joystickdata.valueA2 = 0;
-	_joystickdata.valueB1 = 0;
-	_joystickdata.valueB2 = 0;
-	// initializes last read
-	ja1last = _joystickdata.valueA1;
-	ja2last = _joystickdata.valueA2;
-	jb1last = _joystickdata.valueB1;
-	jb2last = _joystickdata.valueB2;
-
+	_joystickdata.yaw = 50;	// throttle (dynamic control)
+	_joystickdata.throttle = 0;
+	_joystickdata.roll = 50;
+	_joystickdata.pitch = 50;
+	last_throttle = 0;
 	// Starts execution 
 	for(;;){
 		// Wait pooling
 		Thread::wait(REPEAT_TIMEOUT);
-		// read direct controls applying zero correction
-		_joystickdata.valueA2 = _joystick_A2->read() - ja2z;
-		_joystickdata.valueB1 = _joystick_B1->read() - jb1z;
-		_joystickdata.valueB2 = _joystick_B2->read() - jb2z;
-		// read dynamic control
-		float difstep = (_joystick_A1->read() - ja1z)/10;
-		_joystickdata.valueA1 += difstep;
+		// read controls applying zero corrections
+		int8_t ja1, ja2, jb1, jb2;
+		ja1 = ja1z + (int8_t)(100*_joystick_A1->read());
+		ja2 = ja2z + (int8_t)(100*_joystick_A2->read());
+		jb1 = jb1z + (int8_t)(100*_joystick_B1->read());
+		jb2 = jb2z + (int8_t)(100*_joystick_B2->read());
+		// set new data
 		
-		// if anything changes, publish topic update
-		if(ja1last != _joystickdata.valueA1 || ja2last != _joystickdata.valueA2 ||jb1last != _joystickdata.valueB1 ||jb2last != _joystickdata.valueB2){
-			MsgBroker::Exception e;
-			MsgBroker::publish("/joys", &_joystickdata, sizeof(Topic::JoystickData_t), &e);
-			if(e != MsgBroker::NO_ERRORS){
-				// TODO: add error handling ...
-			}
-			// updates data
-			ja1last = _joystickdata.valueA1;
-			ja2last = _joystickdata.valueA2;
-			jb1last = _joystickdata.valueB1;
-			jb2last = _joystickdata.valueB2;			
+		_joystickdata.yaw = ja1;		
+		_joystickdata.roll = jb1;
+		_joystickdata.pitch = jb2;
+		// read dynamic control
+		_joystickdata.throttle += (ja2 - last_throttle)/_throttle_rate;
+		
+		// publish topic update
+		MsgBroker::Exception e;
+		MsgBroker::publish("/joys", &_joystickdata, sizeof(Topic::JoystickData_t), &e);
+		if(e != MsgBroker::NO_ERRORS){
+			// TODO: add error handling ...
 		}
 	}	
 }

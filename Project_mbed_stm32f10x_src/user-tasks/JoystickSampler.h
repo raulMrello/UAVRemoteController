@@ -53,7 +53,7 @@ private:
 	AnalogIn * _joystick_A2;
 	AnalogIn * _joystick_B1;
 	AnalogIn * _joystick_B2;
-
+	int8_t 	   _throttle_rate;
 	void run();
 };
 
