@@ -18,6 +18,17 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 20.05.2015-001
+	- Modificado topic AlarmData_t. Cambia la estructura añadiendo un código de alarma, además de los 8 bytes de datos adjuntos.
+	- Modificado JoystickSampler. Acepta alarma FORCE_DISARM. Probar últimos cambios.	
+	- Modificado KeyDecoder. Envía mensaje de alarma ALARM_FORCE_DISARM.
+	NEXT STEPS:
+		- Definir los modos de fallo de conexión TCP en VirtualReceiver.
+		- Probar lectura de tramas GPS
+		- Diseñar SysManager y finalizar código RC1
+	OPTIONAL:
+		- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
+		
 > 19.05.2015-001
 	- Modificado JoystickSampler. Probar últimos cambios.	
 	NEXT STEPS:

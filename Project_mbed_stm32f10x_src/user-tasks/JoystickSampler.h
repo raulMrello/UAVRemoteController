@@ -39,6 +39,14 @@ public:
 	virtual ~JoystickSampler();
 	Thread *getThread();
 	
+		
+	/** Topic updates callbacks */
+	void notifyUpdate(uint32_t event);
+
+	/** Topic updates event enumeration */
+	typedef enum {
+		DISARM_EV 	= (1 << 0)
+	}EventEnum;	
 	
 	/** Task */
 	static void task(void const *arg){
@@ -54,6 +62,7 @@ private:
 	AnalogIn * _joystick_B1;
 	AnalogIn * _joystick_B2;
 	int8_t 	   _throttle_rate;
+	int32_t 	 _signals;
 	void run();
 };
 

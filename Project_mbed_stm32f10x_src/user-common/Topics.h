@@ -30,17 +30,20 @@ namespace Topic {
 
 
 	//------------------------------------------------------------------------------------
+	/** Alarm error code enumeration */
+	enum AlarmCodeEnum {
+		ALARM_MISSING_RESPONSE,		///< No response from wifi link
+		ALARM_WRONG_RESPONSE,			///< Response bad formed from wifi link
+		ALARM_FORCE_DISARM				///< Force a disarm action
+	};
+	
 	/** Alarm topic data structure */
 	struct AlarmData_t{
-		uint8_t alarm[8];
+		AlarmCodeEnum code;
+		uint8_t data[8];
 	};
 
 	
-	/** Alarm error code enumeration */
-	enum AlarmCodeEnum {
-		ALARM_MISSING_RESPONSE = 0,		///< No response from wifi link
-		ALARM_WRONG_RESPONSE = 0,		///< Response bad formed from wifi link
-	};
 
 
 	//------------------------------------------------------------------------------------

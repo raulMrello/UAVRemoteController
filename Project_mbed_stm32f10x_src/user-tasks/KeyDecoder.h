@@ -59,6 +59,7 @@ public:
 
 private:
 	Topic::KeyData_t _keydata;
+	Topic::AlarmData_t _alarmdata;
 	Thread *_th;
 	InterruptIn *_ii_A_Ok;
 	InterruptIn *_ii_B_Ok;

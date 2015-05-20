@@ -106,6 +106,7 @@ void KeyDecoder::KeyReleasedISRCallback(void){
 
 //------------------------------------------------------------------------------------
 void KeyDecoder::run(){
+	MsgBroker::Exception e = MsgBroker::NO_ERRORS;
 	while(_th == 0){
 		Thread::wait(100);
 	}
@@ -131,12 +132,20 @@ void KeyDecoder::run(){
 		// if key pressed, read keyboard, update topic and enable publishing and repeated events
 		if(oe.status == osEventSignal && (oe.value.signals & (KEY_EV_PRESSED|KEY_EV_RELEASED)) != 0){		
 			_th->signal_clr(KEY_EV_PRESSED|KEY_EV_RELEASED);
-			_currentkey = readKeyboard();
+			_currentkey = readKeyboard();			
 			_keydata.data.keycode = (_currentkey ^ _lastkey);
 			publish = true;		
 			_timeout = osWaitForever;
 			if(_enableRepeated && _currentkey != KEY_NONE){
 				_timeout = REPEAT_TIMEOUT;			
+			}
+			// check disarm condition
+			if((_currentkey & (KEY_A_OK|KEY_B_OK)) == (KEY_A_OK|KEY_B_OK)){
+				_alarmdata.code = Topic::ALARM_FORCE_DISARM;
+				MsgBroker::publish("/alarm", &_alarmdata, sizeof(Topic::AlarmData_t), &e);
+				if(e != MsgBroker::NO_ERRORS){
+					// TODO: add error handling ...
+				}
 			}
 		}
 		// if repeated event, enables publishing
@@ -149,8 +158,7 @@ void KeyDecoder::run(){
 			}
 		}
 		// if publishing enabled, publish topic update
-		if(publish){
-			MsgBroker::Exception e = MsgBroker::NO_ERRORS;
+		if(publish){			
 			MsgBroker::publish("/keyb", &_keydata, sizeof(Topic::KeyData_t), &e);
 			if(e != MsgBroker::NO_ERRORS){
 				// TODO: add error handling ...
