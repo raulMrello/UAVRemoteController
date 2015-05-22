@@ -18,6 +18,11 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 22.05.2015-003 
+	- Actualizo modelo SysManagerHSM
+		- No funciona la propagación de eventos de publicación en modo Armed.
+> 22.05.2015-002 
+	- Elimino carpeta /yakindu-models
 > 22.05.2015-001 
 	- Añado carpeta /models con los diferentes proyectos de yakindu con la generación de las HSM
 	- Añado código fuente de la HSM de System Manager para integrarla cuando la necesite.
