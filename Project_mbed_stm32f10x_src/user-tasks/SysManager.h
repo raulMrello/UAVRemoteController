@@ -25,6 +25,7 @@
 #include "MsgBroker.h"
 #include "BeepGenerator.h"
 #include "LedFlasher.h"
+#include "SysManagerHSM.h"
 
 //------------------------------------------------------------------------------------
 //-- TYPEDEFS ------------------------------------------------------------------------
@@ -35,7 +36,7 @@
 //-- CLASS ---------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-class SysManager : public BeepGenerator, public LedFlasher {
+class SysManager : public SysManagerHSM, public BeepGenerator, public LedFlasher {
 public:
 	
 	/** Constructor, destructor, getter and setter */

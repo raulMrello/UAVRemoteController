@@ -1,0 +1,10 @@
+GeneratorModel for yakindu::cpp {
+
+	statechart SysManagerHSM {
+
+		feature Outlet {
+			targetProject = "SysManagerHSM"
+			targetFolder = "src-gen"
+		}
+	}
+}

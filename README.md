@@ -18,6 +18,21 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 22.05.2015-001 
+	- Añado carpeta /models con los diferentes proyectos de yakindu con la generación de las HSM
+	- Añado código fuente de la HSM de System Manager para integrarla cuando la necesite.
+	- Añado código fuente de la HSM del teclado (KeyDecoderHSM). PROBADO OK!!
+	- Modifico el topic KeyData_t añadiendo la propiedad [bool isHold] para saber si la tecla está en pulsación larga.
+	- Modificado topic AlarmData_t. Cambia la estructura añadiendo un código de alarma, además de los 8 bytes de datos adjuntos.
+	- Modifico KeyDecoder integrando la máquina de estados KeyDecoderHSM
+	- Modifico JoystickSampler. Acepta alarma FORCE_DISARM. REVISAR !!!!!!
+	NEXT STEPS:
+		- Definir el funcionamiento de SysManagerHSM e integrarlo en SysManager
+		- Definir los modos de fallo de conexión TCP en VirtualReceiver.
+		- Probar lectura de tramas GPS
+	OPTIONAL:
+		- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
+		
 > 20.05.2015-001
 	- Modificado topic AlarmData_t. Cambia la estructura añadiendo un código de alarma, además de los 8 bytes de datos adjuntos.
 	- Modificado JoystickSampler. Acepta alarma FORCE_DISARM. Probar últimos cambios.	

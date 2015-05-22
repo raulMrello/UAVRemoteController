@@ -1,0 +1,21 @@
+La integración de Yakindu con un proyecto mbed que utiliza CMSIS-RTOS es de la siguiente forma:
+
+	1 - La máquina de estados tendrá un nombre: MaqHSM
+	2 - Es necesario implementar el interfaz MaqHSM::DefaultSCI_OCB para poder asignar callbacks a las operaciones realizadas
+		en la máquina.
+	3 - Es necesario utilizar la clase MbedTimerInterface que es una implementación propia del interfaz TimerInterface y que
+		se basa en asignar un Thread y un signal para que cuando el timer venza, además de invocar a la máquina de estados
+		[raiseTimeEvent], publique la señal en la tarea instalada [thread->signal_set(signal)].
+	
+	4 - La clase que contiene al thread (por ejemplo MiControlador) deberá crearse heredando MaqHSM y MaqHSM::DefaultSCI_OCB de
+		forma que sea capaz de controlar por si misma la ejecución de la máquina y de proporcionar las callback de operación.
+	5 - La clase tendrá una variable privada para los posibles temporizadores de la máquina [es opcional y sólo es necesario si
+		la máquina de estados contempla eventos temporizados]. Por ejemplo [MbedTimerInterface * _titmr;]
+	6 - En el código fuente (MiControlador.cpp) una vez que el thread se ejecuta por primera vez, habrá que iniciar la máquina 
+		de estados. Esto consiste en:
+		
+			A - Asignar el timer: setTimer(_titmr);
+			B - Asignar las callbacks: setDefaultSCI_OCB(this);
+			C - Iniciar la máquina: init();
+			D - Entrar en el estado por defecto: enter();
+			E - Ejecutar en cada evento, un ciclo de máquina: runCycle();

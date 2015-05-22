@@ -65,6 +65,7 @@ namespace Topic {
 	//------------------------------------------------------------------------------------
 	/** Keyboard topic data structure */
 	struct KeyData_t{
+		bool isHold;
 		union {
 			uint32_t keycode;
 			struct {

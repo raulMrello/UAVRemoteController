@@ -1,0 +1,10 @@
+GeneratorModel for yakindu::cpp {
+
+	statechart KeyDecoderHSM {
+
+		feature Outlet {
+			targetProject = "KeyDecoderHSM"
+			targetFolder = "src-gen"
+		}
+	}
+}

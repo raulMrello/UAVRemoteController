@@ -365,7 +365,7 @@
               <MiscControls>--gnu --no_rtti</MiscControls>
               <Define>TARGET_M3,  TARGET_CORTEX_M,  TARGET_STM,  TARGET_STM32F1,  TARGET_STM32F103C8,  TOOLCHAIN_ARM_MICRO,  TOOLCHAIN_ARM,  __CORTEX_M3,  ARM_MATH_CM3,  MBED_BUILD_TIMESTAMP=1429167707.34,  __MBED__=1,  TARGET_FF_ARDUINO,  TARGET_FF_MORPHO,  __ASSERT_MSG,</Define>
               <Undefine></Undefine>
-              <IncludePath>.;.\user-tasks;.\user-modules;.\user-libs;.\user-common;.\user-main;.\rtos\rtx\TARGET_CORTEX_M;.\rtos\rtos;.\mbed\api;.\mbed\hal;.\mbed\targets\cmsis;.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1;.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB;.\mbed\targets\hal\TARGET_STM\TARGET_STM32F1;.\mbed\targets\hal\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6</IncludePath>
+              <IncludePath>.;.\user-tasks;.\user-modules;.\user-libs;.\user-common;.\user-main;.\user-hsm;.\user-hsm\SysManagerHSM;.\user-hsm\KeyDecoderHSM;.\rtos\rtx\TARGET_CORTEX_M;.\rtos\rtos;.\mbed\api;.\mbed\hal;.\mbed\targets\cmsis;.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1;.\mbed\targets\cmsis\TARGET_STM\TARGET_STM32F1\TARGET_NUCLEO_F103RB;.\mbed\targets\hal\TARGET_STM\TARGET_STM32F1;.\mbed\targets\hal\TARGET_STM\TARGET_STM32F1\TARGET_STM32F103C8T6</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -502,6 +502,26 @@
               <FileName>Topics.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\user-common\Topics.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>user-hsm</GroupName>
+          <Files>
+            <File>
+              <FileName>SysManagerHSM.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-hsm\SysManagerHSM\SysManagerHSM.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>MbedTimerInterface.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-hsm\MbedTimerInterface.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>KeyDecoderHSM.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-hsm\KeyDecoderHSM\KeyDecoderHSM.cpp</FilePath>
             </File>
           </Files>
         </Group>

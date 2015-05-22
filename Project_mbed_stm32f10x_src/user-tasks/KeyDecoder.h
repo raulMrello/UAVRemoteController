@@ -22,6 +22,8 @@
 #include "rtos.h"
 #include "MsgBroker.h"
 #include "Topics.h"
+#include "KeyDecoderHSM.h"
+#include "MbedTimerInterface.h"
 
 //------------------------------------------------------------------------------------
 //-- TYPEDEFS ------------------------------------------------------------------------
@@ -31,7 +33,7 @@
 //-- CLASS ---------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-class KeyDecoder{
+class KeyDecoder : public KeyDecoderHSM, public KeyDecoderHSM::DefaultSCI_OCB{
 public:
 	
 	/** Constructor, destructor, getter and setter */
@@ -57,9 +59,12 @@ public:
 		me->run();
 	}	
 
+	/** StateMachine callback interface */
+	virtual sc_integer readKey();
+	virtual void publish(sc_integer key, sc_boolean isHold);
+	
 private:
 	Topic::KeyData_t _keydata;
-	Topic::AlarmData_t _alarmdata;
 	Thread *_th;
 	InterruptIn *_ii_A_Ok;
 	InterruptIn *_ii_B_Ok;
@@ -67,10 +72,9 @@ private:
 	InterruptIn *_ii_LOC;
 	InterruptIn *_ii_ALT;
 	InterruptIn *_ii_RTH;
-	uint32_t _lastkey;
+	int32_t _signals;
 	uint32_t _currentkey;
 	uint32_t _timeout;
-	bool _enableRepeated;
 
 	void run();
 	uint32_t readKeyboard();
@@ -78,9 +82,11 @@ private:
 	/** Key event enumeration */
 	typedef enum {
 		KEY_EV_PRESSED 	= (1 << 0),
-		KEY_EV_RELEASED = (1 << 1)
+		KEY_EV_RELEASED = (1 << 1),
+		TIMMING_EV 		= (1 << 2)
 	}EventEnum;	
-
+	
+	MbedTimerInterface	*_titmr;
 };
 
 
