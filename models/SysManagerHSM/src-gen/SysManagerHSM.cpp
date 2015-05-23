@@ -33,9 +33,9 @@ void SysManagerHSM::init()
 	clearOutEvents();
 	
 	/* Default init sequence for statechart SysManagerHSM */
+	iface.confirmed = false;
 	ifaceInternalSCI.mode = 0;
 	ifaceInternalSCI.tmp = 0;
-	ifaceInternalSCI.confirmed = false;
 	ifaceInternalSCI.keyTimeout = 5;
 	ifaceInternalSCI.ackTimeout = 5;
 
@@ -47,15 +47,14 @@ void SysManagerHSM::enter()
 	enact_SequenceImpl();
 	/* 'default' enter sequence for region main region */
 	/* Default react sequence for initial entry  */
-	/* 'default' enter sequence for state Disarmed */
-	/* Entry action for state 'Disarmed'. */
-	if (! ifaceInternalSCI.confirmed) { 
-		ifaceInternalSCI_OCB->beepPending();
-		ifaceInternalSCI_OCB->ledsDisarmed();
-		ifaceInternalSCI.evConfirmReq_raised = true;
-	} 
-	stateConfVector[0] = main_region_Disarmed;
+	/* 'default' enter sequence for state Pending */
+	/* Entry action for state 'Pending'. */
+	timer->setTimer(this, &timeEvents[3], 1 * 1000, false);
+	ifaceInternalSCI_OCB->beepPending();
+	ifaceInternalSCI_OCB->ledsDisarmed(0);
+	stateConfVector[0] = main_region_Disarmed_r1_Pending;
 	stateConfVectorPosition = 0;
+	historyVector[1] = stateConfVector[0];
 }
 
 void SysManagerHSM::exit()
@@ -90,8 +89,14 @@ void SysManagerHSM::exit()
 			stateConfVectorPosition = 0;
 			break;
 		}
-		case main_region_Armed_r1_Idle : {
-			/* Default exit sequence for state Idle */
+		case main_region_Armed_r1_Idle_idle_Pending : {
+			/* Default exit sequence for state Pending */
+			stateConfVector[0] = SysManagerHSM_last_state;
+			stateConfVectorPosition = 0;
+			break;
+		}
+		case main_region_Armed_r1_Idle_idle_Confirmed : {
+			/* Default exit sequence for state Confirmed */
 			stateConfVector[0] = SysManagerHSM_last_state;
 			stateConfVectorPosition = 0;
 			break;
@@ -112,8 +117,16 @@ void SysManagerHSM::exit()
 			timer->unsetTimer(this, &timeEvents[2]);
 			break;
 		}
-		case main_region_Disarmed : {
-			/* Default exit sequence for state Disarmed */
+		case main_region_Disarmed_r1_Pending : {
+			/* Default exit sequence for state Pending */
+			stateConfVector[0] = SysManagerHSM_last_state;
+			stateConfVectorPosition = 0;
+			/* Exit action for state 'Pending'. */
+			timer->unsetTimer(this, &timeEvents[3]);
+			break;
+		}
+		case main_region_Disarmed_r1_Confirmed : {
+			/* Default exit sequence for state Confirmed */
 			stateConfVector[0] = SysManagerHSM_last_state;
 			stateConfVectorPosition = 0;
 			break;
@@ -148,8 +161,12 @@ void SysManagerHSM::runCycle() {
 			react_main_region_Armed_r1_RTH();
 			break;
 		}
-		case main_region_Armed_r1_Idle : {
-			react_main_region_Armed_r1_Idle();
+		case main_region_Armed_r1_Idle_idle_Pending : {
+			react_main_region_Armed_r1_Idle_idle_Pending();
+			break;
+		}
+		case main_region_Armed_r1_Idle_idle_Confirmed : {
+			react_main_region_Armed_r1_Idle_idle_Confirmed();
 			break;
 		}
 		case main_region_Error : {
@@ -160,8 +177,12 @@ void SysManagerHSM::runCycle() {
 			react_main_region_Sending();
 			break;
 		}
-		case main_region_Disarmed : {
-			react_main_region_Disarmed();
+		case main_region_Disarmed_r1_Pending : {
+			react_main_region_Disarmed_r1_Pending();
+			break;
+		}
+		case main_region_Disarmed_r1_Confirmed : {
+			react_main_region_Disarmed_r1_Confirmed();
 			break;
 		}
 		default:
@@ -179,10 +200,12 @@ void SysManagerHSM::clearInEvents() {
 	iface.evDisarm_raised = false;
 	iface.evAck_raised = false;
 	iface.evNack_raised = false;
+	ifaceInternalSCI.evInit_raised = false; 
 	ifaceInternalSCI.evConfirmReq_raised = false; 
 	timeEvents[0] = false; 
 	timeEvents[1] = false; 
 	timeEvents[2] = false; 
+	timeEvents[3] = false; 
 }
 
 void SysManagerHSM::clearOutEvents() {
@@ -210,7 +233,7 @@ sc_boolean SysManagerHSM::isActive(SysManagerHSMStates state) {
 			);
 		case main_region_Armed : 
 			return (sc_boolean) (stateConfVector[0] >= main_region_Armed
-				&& stateConfVector[0] <= main_region_Armed_r1_Idle);
+				&& stateConfVector[0] <= main_region_Armed_r1_Idle_idle_Confirmed);
 		case main_region_Armed_r1_Manual : 
 			return (sc_boolean) (stateConfVector[0] == main_region_Armed_r1_Manual
 			);
@@ -221,7 +244,13 @@ sc_boolean SysManagerHSM::isActive(SysManagerHSMStates state) {
 			return (sc_boolean) (stateConfVector[0] == main_region_Armed_r1_RTH
 			);
 		case main_region_Armed_r1_Idle : 
-			return (sc_boolean) (stateConfVector[0] == main_region_Armed_r1_Idle
+			return (sc_boolean) (stateConfVector[0] >= main_region_Armed_r1_Idle
+				&& stateConfVector[0] <= main_region_Armed_r1_Idle_idle_Confirmed);
+		case main_region_Armed_r1_Idle_idle_Pending : 
+			return (sc_boolean) (stateConfVector[0] == main_region_Armed_r1_Idle_idle_Pending
+			);
+		case main_region_Armed_r1_Idle_idle_Confirmed : 
+			return (sc_boolean) (stateConfVector[0] == main_region_Armed_r1_Idle_idle_Confirmed
 			);
 		case main_region_Error : 
 			return (sc_boolean) (stateConfVector[0] == main_region_Error
@@ -230,7 +259,13 @@ sc_boolean SysManagerHSM::isActive(SysManagerHSMStates state) {
 			return (sc_boolean) (stateConfVector[0] == main_region_Sending
 			);
 		case main_region_Disarmed : 
-			return (sc_boolean) (stateConfVector[0] == main_region_Disarmed
+			return (sc_boolean) (stateConfVector[0] >= main_region_Disarmed
+				&& stateConfVector[0] <= main_region_Disarmed_r1_Confirmed);
+		case main_region_Disarmed_r1_Pending : 
+			return (sc_boolean) (stateConfVector[0] == main_region_Disarmed_r1_Pending
+			);
+		case main_region_Disarmed_r1_Confirmed : 
+			return (sc_boolean) (stateConfVector[0] == main_region_Disarmed_r1_Confirmed
 			);
 		default: return false;
 	}
@@ -289,6 +324,30 @@ void SysManagerHSM::raise_evNack() {
 }
 
 
+sc_boolean SysManagerHSM::DefaultSCI::get_confirmed() {
+	return confirmed;
+}
+
+sc_boolean SysManagerHSM::get_confirmed() {
+	return iface.confirmed;
+}
+
+void SysManagerHSM::DefaultSCI::set_confirmed(sc_boolean value) {
+	confirmed = value;
+}
+
+void SysManagerHSM::set_confirmed(sc_boolean value) {
+	iface.confirmed = value;
+}
+
+
+void SysManagerHSM::InternalSCI::raise_evInit() {
+	evInit_raised = true;
+}
+
+sc_boolean SysManagerHSM::InternalSCI::isRaised_evInit() {
+	return evInit_raised;
+}
 
 void SysManagerHSM::InternalSCI::raise_evConfirmReq() {
 	evConfirmReq_raised = true;
@@ -312,14 +371,6 @@ sc_integer SysManagerHSM::InternalSCI::get_tmp() {
 
 void SysManagerHSM::InternalSCI::set_tmp(sc_integer value) {
 	tmp = value;
-}
-
-sc_boolean SysManagerHSM::InternalSCI::get_confirmed() {
-	return confirmed;
-}
-
-void SysManagerHSM::InternalSCI::set_confirmed(sc_boolean value) {
-	confirmed = value;
 }
 
 sc_integer SysManagerHSM::InternalSCI::get_keyTimeout() {
@@ -378,11 +429,82 @@ void SysManagerHSM::shenseq_SequenceImpl() {
 			historyVector[0] = stateConfVector[0];
 			break;
 		}
-		case main_region_Armed_r1_Idle : {
+		case main_region_Armed_r1_Idle_idle_Pending : {
 			/* 'default' enter sequence for state Idle */
-			stateConfVector[0] = main_region_Armed_r1_Idle;
-			stateConfVectorPosition = 0;
+			/* 'default' enter sequence for region idle */
+			/* Default react sequence for initial entry  */
+			/* The reactions of state null. */
+			if (! iface.confirmed) { 
+				/* 'default' enter sequence for state Pending */
+				/* Entry action for state 'Pending'. */
+				ifaceInternalSCI_OCB->beepPending();
+				ifaceInternalSCI_OCB->ledsArmed(0);
+				ifaceInternalSCI.evConfirmReq_raised = true;
+				stateConfVector[0] = main_region_Armed_r1_Idle_idle_Pending;
+				stateConfVectorPosition = 0;
+			}  else {
+				/* 'default' enter sequence for state Confirmed */
+				/* Entry action for state 'Confirmed'. */
+				ifaceInternalSCI_OCB->beepArmed();
+				ifaceInternalSCI_OCB->ledsArmed(1);
+				stateConfVector[0] = main_region_Armed_r1_Idle_idle_Confirmed;
+				stateConfVectorPosition = 0;
+			}
 			historyVector[0] = stateConfVector[0];
+			break;
+		}
+		case main_region_Armed_r1_Idle_idle_Confirmed : {
+			/* 'default' enter sequence for state Idle */
+			/* 'default' enter sequence for region idle */
+			/* Default react sequence for initial entry  */
+			/* The reactions of state null. */
+			if (! iface.confirmed) { 
+				/* 'default' enter sequence for state Pending */
+				/* Entry action for state 'Pending'. */
+				ifaceInternalSCI_OCB->beepPending();
+				ifaceInternalSCI_OCB->ledsArmed(0);
+				ifaceInternalSCI.evConfirmReq_raised = true;
+				stateConfVector[0] = main_region_Armed_r1_Idle_idle_Pending;
+				stateConfVectorPosition = 0;
+			}  else {
+				/* 'default' enter sequence for state Confirmed */
+				/* Entry action for state 'Confirmed'. */
+				ifaceInternalSCI_OCB->beepArmed();
+				ifaceInternalSCI_OCB->ledsArmed(1);
+				stateConfVector[0] = main_region_Armed_r1_Idle_idle_Confirmed;
+				stateConfVectorPosition = 0;
+			}
+			historyVector[0] = stateConfVector[0];
+			break;
+		}
+		default: break;
+	}
+}
+
+/* shallow enterSequence with history in child r1 */
+void SysManagerHSM::shenseq_main_region_Disarmed_SequenceImpl() {
+	/* shallow enterSequence with history in child r1 */
+	/* Handle shallow history entry of r1 */
+	switch(historyVector[ 1 ]) {
+		case main_region_Disarmed_r1_Pending : {
+			/* 'default' enter sequence for state Pending */
+			/* Entry action for state 'Pending'. */
+			timer->setTimer(this, &timeEvents[3], 1 * 1000, false);
+			ifaceInternalSCI_OCB->beepPending();
+			ifaceInternalSCI_OCB->ledsDisarmed(0);
+			stateConfVector[0] = main_region_Disarmed_r1_Pending;
+			stateConfVectorPosition = 0;
+			historyVector[1] = stateConfVector[0];
+			break;
+		}
+		case main_region_Disarmed_r1_Confirmed : {
+			/* 'default' enter sequence for state Confirmed */
+			/* Entry action for state 'Confirmed'. */
+			ifaceInternalSCI_OCB->beepDisarmed();
+			ifaceInternalSCI_OCB->ledsDisarmed(1);
+			stateConfVector[0] = main_region_Disarmed_r1_Confirmed;
+			stateConfVectorPosition = 0;
+			historyVector[1] = stateConfVector[0];
 			break;
 		}
 		default: break;
@@ -399,63 +521,53 @@ void SysManagerHSM::react_main_region_SelectMode() {
 		/* Exit action for state 'SelectMode'. */
 		timer->unsetTimer(this, &timeEvents[0]);
 		ifaceInternalSCI.mode = ifaceInternalSCI.tmp;
-		ifaceInternalSCI.confirmed = false;
 		/* The reactions of state null. */
 		if (ifaceInternalSCI.mode == 1) { 
-			/* Entry action for state 'Armed'. */
-			if (! ifaceInternalSCI.confirmed) { 
-				ifaceInternalSCI_OCB->beepPending();
-				ifaceInternalSCI_OCB->ledsArmed();
-				ifaceInternalSCI.evConfirmReq_raised = true;
-			} 
 			/* 'default' enter sequence for state Idle */
-			stateConfVector[0] = main_region_Armed_r1_Idle;
-			stateConfVectorPosition = 0;
+			/* 'default' enter sequence for region idle */
+			/* Default react sequence for initial entry  */
+			/* The reactions of state null. */
+			if (! iface.confirmed) { 
+				/* 'default' enter sequence for state Pending */
+				/* Entry action for state 'Pending'. */
+				ifaceInternalSCI_OCB->beepPending();
+				ifaceInternalSCI_OCB->ledsArmed(0);
+				ifaceInternalSCI.evConfirmReq_raised = true;
+				stateConfVector[0] = main_region_Armed_r1_Idle_idle_Pending;
+				stateConfVectorPosition = 0;
+			}  else {
+				/* 'default' enter sequence for state Confirmed */
+				/* Entry action for state 'Confirmed'. */
+				ifaceInternalSCI_OCB->beepArmed();
+				ifaceInternalSCI_OCB->ledsArmed(1);
+				stateConfVector[0] = main_region_Armed_r1_Idle_idle_Confirmed;
+				stateConfVectorPosition = 0;
+			}
 			historyVector[0] = stateConfVector[0];
 		}  else {
 			if (ifaceInternalSCI.mode == 2) { 
-				/* Entry action for state 'Armed'. */
-				if (! ifaceInternalSCI.confirmed) { 
-					ifaceInternalSCI_OCB->beepPending();
-					ifaceInternalSCI_OCB->ledsArmed();
-					ifaceInternalSCI.evConfirmReq_raised = true;
-				} 
 				/* 'default' enter sequence for state Manual */
 				stateConfVector[0] = main_region_Armed_r1_Manual;
 				stateConfVectorPosition = 0;
 				historyVector[0] = stateConfVector[0];
 			}  else {
 				if (ifaceInternalSCI.mode == 3) { 
-					/* Entry action for state 'Armed'. */
-					if (! ifaceInternalSCI.confirmed) { 
-						ifaceInternalSCI_OCB->beepPending();
-						ifaceInternalSCI_OCB->ledsArmed();
-						ifaceInternalSCI.evConfirmReq_raised = true;
-					} 
 					/* 'default' enter sequence for state Follow */
 					stateConfVector[0] = main_region_Armed_r1_Follow;
 					stateConfVectorPosition = 0;
 					historyVector[0] = stateConfVector[0];
 				}  else {
 					if (ifaceInternalSCI.mode == 4) { 
-						/* Entry action for state 'Armed'. */
-						if (! ifaceInternalSCI.confirmed) { 
-							ifaceInternalSCI_OCB->beepPending();
-							ifaceInternalSCI_OCB->ledsArmed();
-							ifaceInternalSCI.evConfirmReq_raised = true;
-						} 
 						/* 'default' enter sequence for state RTH */
 						stateConfVector[0] = main_region_Armed_r1_RTH;
 						stateConfVectorPosition = 0;
 						historyVector[0] = stateConfVector[0];
 					}  else {
-						/* 'default' enter sequence for state SelectMode */
-						/* Entry action for state 'SelectMode'. */
-						timer->setTimer(this, &timeEvents[0], ifaceInternalSCI.keyTimeout * 1000, false);
-						ifaceInternalSCI_OCB->ledsSelect();
-						ifaceInternalSCI_OCB->beepKey();
-						stateConfVector[0] = main_region_SelectMode;
-						stateConfVectorPosition = 0;
+						/* Default react sequence for shallow history entry  */
+						/* Enter the region with shallow history */
+						if (historyVector[1] != SysManagerHSM_last_state) {
+							shenseq_main_region_Disarmed_SequenceImpl();
+						} 
 					}
 				}
 			}
@@ -469,22 +581,12 @@ void SysManagerHSM::react_main_region_SelectMode() {
 			timer->unsetTimer(this, &timeEvents[0]);
 			/* The reactions of state null. */
 			if (ifaceInternalSCI.mode == 0) { 
-				/* 'default' enter sequence for state Disarmed */
-				/* Entry action for state 'Disarmed'. */
-				if (! ifaceInternalSCI.confirmed) { 
-					ifaceInternalSCI_OCB->beepPending();
-					ifaceInternalSCI_OCB->ledsDisarmed();
-					ifaceInternalSCI.evConfirmReq_raised = true;
+				/* Default react sequence for shallow history entry  */
+				/* Enter the region with shallow history */
+				if (historyVector[1] != SysManagerHSM_last_state) {
+					shenseq_main_region_Disarmed_SequenceImpl();
 				} 
-				stateConfVector[0] = main_region_Disarmed;
-				stateConfVectorPosition = 0;
 			}  else {
-				/* Entry action for state 'Armed'. */
-				if (! ifaceInternalSCI.confirmed) { 
-					ifaceInternalSCI_OCB->beepPending();
-					ifaceInternalSCI_OCB->ledsArmed();
-					ifaceInternalSCI.evConfirmReq_raised = true;
-				} 
 				/* Default react sequence for shallow history entry ArmedHistory */
 				/* Enter the region with shallow history */
 				if (historyVector[0] != SysManagerHSM_last_state) {
@@ -527,8 +629,14 @@ void SysManagerHSM::react_main_region_Armed_r1_Manual() {
 				stateConfVectorPosition = 0;
 				break;
 			}
-			case main_region_Armed_r1_Idle : {
-				/* Default exit sequence for state Idle */
+			case main_region_Armed_r1_Idle_idle_Pending : {
+				/* Default exit sequence for state Pending */
+				stateConfVector[0] = SysManagerHSM_last_state;
+				stateConfVectorPosition = 0;
+				break;
+			}
+			case main_region_Armed_r1_Idle_idle_Confirmed : {
+				/* Default exit sequence for state Confirmed */
 				stateConfVector[0] = SysManagerHSM_last_state;
 				stateConfVectorPosition = 0;
 				break;
@@ -567,24 +675,28 @@ void SysManagerHSM::react_main_region_Armed_r1_Manual() {
 					stateConfVectorPosition = 0;
 					break;
 				}
-				case main_region_Armed_r1_Idle : {
-					/* Default exit sequence for state Idle */
+				case main_region_Armed_r1_Idle_idle_Pending : {
+					/* Default exit sequence for state Pending */
+					stateConfVector[0] = SysManagerHSM_last_state;
+					stateConfVectorPosition = 0;
+					break;
+				}
+				case main_region_Armed_r1_Idle_idle_Confirmed : {
+					/* Default exit sequence for state Confirmed */
 					stateConfVector[0] = SysManagerHSM_last_state;
 					stateConfVectorPosition = 0;
 					break;
 				}
 				default: break;
 			}
-			ifaceInternalSCI.confirmed = false;
+			iface.confirmed = false;
 			/* 'default' enter sequence for state Disarmed */
-			/* Entry action for state 'Disarmed'. */
-			if (! ifaceInternalSCI.confirmed) { 
-				ifaceInternalSCI_OCB->beepPending();
-				ifaceInternalSCI_OCB->ledsDisarmed();
-				ifaceInternalSCI.evConfirmReq_raised = true;
+			/* 'default' enter sequence for region r1 */
+			/* Default react sequence for shallow history entry  */
+			/* Enter the region with shallow history */
+			if (historyVector[1] != SysManagerHSM_last_state) {
+				shenseq_main_region_Disarmed_SequenceImpl();
 			} 
-			stateConfVector[0] = main_region_Disarmed;
-			stateConfVectorPosition = 0;
 		}  else {
 			if (ifaceInternalSCI.evConfirmReq_raised) { 
 				/* Default exit sequence for state Armed */
@@ -609,8 +721,14 @@ void SysManagerHSM::react_main_region_Armed_r1_Manual() {
 						stateConfVectorPosition = 0;
 						break;
 					}
-					case main_region_Armed_r1_Idle : {
-						/* Default exit sequence for state Idle */
+					case main_region_Armed_r1_Idle_idle_Pending : {
+						/* Default exit sequence for state Pending */
+						stateConfVector[0] = SysManagerHSM_last_state;
+						stateConfVectorPosition = 0;
+						break;
+					}
+					case main_region_Armed_r1_Idle_idle_Confirmed : {
+						/* Default exit sequence for state Confirmed */
 						stateConfVector[0] = SysManagerHSM_last_state;
 						stateConfVectorPosition = 0;
 						break;
@@ -654,8 +772,14 @@ void SysManagerHSM::react_main_region_Armed_r1_Follow() {
 				stateConfVectorPosition = 0;
 				break;
 			}
-			case main_region_Armed_r1_Idle : {
-				/* Default exit sequence for state Idle */
+			case main_region_Armed_r1_Idle_idle_Pending : {
+				/* Default exit sequence for state Pending */
+				stateConfVector[0] = SysManagerHSM_last_state;
+				stateConfVectorPosition = 0;
+				break;
+			}
+			case main_region_Armed_r1_Idle_idle_Confirmed : {
+				/* Default exit sequence for state Confirmed */
 				stateConfVector[0] = SysManagerHSM_last_state;
 				stateConfVectorPosition = 0;
 				break;
@@ -694,24 +818,28 @@ void SysManagerHSM::react_main_region_Armed_r1_Follow() {
 					stateConfVectorPosition = 0;
 					break;
 				}
-				case main_region_Armed_r1_Idle : {
-					/* Default exit sequence for state Idle */
+				case main_region_Armed_r1_Idle_idle_Pending : {
+					/* Default exit sequence for state Pending */
+					stateConfVector[0] = SysManagerHSM_last_state;
+					stateConfVectorPosition = 0;
+					break;
+				}
+				case main_region_Armed_r1_Idle_idle_Confirmed : {
+					/* Default exit sequence for state Confirmed */
 					stateConfVector[0] = SysManagerHSM_last_state;
 					stateConfVectorPosition = 0;
 					break;
 				}
 				default: break;
 			}
-			ifaceInternalSCI.confirmed = false;
+			iface.confirmed = false;
 			/* 'default' enter sequence for state Disarmed */
-			/* Entry action for state 'Disarmed'. */
-			if (! ifaceInternalSCI.confirmed) { 
-				ifaceInternalSCI_OCB->beepPending();
-				ifaceInternalSCI_OCB->ledsDisarmed();
-				ifaceInternalSCI.evConfirmReq_raised = true;
+			/* 'default' enter sequence for region r1 */
+			/* Default react sequence for shallow history entry  */
+			/* Enter the region with shallow history */
+			if (historyVector[1] != SysManagerHSM_last_state) {
+				shenseq_main_region_Disarmed_SequenceImpl();
 			} 
-			stateConfVector[0] = main_region_Disarmed;
-			stateConfVectorPosition = 0;
 		}  else {
 			if (ifaceInternalSCI.evConfirmReq_raised) { 
 				/* Default exit sequence for state Armed */
@@ -736,8 +864,14 @@ void SysManagerHSM::react_main_region_Armed_r1_Follow() {
 						stateConfVectorPosition = 0;
 						break;
 					}
-					case main_region_Armed_r1_Idle : {
-						/* Default exit sequence for state Idle */
+					case main_region_Armed_r1_Idle_idle_Pending : {
+						/* Default exit sequence for state Pending */
+						stateConfVector[0] = SysManagerHSM_last_state;
+						stateConfVectorPosition = 0;
+						break;
+					}
+					case main_region_Armed_r1_Idle_idle_Confirmed : {
+						/* Default exit sequence for state Confirmed */
 						stateConfVector[0] = SysManagerHSM_last_state;
 						stateConfVectorPosition = 0;
 						break;
@@ -781,8 +915,14 @@ void SysManagerHSM::react_main_region_Armed_r1_RTH() {
 				stateConfVectorPosition = 0;
 				break;
 			}
-			case main_region_Armed_r1_Idle : {
-				/* Default exit sequence for state Idle */
+			case main_region_Armed_r1_Idle_idle_Pending : {
+				/* Default exit sequence for state Pending */
+				stateConfVector[0] = SysManagerHSM_last_state;
+				stateConfVectorPosition = 0;
+				break;
+			}
+			case main_region_Armed_r1_Idle_idle_Confirmed : {
+				/* Default exit sequence for state Confirmed */
 				stateConfVector[0] = SysManagerHSM_last_state;
 				stateConfVectorPosition = 0;
 				break;
@@ -821,32 +961,36 @@ void SysManagerHSM::react_main_region_Armed_r1_RTH() {
 					stateConfVectorPosition = 0;
 					break;
 				}
-				case main_region_Armed_r1_Idle : {
-					/* Default exit sequence for state Idle */
+				case main_region_Armed_r1_Idle_idle_Pending : {
+					/* Default exit sequence for state Pending */
+					stateConfVector[0] = SysManagerHSM_last_state;
+					stateConfVectorPosition = 0;
+					break;
+				}
+				case main_region_Armed_r1_Idle_idle_Confirmed : {
+					/* Default exit sequence for state Confirmed */
 					stateConfVector[0] = SysManagerHSM_last_state;
 					stateConfVectorPosition = 0;
 					break;
 				}
 				default: break;
 			}
-			ifaceInternalSCI.confirmed = false;
+			iface.confirmed = false;
 			/* 'default' enter sequence for state Disarmed */
-			/* Entry action for state 'Disarmed'. */
-			if (! ifaceInternalSCI.confirmed) { 
-				ifaceInternalSCI_OCB->beepPending();
-				ifaceInternalSCI_OCB->ledsDisarmed();
-				ifaceInternalSCI.evConfirmReq_raised = true;
+			/* 'default' enter sequence for region r1 */
+			/* Default react sequence for shallow history entry  */
+			/* Enter the region with shallow history */
+			if (historyVector[1] != SysManagerHSM_last_state) {
+				shenseq_main_region_Disarmed_SequenceImpl();
 			} 
-			stateConfVector[0] = main_region_Disarmed;
-			stateConfVectorPosition = 0;
 		}  else {
 		}
 	}
 }
 
-/* The reactions of state Idle. */
-void SysManagerHSM::react_main_region_Armed_r1_Idle() {
-	/* The reactions of state Idle. */
+/* The reactions of state Pending. */
+void SysManagerHSM::react_main_region_Armed_r1_Idle_idle_Pending() {
+	/* The reactions of state Pending. */
 	if (iface.evKeyHoldOkB_raised) { 
 		/* Default exit sequence for state Armed */
 		/* Default exit sequence for region r1 */
@@ -870,8 +1014,14 @@ void SysManagerHSM::react_main_region_Armed_r1_Idle() {
 				stateConfVectorPosition = 0;
 				break;
 			}
-			case main_region_Armed_r1_Idle : {
-				/* Default exit sequence for state Idle */
+			case main_region_Armed_r1_Idle_idle_Pending : {
+				/* Default exit sequence for state Pending */
+				stateConfVector[0] = SysManagerHSM_last_state;
+				stateConfVectorPosition = 0;
+				break;
+			}
+			case main_region_Armed_r1_Idle_idle_Confirmed : {
+				/* Default exit sequence for state Confirmed */
 				stateConfVector[0] = SysManagerHSM_last_state;
 				stateConfVectorPosition = 0;
 				break;
@@ -910,25 +1060,218 @@ void SysManagerHSM::react_main_region_Armed_r1_Idle() {
 					stateConfVectorPosition = 0;
 					break;
 				}
-				case main_region_Armed_r1_Idle : {
-					/* Default exit sequence for state Idle */
+				case main_region_Armed_r1_Idle_idle_Pending : {
+					/* Default exit sequence for state Pending */
+					stateConfVector[0] = SysManagerHSM_last_state;
+					stateConfVectorPosition = 0;
+					break;
+				}
+				case main_region_Armed_r1_Idle_idle_Confirmed : {
+					/* Default exit sequence for state Confirmed */
 					stateConfVector[0] = SysManagerHSM_last_state;
 					stateConfVectorPosition = 0;
 					break;
 				}
 				default: break;
 			}
-			ifaceInternalSCI.confirmed = false;
+			iface.confirmed = false;
 			/* 'default' enter sequence for state Disarmed */
-			/* Entry action for state 'Disarmed'. */
-			if (! ifaceInternalSCI.confirmed) { 
-				ifaceInternalSCI_OCB->beepPending();
-				ifaceInternalSCI_OCB->ledsDisarmed();
-				ifaceInternalSCI.evConfirmReq_raised = true;
+			/* 'default' enter sequence for region r1 */
+			/* Default react sequence for shallow history entry  */
+			/* Enter the region with shallow history */
+			if (historyVector[1] != SysManagerHSM_last_state) {
+				shenseq_main_region_Disarmed_SequenceImpl();
 			} 
-			stateConfVector[0] = main_region_Disarmed;
-			stateConfVectorPosition = 0;
 		}  else {
+			if (ifaceInternalSCI.evConfirmReq_raised) { 
+				/* Default exit sequence for state Armed */
+				/* Default exit sequence for region r1 */
+				/* Handle exit of all possible states (of r1) at position 0... */
+				switch(stateConfVector[ 0 ]) {
+					case main_region_Armed_r1_Manual : {
+						/* Default exit sequence for state Manual */
+						stateConfVector[0] = SysManagerHSM_last_state;
+						stateConfVectorPosition = 0;
+						break;
+					}
+					case main_region_Armed_r1_Follow : {
+						/* Default exit sequence for state Follow */
+						stateConfVector[0] = SysManagerHSM_last_state;
+						stateConfVectorPosition = 0;
+						break;
+					}
+					case main_region_Armed_r1_RTH : {
+						/* Default exit sequence for state RTH */
+						stateConfVector[0] = SysManagerHSM_last_state;
+						stateConfVectorPosition = 0;
+						break;
+					}
+					case main_region_Armed_r1_Idle_idle_Pending : {
+						/* Default exit sequence for state Pending */
+						stateConfVector[0] = SysManagerHSM_last_state;
+						stateConfVectorPosition = 0;
+						break;
+					}
+					case main_region_Armed_r1_Idle_idle_Confirmed : {
+						/* Default exit sequence for state Confirmed */
+						stateConfVector[0] = SysManagerHSM_last_state;
+						stateConfVectorPosition = 0;
+						break;
+					}
+					default: break;
+				}
+				ifaceInternalSCI_OCB->publishMode();
+				/* 'default' enter sequence for state Sending */
+				/* Entry action for state 'Sending'. */
+				timer->setTimer(this, &timeEvents[2], ifaceInternalSCI.ackTimeout * 1000, false);
+				stateConfVector[0] = main_region_Sending;
+				stateConfVectorPosition = 0;
+			}  else {
+			}
+		}
+	}
+}
+
+/* The reactions of state Confirmed. */
+void SysManagerHSM::react_main_region_Armed_r1_Idle_idle_Confirmed() {
+	/* The reactions of state Confirmed. */
+	if (iface.evKeyHoldOkB_raised) { 
+		/* Default exit sequence for state Armed */
+		/* Default exit sequence for region r1 */
+		/* Handle exit of all possible states (of r1) at position 0... */
+		switch(stateConfVector[ 0 ]) {
+			case main_region_Armed_r1_Manual : {
+				/* Default exit sequence for state Manual */
+				stateConfVector[0] = SysManagerHSM_last_state;
+				stateConfVectorPosition = 0;
+				break;
+			}
+			case main_region_Armed_r1_Follow : {
+				/* Default exit sequence for state Follow */
+				stateConfVector[0] = SysManagerHSM_last_state;
+				stateConfVectorPosition = 0;
+				break;
+			}
+			case main_region_Armed_r1_RTH : {
+				/* Default exit sequence for state RTH */
+				stateConfVector[0] = SysManagerHSM_last_state;
+				stateConfVectorPosition = 0;
+				break;
+			}
+			case main_region_Armed_r1_Idle_idle_Pending : {
+				/* Default exit sequence for state Pending */
+				stateConfVector[0] = SysManagerHSM_last_state;
+				stateConfVectorPosition = 0;
+				break;
+			}
+			case main_region_Armed_r1_Idle_idle_Confirmed : {
+				/* Default exit sequence for state Confirmed */
+				stateConfVector[0] = SysManagerHSM_last_state;
+				stateConfVectorPosition = 0;
+				break;
+			}
+			default: break;
+		}
+		ifaceInternalSCI.tmp = ifaceInternalSCI.mode;
+		/* 'default' enter sequence for state SelectMode */
+		/* Entry action for state 'SelectMode'. */
+		timer->setTimer(this, &timeEvents[0], ifaceInternalSCI.keyTimeout * 1000, false);
+		ifaceInternalSCI_OCB->ledsSelect();
+		ifaceInternalSCI_OCB->beepKey();
+		stateConfVector[0] = main_region_SelectMode;
+		stateConfVectorPosition = 0;
+	}  else {
+		if (iface.evDisarm_raised) { 
+			/* Default exit sequence for state Armed */
+			/* Default exit sequence for region r1 */
+			/* Handle exit of all possible states (of r1) at position 0... */
+			switch(stateConfVector[ 0 ]) {
+				case main_region_Armed_r1_Manual : {
+					/* Default exit sequence for state Manual */
+					stateConfVector[0] = SysManagerHSM_last_state;
+					stateConfVectorPosition = 0;
+					break;
+				}
+				case main_region_Armed_r1_Follow : {
+					/* Default exit sequence for state Follow */
+					stateConfVector[0] = SysManagerHSM_last_state;
+					stateConfVectorPosition = 0;
+					break;
+				}
+				case main_region_Armed_r1_RTH : {
+					/* Default exit sequence for state RTH */
+					stateConfVector[0] = SysManagerHSM_last_state;
+					stateConfVectorPosition = 0;
+					break;
+				}
+				case main_region_Armed_r1_Idle_idle_Pending : {
+					/* Default exit sequence for state Pending */
+					stateConfVector[0] = SysManagerHSM_last_state;
+					stateConfVectorPosition = 0;
+					break;
+				}
+				case main_region_Armed_r1_Idle_idle_Confirmed : {
+					/* Default exit sequence for state Confirmed */
+					stateConfVector[0] = SysManagerHSM_last_state;
+					stateConfVectorPosition = 0;
+					break;
+				}
+				default: break;
+			}
+			iface.confirmed = false;
+			/* 'default' enter sequence for state Disarmed */
+			/* 'default' enter sequence for region r1 */
+			/* Default react sequence for shallow history entry  */
+			/* Enter the region with shallow history */
+			if (historyVector[1] != SysManagerHSM_last_state) {
+				shenseq_main_region_Disarmed_SequenceImpl();
+			} 
+		}  else {
+			if (ifaceInternalSCI.evConfirmReq_raised) { 
+				/* Default exit sequence for state Armed */
+				/* Default exit sequence for region r1 */
+				/* Handle exit of all possible states (of r1) at position 0... */
+				switch(stateConfVector[ 0 ]) {
+					case main_region_Armed_r1_Manual : {
+						/* Default exit sequence for state Manual */
+						stateConfVector[0] = SysManagerHSM_last_state;
+						stateConfVectorPosition = 0;
+						break;
+					}
+					case main_region_Armed_r1_Follow : {
+						/* Default exit sequence for state Follow */
+						stateConfVector[0] = SysManagerHSM_last_state;
+						stateConfVectorPosition = 0;
+						break;
+					}
+					case main_region_Armed_r1_RTH : {
+						/* Default exit sequence for state RTH */
+						stateConfVector[0] = SysManagerHSM_last_state;
+						stateConfVectorPosition = 0;
+						break;
+					}
+					case main_region_Armed_r1_Idle_idle_Pending : {
+						/* Default exit sequence for state Pending */
+						stateConfVector[0] = SysManagerHSM_last_state;
+						stateConfVectorPosition = 0;
+						break;
+					}
+					case main_region_Armed_r1_Idle_idle_Confirmed : {
+						/* Default exit sequence for state Confirmed */
+						stateConfVector[0] = SysManagerHSM_last_state;
+						stateConfVectorPosition = 0;
+						break;
+					}
+					default: break;
+				}
+				ifaceInternalSCI_OCB->publishMode();
+				/* 'default' enter sequence for state Sending */
+				/* Entry action for state 'Sending'. */
+				timer->setTimer(this, &timeEvents[2], ifaceInternalSCI.ackTimeout * 1000, false);
+				stateConfVector[0] = main_region_Sending;
+				stateConfVectorPosition = 0;
+			}  else {
+			}
 		}
 	}
 }
@@ -944,22 +1287,12 @@ void SysManagerHSM::react_main_region_Error() {
 		timer->unsetTimer(this, &timeEvents[1]);
 		/* The reactions of state null. */
 		if (ifaceInternalSCI.mode == 0) { 
-			/* 'default' enter sequence for state Disarmed */
-			/* Entry action for state 'Disarmed'. */
-			if (! ifaceInternalSCI.confirmed) { 
-				ifaceInternalSCI_OCB->beepPending();
-				ifaceInternalSCI_OCB->ledsDisarmed();
-				ifaceInternalSCI.evConfirmReq_raised = true;
+			/* Default react sequence for shallow history entry  */
+			/* Enter the region with shallow history */
+			if (historyVector[1] != SysManagerHSM_last_state) {
+				shenseq_main_region_Disarmed_SequenceImpl();
 			} 
-			stateConfVector[0] = main_region_Disarmed;
-			stateConfVectorPosition = 0;
 		}  else {
-			/* Entry action for state 'Armed'. */
-			if (! ifaceInternalSCI.confirmed) { 
-				ifaceInternalSCI_OCB->beepPending();
-				ifaceInternalSCI_OCB->ledsArmed();
-				ifaceInternalSCI.evConfirmReq_raised = true;
-			} 
 			/* Default react sequence for shallow history entry ArmedHistory */
 			/* Enter the region with shallow history */
 			if (historyVector[0] != SysManagerHSM_last_state) {
@@ -992,26 +1325,16 @@ void SysManagerHSM::react_main_region_Sending() {
 			stateConfVectorPosition = 0;
 			/* Exit action for state 'Sending'. */
 			timer->unsetTimer(this, &timeEvents[2]);
-			ifaceInternalSCI.confirmed = true;
+			iface.confirmed = true;
 			ifaceInternalSCI_OCB->beepAck();
 			/* The reactions of state null. */
 			if (ifaceInternalSCI.mode == 0) { 
-				/* 'default' enter sequence for state Disarmed */
-				/* Entry action for state 'Disarmed'. */
-				if (! ifaceInternalSCI.confirmed) { 
-					ifaceInternalSCI_OCB->beepPending();
-					ifaceInternalSCI_OCB->ledsDisarmed();
-					ifaceInternalSCI.evConfirmReq_raised = true;
+				/* Default react sequence for shallow history entry  */
+				/* Enter the region with shallow history */
+				if (historyVector[1] != SysManagerHSM_last_state) {
+					shenseq_main_region_Disarmed_SequenceImpl();
 				} 
-				stateConfVector[0] = main_region_Disarmed;
-				stateConfVectorPosition = 0;
 			}  else {
-				/* Entry action for state 'Armed'. */
-				if (! ifaceInternalSCI.confirmed) { 
-					ifaceInternalSCI_OCB->beepPending();
-					ifaceInternalSCI_OCB->ledsArmed();
-					ifaceInternalSCI.evConfirmReq_raised = true;
-				} 
 				/* Default react sequence for shallow history entry ArmedHistory */
 				/* Enter the region with shallow history */
 				if (historyVector[0] != SysManagerHSM_last_state) {
@@ -1022,13 +1345,30 @@ void SysManagerHSM::react_main_region_Sending() {
 	}
 }
 
-/* The reactions of state Disarmed. */
-void SysManagerHSM::react_main_region_Disarmed() {
-	/* The reactions of state Disarmed. */
+/* The reactions of state Pending. */
+void SysManagerHSM::react_main_region_Disarmed_r1_Pending() {
+	/* The reactions of state Pending. */
 	if (iface.evKeyHoldOkB_raised) { 
 		/* Default exit sequence for state Disarmed */
-		stateConfVector[0] = SysManagerHSM_last_state;
-		stateConfVectorPosition = 0;
+		/* Default exit sequence for region r1 */
+		/* Handle exit of all possible states (of r1) at position 0... */
+		switch(stateConfVector[ 0 ]) {
+			case main_region_Disarmed_r1_Pending : {
+				/* Default exit sequence for state Pending */
+				stateConfVector[0] = SysManagerHSM_last_state;
+				stateConfVectorPosition = 0;
+				/* Exit action for state 'Pending'. */
+				timer->unsetTimer(this, &timeEvents[3]);
+				break;
+			}
+			case main_region_Disarmed_r1_Confirmed : {
+				/* Default exit sequence for state Confirmed */
+				stateConfVector[0] = SysManagerHSM_last_state;
+				stateConfVectorPosition = 0;
+				break;
+			}
+			default: break;
+		}
 		ifaceInternalSCI.tmp = ifaceInternalSCI.mode;
 		/* 'default' enter sequence for state SelectMode */
 		/* Entry action for state 'SelectMode'. */
@@ -1038,17 +1378,86 @@ void SysManagerHSM::react_main_region_Disarmed() {
 		stateConfVector[0] = main_region_SelectMode;
 		stateConfVectorPosition = 0;
 	}  else {
-		if (ifaceInternalSCI.evConfirmReq_raised) { 
-			/* Default exit sequence for state Disarmed */
+		if (timeEvents[3]) { 
+			/* Default exit sequence for state Pending */
 			stateConfVector[0] = SysManagerHSM_last_state;
 			stateConfVectorPosition = 0;
-			ifaceInternalSCI_OCB->publishMode();
-			/* 'default' enter sequence for state Sending */
-			/* Entry action for state 'Sending'. */
-			timer->setTimer(this, &timeEvents[2], ifaceInternalSCI.ackTimeout * 1000, false);
-			stateConfVector[0] = main_region_Sending;
-			stateConfVectorPosition = 0;
+			/* Exit action for state 'Pending'. */
+			timer->unsetTimer(this, &timeEvents[3]);
+			/* The reactions of state null. */
+			if (! iface.confirmed) { 
+				/* Default exit sequence for state Disarmed */
+				/* Default exit sequence for region r1 */
+				/* Handle exit of all possible states (of r1) at position 0... */
+				switch(stateConfVector[ 0 ]) {
+					case main_region_Disarmed_r1_Pending : {
+						/* Default exit sequence for state Pending */
+						stateConfVector[0] = SysManagerHSM_last_state;
+						stateConfVectorPosition = 0;
+						/* Exit action for state 'Pending'. */
+						timer->unsetTimer(this, &timeEvents[3]);
+						break;
+					}
+					case main_region_Disarmed_r1_Confirmed : {
+						/* Default exit sequence for state Confirmed */
+						stateConfVector[0] = SysManagerHSM_last_state;
+						stateConfVectorPosition = 0;
+						break;
+					}
+					default: break;
+				}
+				ifaceInternalSCI_OCB->publishMode();
+				/* 'default' enter sequence for state Sending */
+				/* Entry action for state 'Sending'. */
+				timer->setTimer(this, &timeEvents[2], ifaceInternalSCI.ackTimeout * 1000, false);
+				stateConfVector[0] = main_region_Sending;
+				stateConfVectorPosition = 0;
+			}  else {
+				/* 'default' enter sequence for state Confirmed */
+				/* Entry action for state 'Confirmed'. */
+				ifaceInternalSCI_OCB->beepDisarmed();
+				ifaceInternalSCI_OCB->ledsDisarmed(1);
+				stateConfVector[0] = main_region_Disarmed_r1_Confirmed;
+				stateConfVectorPosition = 0;
+				historyVector[1] = stateConfVector[0];
+			}
 		} 
+	}
+}
+
+/* The reactions of state Confirmed. */
+void SysManagerHSM::react_main_region_Disarmed_r1_Confirmed() {
+	/* The reactions of state Confirmed. */
+	if (iface.evKeyHoldOkB_raised) { 
+		/* Default exit sequence for state Disarmed */
+		/* Default exit sequence for region r1 */
+		/* Handle exit of all possible states (of r1) at position 0... */
+		switch(stateConfVector[ 0 ]) {
+			case main_region_Disarmed_r1_Pending : {
+				/* Default exit sequence for state Pending */
+				stateConfVector[0] = SysManagerHSM_last_state;
+				stateConfVectorPosition = 0;
+				/* Exit action for state 'Pending'. */
+				timer->unsetTimer(this, &timeEvents[3]);
+				break;
+			}
+			case main_region_Disarmed_r1_Confirmed : {
+				/* Default exit sequence for state Confirmed */
+				stateConfVector[0] = SysManagerHSM_last_state;
+				stateConfVectorPosition = 0;
+				break;
+			}
+			default: break;
+		}
+		ifaceInternalSCI.tmp = ifaceInternalSCI.mode;
+		/* 'default' enter sequence for state SelectMode */
+		/* Entry action for state 'SelectMode'. */
+		timer->setTimer(this, &timeEvents[0], ifaceInternalSCI.keyTimeout * 1000, false);
+		ifaceInternalSCI_OCB->ledsSelect();
+		ifaceInternalSCI_OCB->beepKey();
+		stateConfVector[0] = main_region_SelectMode;
+		stateConfVectorPosition = 0;
+	}  else {
 	}
 }
 

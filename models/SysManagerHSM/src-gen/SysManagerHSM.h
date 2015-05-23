@@ -25,9 +25,13 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 			main_region_Armed_r1_Follow,
 			main_region_Armed_r1_RTH,
 			main_region_Armed_r1_Idle,
+			main_region_Armed_r1_Idle_idle_Pending,
+			main_region_Armed_r1_Idle_idle_Confirmed,
 			main_region_Error,
 			main_region_Sending,
 			main_region_Disarmed,
+			main_region_Disarmed_r1_Pending,
+			main_region_Disarmed_r1_Confirmed,
 			SysManagerHSM_last_state
 		} SysManagerHSMStates;
 		
@@ -53,6 +57,12 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				/*! Raises the in event 'evNack' that is defined in the default interface scope. */ 
 				void raise_evNack();
 				
+				/*! Gets the value of the variable 'confirmed' that is defined in the default interface scope. */ 
+				sc_boolean get_confirmed();
+				
+				/*! Sets the value of the variable 'confirmed' that is defined in the default interface scope. */ 
+				void set_confirmed(sc_boolean value);
+				
 				
 			private:
 				friend class SysManagerHSM;
@@ -62,6 +72,7 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				sc_boolean evDisarm_raised;
 				sc_boolean evAck_raised;
 				sc_boolean evNack_raised;
+				sc_boolean confirmed;
 		};
 		
 		
@@ -86,6 +97,12 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 		/*! Raises the in event 'evNack' that is defined in the default interface scope. */ 
 		void raise_evNack();
 		
+		/*! Gets the value of the variable 'confirmed' that is defined in the default interface scope. */ 
+		sc_boolean get_confirmed();
+		
+		/*! Sets the value of the variable 'confirmed' that is defined in the default interface scope. */ 
+		void set_confirmed(sc_boolean value);
+		
 		
 		//! Inner class for internal interface scope operation callbacks.
 		class InternalSCI_OCB {
@@ -106,11 +123,11 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				
 				virtual void beepPending() = 0;
 				
-				virtual void ledsDisarmed() = 0;
+				virtual void ledsDisarmed(sc_integer ack) = 0;
 				
 				virtual void ledsSelect() = 0;
 				
-				virtual void ledsArmed() = 0;
+				virtual void ledsArmed(sc_integer ack) = 0;
 				
 				virtual void ledsError() = 0;
 				
@@ -147,6 +164,12 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 		class InternalSCI {
 			
 			public:
+				/*! Raises the in event 'evInit' that is defined in the internal scope. */ 
+				void raise_evInit();
+				
+				/*! Checks if the out event 'evInit' that is defined in the internal scope has been raised. */ 
+				sc_boolean isRaised_evInit();
+				
 				/*! Raises the in event 'evConfirmReq' that is defined in the internal scope. */ 
 				void raise_evConfirmReq();
 				
@@ -165,12 +188,6 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				/*! Sets the value of the variable 'tmp' that is defined in the internal scope. */ 
 				void set_tmp(sc_integer value);
 				
-				/*! Gets the value of the variable 'confirmed' that is defined in the internal scope. */ 
-				sc_boolean get_confirmed();
-				
-				/*! Sets the value of the variable 'confirmed' that is defined in the internal scope. */ 
-				void set_confirmed(sc_boolean value);
-				
 				/*! Gets the value of the variable 'keyTimeout' that is defined in the internal scope. */ 
 				sc_integer get_keyTimeout();
 				
@@ -186,10 +203,10 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				
 			private:
 				friend class SysManagerHSM;
+				sc_boolean evInit_raised;
 				sc_boolean evConfirmReq_raised;
 				sc_integer mode;
 				sc_integer tmp;
-				sc_boolean confirmed;
 				sc_integer keyTimeout;
 				sc_integer ackTimeout;
 		};
@@ -197,10 +214,10 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 		//! the maximum number of orthogonal states defines the dimension of the state configuration vector.
 		static const sc_integer maxOrthogonalStates = 1;
 		//! dimension of the state configuration vector for history states
-		static const sc_integer maxHistoryStates = 1;
+		static const sc_integer maxHistoryStates = 2;
 		
 		TimerInterface* timer;
-		sc_boolean timeEvents[3];
+		sc_boolean timeEvents[4];
 		
 		SysManagerHSMStates stateConfVector[maxOrthogonalStates];
 		
@@ -216,14 +233,17 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 		void enact_SequenceImpl();
 		void exact_SequenceImpl();
 		void shenseq_SequenceImpl();
+		void shenseq_main_region_Disarmed_SequenceImpl();
 		void react_main_region_SelectMode();
 		void react_main_region_Armed_r1_Manual();
 		void react_main_region_Armed_r1_Follow();
 		void react_main_region_Armed_r1_RTH();
-		void react_main_region_Armed_r1_Idle();
+		void react_main_region_Armed_r1_Idle_idle_Pending();
+		void react_main_region_Armed_r1_Idle_idle_Confirmed();
 		void react_main_region_Error();
 		void react_main_region_Sending();
-		void react_main_region_Disarmed();
+		void react_main_region_Disarmed_r1_Pending();
+		void react_main_region_Disarmed_r1_Confirmed();
 		void clearInEvents();
 		void clearOutEvents();
 		

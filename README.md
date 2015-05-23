@@ -18,6 +18,10 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 23.05.2015-001 
+	- Actualizo modelo SysManagerHSM
+		- Actualizo comportamiento general. 
+		- Desarrollando Idle como submáquina. No permite depuración con lo que tengo que estudiar la opción de crear otro proyecto y asignarlo a Idle para poder depurarlo por si mismo.
 > 22.05.2015-003 
 	- Actualizo modelo SysManagerHSM
 		- No funciona la propagación de eventos de publicación en modo Armed.
