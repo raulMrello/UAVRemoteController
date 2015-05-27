@@ -68,7 +68,7 @@ void JoystickSampler::notifyUpdate(uint32_t event){
 
 //------------------------------------------------------------------------------------
 void JoystickSampler::run(){
-	int8_t ja1z, ja2z, jb1z, jb2z, last_throttle;
+	int8_t ja1z, ja2z, jb1z, jb2z, last_ja2, new_ja2;
 	while(_th == 0){
 		Thread::wait(100);
 	}
@@ -81,11 +81,11 @@ void JoystickSampler::run(){
 		Thread::wait(REPEAT_TIMEOUT);
 	}
 	// initializes data
+	last_ja2 = 50;
 	_joystickdata.yaw = 50;	
 	_joystickdata.throttle = 0;
 	_joystickdata.roll = 50;
 	_joystickdata.pitch = 50;
-	last_throttle = 0;
 	
 	// Attaches to topic updates
 	MsgBroker::Exception e;
@@ -106,12 +106,13 @@ void JoystickSampler::run(){
 			jb1 = jb1z + (int8_t)(100*_joystick_B1->read());
 			jb2 = jb2z + (int8_t)(100*_joystick_B2->read());
 			// set new data
-			
-			_joystickdata.yaw = ja1;		
-			_joystickdata.roll = jb1;
-			_joystickdata.pitch = jb2;
+			_joystickdata.yaw = (ja1 <= 100)? ja1 : 100;		
+			_joystickdata.roll = (jb1 <= 100)? jb1 : 100;
+			_joystickdata.pitch = (jb2 <= 100)? jb2 : 100;
+			new_ja2 = (ja2 <= 100)? ja2 : 100;
 			// read dynamic control
-			_joystickdata.throttle += (ja2 - last_throttle)/_throttle_rate;
+			_joystickdata.throttle += (new_ja2 - last_ja2)/_throttle_rate;
+			last_ja2 = new_ja2;
 			
 			// publish topic update			
 			MsgBroker::publish("/joys", &_joystickdata, sizeof(Topic::JoystickData_t), &e);
@@ -125,7 +126,7 @@ void JoystickSampler::run(){
 			_joystickdata.throttle = 0;
 			_joystickdata.roll = 50;
 			_joystickdata.pitch = 50;
-			last_throttle = 0;
+			last_ja2 = 50;
 			MsgBroker::publish("/joys", &_joystickdata, sizeof(Topic::JoystickData_t), &e);
 			if(e != MsgBroker::NO_ERRORS){
 				// TODO: add error handling ...

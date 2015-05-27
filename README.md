@@ -18,6 +18,15 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+> 27.05.2015-001 
+	- Actualizo modelo SysManagerHSM
+	- Compruebo funcionamiento de los botones de los joysticks y corrijo bug en KeyDecoder. 
+	TODO:
+		- Finalizar la máquina de estados de SysManager.
+		- Revisar y actualizar la máquina de estados de KeyDecoder.
+		- Verificar módulo GPSReader
+		- Definir máquina de control de VirtualReceiver o verificar su funcionamiento general.
+
 > 26.05.2015-001 
 	- Actualizo modelo SysManagerHSM
 	- Actualizo comportamiento general. 

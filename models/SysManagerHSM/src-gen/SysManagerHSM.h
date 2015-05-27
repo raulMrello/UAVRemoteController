@@ -59,6 +59,9 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				/*! Raises the in event 'evNack' that is defined in the default interface scope. */ 
 				void raise_evNack();
 				
+				/*! Raises the in event 'evConfirmReq' that is defined in the default interface scope. */ 
+				void raise_evConfirmReq();
+				
 				/*! Gets the value of the variable 'confirmed' that is defined in the default interface scope. */ 
 				sc_boolean get_confirmed();
 				
@@ -74,6 +77,7 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				sc_boolean evDisarm_raised;
 				sc_boolean evAck_raised;
 				sc_boolean evNack_raised;
+				sc_boolean evConfirmReq_raised;
 				sc_boolean confirmed;
 		};
 		
@@ -98,6 +102,9 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 		
 		/*! Raises the in event 'evNack' that is defined in the default interface scope. */ 
 		void raise_evNack();
+		
+		/*! Raises the in event 'evConfirmReq' that is defined in the default interface scope. */ 
+		void raise_evConfirmReq();
 		
 		/*! Gets the value of the variable 'confirmed' that is defined in the default interface scope. */ 
 		sc_boolean get_confirmed();
@@ -184,12 +191,6 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				/*! Checks if the out event 'evInit' that is defined in the internal scope has been raised. */ 
 				sc_boolean isRaised_evInit();
 				
-				/*! Raises the in event 'evConfirmReq' that is defined in the internal scope. */ 
-				void raise_evConfirmReq();
-				
-				/*! Checks if the out event 'evConfirmReq' that is defined in the internal scope has been raised. */ 
-				sc_boolean isRaised_evConfirmReq();
-				
 				/*! Gets the value of the variable 'mode' that is defined in the internal scope. */ 
 				sc_integer get_mode();
 				
@@ -218,7 +219,6 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 			private:
 				friend class SysManagerHSM;
 				sc_boolean evInit_raised;
-				sc_boolean evConfirmReq_raised;
 				sc_integer mode;
 				sc_integer tmp;
 				sc_integer keyTimeout;
