@@ -18,96 +18,96 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
-> 27.05.2015-001 
-	- Actualizo modelo SysManagerHSM
-	- Compruebo funcionamiento de los botones de los joysticks y corrijo bug en KeyDecoder. 
-	TODO:
-		- Finalizar la máquina de estados de SysManager.
-		- Revisar y actualizar la máquina de estados de KeyDecoder.
-		- Verificar módulo GPSReader
-		- Definir máquina de control de VirtualReceiver o verificar su funcionamiento general.
+### 27.05.2015-001 
+- Actualizo modelo SysManagerHSM
+- Compruebo funcionamiento de los botones de los joysticks y corrijo bug en KeyDecoder. 
+** TODO **
+  - Finalizar la máquina de estados de SysManager.
+  - Revisar y actualizar la máquina de estados de KeyDecoder.
+  - Verificar módulo GPSReader
+  - Definir máquina de control de VirtualReceiver o verificar su funcionamiento general.
 
-> 26.05.2015-001 
-	- Actualizo modelo SysManagerHSM
-	- Actualizo comportamiento general. 
-	- Desarrollando Idle como submáquina. No permite depuración con lo que tengo que estudiar la opción de crear otro proyecto y asignarlo a Idle para poder depurarlo por si mismo.
+### 26.05.2015-001 
+- Actualizo modelo SysManagerHSM
+- Actualizo comportamiento general. 
+- Desarrollando Idle como submáquina. No permite depuración con lo que tengo que estudiar la opción de crear otro proyecto y asignarlo a Idle para poder depurarlo por si mismo.
 
-> 23.05.2015-001 
-	- Actualizo modelo SysManagerHSM
-	- Actualizo comportamiento general. 
-	- Desarrollando Idle como submáquina. No permite depuración con lo que tengo que estudiar la opción de crear otro proyecto y asignarlo a Idle para poder depurarlo por si mismo.
+### 23.05.2015-001 
+- Actualizo modelo SysManagerHSM
+- Actualizo comportamiento general. 
+- Desarrollando Idle como submáquina. No permite depuración con lo que tengo que estudiar la opción de crear otro proyecto y asignarlo a Idle para poder depurarlo por si mismo.
 
-> 22.05.2015-003 
-	- Actualizo modelo SysManagerHSM
-	- No funciona la propagación de eventos de publicación en modo Armed.
+### 22.05.2015-003 
+- Actualizo modelo SysManagerHSM
+- No funciona la propagación de eventos de publicación en modo Armed.
 
-> 22.05.2015-002 
-	- Elimino carpeta /yakindu-models
+### 22.05.2015-002 
+- Elimino carpeta /yakindu-models
 
-> 22.05.2015-001 
-	- Añado carpeta /models con los diferentes proyectos de yakindu con la generación de las HSM
-	- Añado código fuente de la HSM de System Manager para integrarla cuando la necesite.
-	- Añado código fuente de la HSM del teclado (KeyDecoderHSM). PROBADO OK!!
-	- Modifico el topic KeyData_t añadiendo la propiedad [bool isHold] para saber si la tecla está en pulsación larga.
-	- Modificado topic AlarmData_t. Cambia la estructura añadiendo un código de alarma, además de los 8 bytes de datos adjuntos.
-	- Modifico KeyDecoder integrando la máquina de estados KeyDecoderHSM
-	- Modifico JoystickSampler. Acepta alarma FORCE_DISARM. REVISAR !!!!!!
-	NEXT STEPS:
-		- Definir el funcionamiento de SysManagerHSM e integrarlo en SysManager
-		- Definir los modos de fallo de conexión TCP en VirtualReceiver.
-		- Probar lectura de tramas GPS
-	OPTIONAL:
-		- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
+### 22.05.2015-001 
+- Añado carpeta /models con los diferentes proyectos de yakindu con la generación de las HSM
+- Añado código fuente de la HSM de System Manager para integrarla cuando la necesite.
+- Añado código fuente de la HSM del teclado (KeyDecoderHSM). PROBADO OK!!
+- Modifico el topic KeyData_t añadiendo la propiedad [bool isHold] para saber si la tecla está en pulsación larga.
+- Modificado topic AlarmData_t. Cambia la estructura añadiendo un código de alarma, además de los 8 bytes de datos adjuntos.
+- Modifico KeyDecoder integrando la máquina de estados KeyDecoderHSM
+- Modifico JoystickSampler. Acepta alarma FORCE_DISARM. REVISAR !!!!!!
+NEXT STEPS:
+- Definir el funcionamiento de SysManagerHSM e integrarlo en SysManager
+- Definir los modos de fallo de conexión TCP en VirtualReceiver.
+- Probar lectura de tramas GPS
+OPTIONAL:
+- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
 		
-> 20.05.2015-001
-	- Modificado topic AlarmData_t. Cambia la estructura añadiendo un código de alarma, además de los 8 bytes de datos adjuntos.
-	- Modificado JoystickSampler. Acepta alarma FORCE_DISARM. Probar últimos cambios.	
-	- Modificado KeyDecoder. Envía mensaje de alarma ALARM_FORCE_DISARM.
-	NEXT STEPS:
-		- Definir los modos de fallo de conexión TCP en VirtualReceiver.
-		- Probar lectura de tramas GPS
-		- Diseñar SysManager y finalizar código RC1
-	OPTIONAL:
-		- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
+### 20.05.2015-001
+- Modificado topic AlarmData_t. Cambia la estructura añadiendo un código de alarma, además de los 8 bytes de datos adjuntos.
+- Modificado JoystickSampler. Acepta alarma FORCE_DISARM. Probar últimos cambios.	
+- Modificado KeyDecoder. Envía mensaje de alarma ALARM_FORCE_DISARM.
+NEXT STEPS:
+- Definir los modos de fallo de conexión TCP en VirtualReceiver.
+- Probar lectura de tramas GPS
+- Diseñar SysManager y finalizar código RC1
+OPTIONAL:
+- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
 		
-> 19.05.2015-001
-	- Modificado JoystickSampler. Probar últimos cambios.	
-	NEXT STEPS:
-		- Habilitar comunicación entre KeyDecoder y JoystickSampler para detectar un DISARM mediante la pulsación de ambos joystick_OK al mismo tiempo.
-		- Definir los modos de fallo de conexión TCP en VirtualReceiver.
-		- Probar lectura de tramas GPS
-		- Diseñar SysManager y finalizar código RC1
-	OPTIONAL:
-		- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
+### 19.05.2015-001
+- Modificado JoystickSampler. Probar últimos cambios.	
+NEXT STEPS:
+- Habilitar comunicación entre KeyDecoder y JoystickSampler para detectar un DISARM mediante la pulsación de ambos joystick_OK al mismo tiempo.
+- Definir los modos de fallo de conexión TCP en VirtualReceiver.
+- Probar lectura de tramas GPS
+- Diseñar SysManager y finalizar código RC1
+OPTIONAL:
+- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
 		
-> 14.05.2015-001
-	- Habilito evento de control para chequear la conexión cada 10s.
-	- Cambio la gestión de CWLAP para no reenviar la petición hasta recibir un OK. Después chequeo que existe la wifi y si no se encuentra, volver a intentar.
-	- VirtualReceiver:
-		- Modificar las respuestas del enlace wifi añadiendo la solicitud y la respuesta con 0d0d0a0d0a antes del OK.		
-	NEXT STEPS:
-		- Definir qué ocurre si dejo de recibir fallos de conexión TCP en VirtualReceiver.
-		- Testear el módulo JoystickSampler y modficarlo de acuerdo a cómo deba comportarse.
-		- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
+### 14.05.2015-001
+- Habilito evento de control para chequear la conexión cada 10s.
+- Cambio la gestión de CWLAP para no reenviar la petición hasta recibir un OK. Después chequeo que existe la wifi y si no se encuentra, volver a intentar.
+- VirtualReceiver:
+- Modificar las respuestas del enlace wifi añadiendo la solicitud y la respuesta con 0d0d0a0d0a antes del OK.		
+NEXT STEPS:
+- Definir qué ocurre si dejo de recibir fallos de conexión TCP en VirtualReceiver.
+- Testear el módulo JoystickSampler y modficarlo de acuerdo a cómo deba comportarse.
+- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
 		
-> 13.05.2015-001
-	- Verificando funcionamiento del enlace wifi.
-	- VirtualReceiver:
-		- Modificar las respuestas del enlace wifi añadiendo la solicitud y la respuesta con 0d0d0a0d0a antes del OK.
-		- Añadir gestión de la conexión temporizada. Cambiar nombre de _tmr por _tcptmr, habilitar evento y controlarlo.
-		- Cambiar la gestión de CWLAP y no reenviar la petición hasta recibir un OK. Después buscar la wifi y si no se encuentra, volver a intentar. Ir mirando el buffer de forma periódica para buscar la red.
-	- Verificado funcionamiento del puerto serie, aunque no funciona la gestión de la interrupción IDLE para detectar el fin de trama. Actualmente lo hago con un RtosTimer.
-	NEXT STEPS:
-		- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
+### 13.05.2015-001
+- Verificando funcionamiento del enlace wifi.
+- VirtualReceiver:
+  - Modificar las respuestas del enlace wifi añadiendo la solicitud y la respuesta con 0d0d0a0d0a antes del OK.
+  - Añadir gestión de la conexión temporizada. Cambiar nombre de _tmr por _tcptmr, habilitar evento y controlarlo.
+  - Cambiar la gestión de CWLAP y no reenviar la petición hasta recibir un OK. Después buscar la wifi y si no se encuentra, volver a intentar. Ir mirando el buffer de forma periódica para buscar la red.
+  - Verificado funcionamiento del puerto serie, aunque no funciona la gestión de la interrupción IDLE para detectar el fin de trama. Actualmente lo hago con un RtosTimer.
+NEXT STEPS:
+- Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
 		
-> 12.05.2015-001
-	- Verificando funcionamiento de VirtualReceiver.
-	- Verificado funcionamiento del puerto serie, aunque no funciona la gestión de la interrupción IDLE para detectar el fin de trama. Actualmente lo hago con un RtosTimer.
-	- Añadido pull-request relativo a la gestión de eventos (OR) con Thread::signal_wait_or.
-	- Finalizado VirtualReceiver aunque falta depurar en detalle su funcionamiento.
-	NEXT STEPS:
-		- Cuidado con el descubrimiento de las redes wifi cercanas que puede desbordar mi buffer de recepción. Pensar cómo gestionarlo.
-		- Probar módulos pendientes.
+### 12.05.2015-001
+- Verificando funcionamiento de VirtualReceiver.
+- Verificado funcionamiento del puerto serie, aunque no funciona la gestión de la interrupción IDLE para detectar el fin de trama. Actualmente lo hago con un RtosTimer.
+- Añadido pull-request relativo a la gestión de eventos (OR) con Thread::signal_wait_or.
+- Finalizado VirtualReceiver aunque falta depurar en detalle su funcionamiento.
+NEXT STEPS:
+- Cuidado con el descubrimiento de las redes wifi cercanas que puede desbordar mi buffer de recepción. Pensar cómo gestionarlo.
+- Probar módulos pendientes.
 		
 > 11.05.2015-001
 	- Modificando main para ir probando cada módulo de forma independiente. Actualmente probando el GPS (no cambia el baudrate).
