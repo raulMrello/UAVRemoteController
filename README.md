@@ -26,28 +26,28 @@ Las funciones principales del equipo son:
   - Revisar y actualizar la máquina de estados de KeyDecoder.
   - Verificar módulo GPSReader
   - Definir máquina de control de VirtualReceiver o verificar su funcionamiento general.
-#####
 
+  
 ##### 26.05.2015-001 
 - Actualizo modelo SysManagerHSM
 - Actualizo comportamiento general. 
 - Desarrollando Idle como submáquina. No permite depuración con lo que tengo que estudiar la opción de crear otro proyecto y asignarlo a Idle para poder depurarlo por si mismo.
-#####
+
 
 ##### 23.05.2015-001 
 - Actualizo modelo SysManagerHSM
 - Actualizo comportamiento general. 
 - Desarrollando Idle como submáquina. No permite depuración con lo que tengo que estudiar la opción de crear otro proyecto y asignarlo a Idle para poder depurarlo por si mismo.
-#####
+
 
 ##### 22.05.2015-003 
 - Actualizo modelo SysManagerHSM
 - No funciona la propagación de eventos de publicación en modo Armed.
-#####
+
 
 ##### 22.05.2015-002 
 - Elimino carpeta /yakindu-models
-#####
+
 
 ##### 22.05.2015-001 
 - Añado carpeta /models con los diferentes proyectos de yakindu con la generación de las HSM
@@ -63,7 +63,7 @@ NEXT STEPS:
 - Probar lectura de tramas GPS
 OPTIONAL:
 - Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
-#####
+
 		
 ##### 20.05.2015-001
 - Modificado topic AlarmData_t. Cambia la estructura añadiendo un código de alarma, además de los 8 bytes de datos adjuntos.
@@ -75,7 +75,7 @@ NEXT STEPS:
 - Diseñar SysManager y finalizar código RC1
 OPTIONAL:
 - Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
-#####
+
 		
 ##### 19.05.2015-001
 - Modificado JoystickSampler. Probar últimos cambios.	
@@ -86,7 +86,7 @@ NEXT STEPS:
 - Diseñar SysManager y finalizar código RC1
 OPTIONAL:
 - Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
-#####
+
 		
 ##### 14.05.2015-001
 - Habilito evento de control para chequear la conexión cada 10s.
@@ -97,7 +97,7 @@ NEXT STEPS:
 - Definir qué ocurre si dejo de recibir fallos de conexión TCP en VirtualReceiver.
 - Testear el módulo JoystickSampler y modficarlo de acuerdo a cómo deba comportarse.
 - Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
-#####
+
 		
 ##### 13.05.2015-001
 - Verificando funcionamiento del enlace wifi.
@@ -108,7 +108,7 @@ NEXT STEPS:
   - Verificado funcionamiento del puerto serie, aunque no funciona la gestión de la interrupción IDLE para detectar el fin de trama. Actualmente lo hago con un RtosTimer.
 NEXT STEPS:
 - Volver a retomar el tema IDLE_serial ahora que los eventos se controlan correctamente. Si funcionara bien, eliminar _rxtmr en la gestión de datos entrantes y actualizar la rama mbed.
-#####
+
 		
 ##### 12.05.2015-001
 - Verificando funcionamiento de VirtualReceiver.
@@ -118,7 +118,7 @@ NEXT STEPS:
 NEXT STEPS:
 - Cuidado con el descubrimiento de las redes wifi cercanas que puede desbordar mi buffer de recepción. Pensar cómo gestionarlo.
 - Probar módulos pendientes.
-#####
+
 		
 > 11.05.2015-001
 	- Modificando main para ir probando cada módulo de forma independiente. Actualmente probando el GPS (no cambia el baudrate).
