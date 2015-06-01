@@ -22,13 +22,15 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 			main_region_SelectMode,
 			main_region_Armed,
 			main_region_Armed_r1_Manual,
-			main_region_Armed_r1_Follow,
 			main_region_Armed_r1_Idle,
 			main_region_Armed_r1_Idle_idle_Pending,
 			main_region_Armed_r1_Idle_idle_Confirmed,
 			main_region_Armed_r1_RTH,
 			main_region_Armed_r1_RTH_r1_Pending,
 			main_region_Armed_r1_RTH_r1_Confirmed,
+			main_region_Armed_r1_Follow,
+			main_region_Armed_r1_Follow_r1_Pending,
+			main_region_Armed_r1_Follow_r1_Confirmed,
 			main_region_Error,
 			main_region_Sending,
 			main_region_Disarmed,
@@ -62,6 +64,12 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				/*! Raises the in event 'evConfirmReq' that is defined in the default interface scope. */ 
 				void raise_evConfirmReq();
 				
+				/*! Raises the in event 'evDisarmed' that is defined in the default interface scope. */ 
+				void raise_evDisarmed();
+				
+				/*! Raises the in event 'evJoysHold' that is defined in the default interface scope. */ 
+				void raise_evJoysHold();
+				
 				/*! Gets the value of the variable 'confirmed' that is defined in the default interface scope. */ 
 				sc_boolean get_confirmed();
 				
@@ -78,6 +86,8 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				sc_boolean evAck_raised;
 				sc_boolean evNack_raised;
 				sc_boolean evConfirmReq_raised;
+				sc_boolean evDisarmed_raised;
+				sc_boolean evJoysHold_raised;
 				sc_boolean confirmed;
 		};
 		
@@ -105,6 +115,12 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 		
 		/*! Raises the in event 'evConfirmReq' that is defined in the default interface scope. */ 
 		void raise_evConfirmReq();
+		
+		/*! Raises the in event 'evDisarmed' that is defined in the default interface scope. */ 
+		void raise_evDisarmed();
+		
+		/*! Raises the in event 'evJoysHold' that is defined in the default interface scope. */ 
+		void raise_evJoysHold();
 		
 		/*! Gets the value of the variable 'confirmed' that is defined in the default interface scope. */ 
 		sc_boolean get_confirmed();
@@ -157,6 +173,8 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				virtual void publishRc() = 0;
 				
 				virtual void publishProfile() = 0;
+				
+				virtual void getAction() = 0;
 		};
 		
 		/*! Set the working instance of the operation callback interface 'InternalSCI_OCB'. */
@@ -231,7 +249,7 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 		static const sc_integer maxHistoryStates = 2;
 		
 		TimerInterface* timer;
-		sc_boolean timeEvents[5];
+		sc_boolean timeEvents[6];
 		
 		SysManagerHSMStates stateConfVector[maxOrthogonalStates];
 		
@@ -250,11 +268,12 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 		void shenseq_main_region_Disarmed_SequenceImpl();
 		void react_main_region_SelectMode();
 		void react_main_region_Armed_r1_Manual();
-		void react_main_region_Armed_r1_Follow();
 		void react_main_region_Armed_r1_Idle_idle_Pending();
 		void react_main_region_Armed_r1_Idle_idle_Confirmed();
 		void react_main_region_Armed_r1_RTH_r1_Pending();
 		void react_main_region_Armed_r1_RTH_r1_Confirmed();
+		void react_main_region_Armed_r1_Follow_r1_Pending();
+		void react_main_region_Armed_r1_Follow_r1_Confirmed();
 		void react_main_region_Error();
 		void react_main_region_Sending();
 		void react_main_region_Disarmed_r1_Pending();
