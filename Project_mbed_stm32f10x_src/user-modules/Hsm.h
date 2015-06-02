@@ -29,32 +29,49 @@
 #define EnterCritical()			tsk_lock()
 #define ExitCritical()			tsk_unlock()
 
-/****************************************************************************************************//**
- *                        PUBLIC DEFINITIONS
- ********************************************************************************************************/
 
-typedef uint8_t State;
-typedef void    Object;
+namespace HSM{
+	
+	typedef uint8_t State;
+	typedef void    Object;
+	typedef State (*StateHandler)(Object *pThis, Event const *e);
+	
+	#define RET_HANDLED       ((State)0u)     /**< indica que el evento se ha procesado */
+	#define RET_IGNORED       ((State)1u)     /**< indica que el evento se ha controlado pero se ignora */
+	#define RET_TRAN          ((State)2u)     /**< indica que hay una transición de estados */
+	#define RET_SUPER         ((State)3u)     /**< indica que el evento se ha delegado al estado padre */	
+	
+	#define HANDLED()		return(RET_HANDLED)    
+	#define IGNORED()       return(RET_IGNORED)
+	#define TRAN(st_)       {((StateMachine *)me)->target = (StateHandler)st_;return(RET_TRAN);}
+	#define SUPER(st_)      {((StateMachine *)me)->target = (StateHandler)(st_);return(RET_SUPER);}
+	#define DELEGATE(st_)	SUPER(st_)
+	
+	class Event{
+	 public:
+		 enum ReservedSignals {
+			ENTRY_SIG = 1,          /**< evento de entrada */
+			EXIT_SIG,               /**< evento de salida */
+			TIMEOUT_SIG,			/**< evento de timeout */
+			USER_SIG                /**< primer evento libre para el usuario */
+		};
+		uint32_t sig;               /**< código del evento */
+	};
+	
+	class Hsm{
+	 public:
+		
+	 protected:
+		StateHandler init;     /**< manejador del estado Initial */
+		StateHandler state;    /**< manejador del estado actual */
+		StateHandler target;   /**< manjeador del estado al que conmutar */
+	 private:
+		
+	 
+	};
+}
 
-                               
-/**************************************************************
-            Enumera los eventos reservados al Framework
-**************************************************************/
 
-enum ReservedSignals {
-    ENTRY_SIG = 1,          /**< evento de entrada */
-    EXIT_SIG,               /**< evento de salida */
-	TIMEOUT_SIG,			/**< evento de timeout */
-    USER_SIG                /**< primer evento libre para el usuario */
-};
-
-/**************************************************************
-            Estructura de los eventos manejados por el Framework
-**************************************************************/
-
-typedef struct{
-    uint32_t sig;               /**< código del evento */
-}Event;
 
 extern const Event timeoutEvt;
 
@@ -151,6 +168,8 @@ State StateMachine_Top(Object *pThis, Event const *e);
 **     Return :
 ** ==================================================================================================
 */
+void StateMachine_Init(Object *pThis);
+State StateMachine_Top(Object *pThis, Event const *e);
 void StateMachine_Dispatch(Object *pThis, Event const *e);
 
 
