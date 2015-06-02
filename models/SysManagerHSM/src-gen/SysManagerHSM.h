@@ -21,21 +21,24 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 		typedef enum {
 			main_region_SelectMode,
 			main_region_Armed,
-			main_region_Armed_r1_Manual,
-			main_region_Armed_r1_Idle,
-			main_region_Armed_r1_Idle_idle_Pending,
-			main_region_Armed_r1_Idle_idle_Confirmed,
-			main_region_Armed_r1_RTH,
-			main_region_Armed_r1_RTH_r1_Pending,
-			main_region_Armed_r1_RTH_r1_Confirmed,
-			main_region_Armed_r1_Follow,
-			main_region_Armed_r1_Follow_r1_Pending,
-			main_region_Armed_r1_Follow_r1_Confirmed,
 			main_region_Error,
 			main_region_Sending,
 			main_region_Disarmed,
 			main_region_Disarmed_r1_Pending,
 			main_region_Disarmed_r1_Confirmed,
+			r1_RTH,
+			r1_RTH_r1_Pending,
+			r1_RTH_r1_Confirmed,
+			r1_Follow,
+			r1_Follow_r1_Pending,
+			r1_Follow_r1_Confirmed,
+			r1_Idle,
+			r1_Idle_r1_Pending,
+			r1_Idle_r1_Confirmed,
+			r1_Manual,
+			r1_Manual_r1_Confirmed,
+			r1_Manual_r1_Pending,
+			r1_Select,
 			SysManagerHSM_last_state
 		} SysManagerHSMStates;
 		
@@ -70,6 +73,9 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				/*! Raises the in event 'evJoysHold' that is defined in the default interface scope. */ 
 				void raise_evJoysHold();
 				
+				/*! Raises the in event 'evJoysMove' that is defined in the default interface scope. */ 
+				void raise_evJoysMove();
+				
 				/*! Gets the value of the variable 'confirmed' that is defined in the default interface scope. */ 
 				sc_boolean get_confirmed();
 				
@@ -88,6 +94,7 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				sc_boolean evConfirmReq_raised;
 				sc_boolean evDisarmed_raised;
 				sc_boolean evJoysHold_raised;
+				sc_boolean evJoysMove_raised;
 				sc_boolean confirmed;
 		};
 		
@@ -121,6 +128,9 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 		
 		/*! Raises the in event 'evJoysHold' that is defined in the default interface scope. */ 
 		void raise_evJoysHold();
+		
+		/*! Raises the in event 'evJoysMove' that is defined in the default interface scope. */ 
+		void raise_evJoysMove();
 		
 		/*! Gets the value of the variable 'confirmed' that is defined in the default interface scope. */ 
 		sc_boolean get_confirmed();
@@ -174,6 +184,8 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				
 				virtual void publishProfile() = 0;
 				
+				virtual void publishKAT() = 0;
+				
 				virtual void getAction() = 0;
 		};
 		
@@ -209,6 +221,18 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				/*! Checks if the out event 'evInit' that is defined in the internal scope has been raised. */ 
 				sc_boolean isRaised_evInit();
 				
+				/*! Gets the value of the variable 'touch' that is defined in the internal scope. */ 
+				sc_boolean get_touch();
+				
+				/*! Sets the value of the variable 'touch' that is defined in the internal scope. */ 
+				void set_touch(sc_boolean value);
+				
+				/*! Gets the value of the variable 'sent' that is defined in the internal scope. */ 
+				sc_boolean get_sent();
+				
+				/*! Sets the value of the variable 'sent' that is defined in the internal scope. */ 
+				void set_sent(sc_boolean value);
+				
 				/*! Gets the value of the variable 'mode' that is defined in the internal scope. */ 
 				sc_integer get_mode();
 				
@@ -233,23 +257,32 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 				/*! Sets the value of the variable 'ackTimeout' that is defined in the internal scope. */ 
 				void set_ackTimeout(sc_integer value);
 				
+				/*! Gets the value of the variable 'keepAliveTimeout' that is defined in the internal scope. */ 
+				sc_integer get_keepAliveTimeout();
+				
+				/*! Sets the value of the variable 'keepAliveTimeout' that is defined in the internal scope. */ 
+				void set_keepAliveTimeout(sc_integer value);
+				
 				
 			private:
 				friend class SysManagerHSM;
 				sc_boolean evInit_raised;
+				sc_boolean touch;
+				sc_boolean sent;
 				sc_integer mode;
 				sc_integer tmp;
 				sc_integer keyTimeout;
 				sc_integer ackTimeout;
+				sc_integer keepAliveTimeout;
 		};
 	
 		//! the maximum number of orthogonal states defines the dimension of the state configuration vector.
-		static const sc_integer maxOrthogonalStates = 1;
+		static const sc_integer maxOrthogonalStates = 2;
 		//! dimension of the state configuration vector for history states
 		static const sc_integer maxHistoryStates = 2;
 		
 		TimerInterface* timer;
-		sc_boolean timeEvents[6];
+		sc_boolean timeEvents[14];
 		
 		SysManagerHSMStates stateConfVector[maxOrthogonalStates];
 		
@@ -264,20 +297,23 @@ class SysManagerHSM : public TimedStatemachineInterface, public StatemachineInte
 		
 		void enact_SequenceImpl();
 		void exact_SequenceImpl();
-		void shenseq_SequenceImpl();
 		void shenseq_main_region_Disarmed_SequenceImpl();
+		void shenseq_SequenceImpl();
 		void react_main_region_SelectMode();
-		void react_main_region_Armed_r1_Manual();
-		void react_main_region_Armed_r1_Idle_idle_Pending();
-		void react_main_region_Armed_r1_Idle_idle_Confirmed();
-		void react_main_region_Armed_r1_RTH_r1_Pending();
-		void react_main_region_Armed_r1_RTH_r1_Confirmed();
-		void react_main_region_Armed_r1_Follow_r1_Pending();
-		void react_main_region_Armed_r1_Follow_r1_Confirmed();
+		void react_main_region_Armed();
 		void react_main_region_Error();
 		void react_main_region_Sending();
 		void react_main_region_Disarmed_r1_Pending();
 		void react_main_region_Disarmed_r1_Confirmed();
+		void react_r1_RTH_r1_Pending();
+		void react_r1_RTH_r1_Confirmed();
+		void react_r1_Follow_r1_Pending();
+		void react_r1_Follow_r1_Confirmed();
+		void react_r1_Idle_r1_Pending();
+		void react_r1_Idle_r1_Confirmed();
+		void react_r1_Manual_r1_Confirmed();
+		void react_r1_Manual_r1_Pending();
+		void react_r1_Select();
 		void clearInEvents();
 		void clearOutEvents();
 		

@@ -18,6 +18,15 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 02.06.2015-001 
+- Actualizo modelo SysManagerHSM PERO encuentro fallos de concepto en la herramienta.
+- POR HACER:
+  - Voy a rehacer el código que utilizaba en el MandoAstro para utilizar máquinas de estados con mbed.
+  - Revisar y actualizar la máquina de estados de KeyDecoder.
+  - Verificar módulo GPSReader
+  - Definir máquina de control de VirtualReceiver o verificar su funcionamiento general.
+
+  
 ##### 01.06.2015-001 
 - Actualizo modelo SysManagerHSM (estado Follow)
 - POR HACER:
