@@ -18,6 +18,17 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 03.06.2015-001 
+- Creo el directorio /hsm-api con el código de las nuevas máquinas de estados. EN DEPURACION!!
+	- DBG: Los estados se vuelven locos. Repasar la gestión de _state, _target y demás para que no se piren.
+- Creo el módulo TemplateHsm que es una máquina sencilla de 2 estados para probarlo.
+- Modifico main para probar el funcionamiento de las máquinas de estados.
+- POR HACER:
+  - Rehacer todas las tareas con las nuevas máquinas de estados.
+  - Verificar módulo GPSReader
+  - Definir máquina de control de VirtualReceiver o verificar su funcionamiento general.
+
+  
 ##### 02.06.2015-001 
 - Actualizo modelo SysManagerHSM PERO encuentro fallos de concepto en la herramienta.
 - POR HACER:

@@ -29,7 +29,8 @@ DigitalOut lnk_rst(PB_4); // 0-enables esp8266, 1-reset
 
 Mutex broker_mutex;
 
-
+#include "TemplateHsm.h"
+	
 int main() {
 		
 	/** Setup Message Broker and topics */
@@ -48,11 +49,26 @@ int main() {
 	
 	/** Start tasks */
 	
+	#warning ACTIVAR PASO A PASO.....
+	BasicState *bs = new BasicState();
+	bs->init();
+	bs->dispatchEvents();
+	bs->raiseEvent(new Event(BasicState::ev1));
+	bs->raiseEvent(new Event(BasicState::ev2)); //<---perdido??
+	bs->dispatchEvents();
+	bs->raiseEvent(new Event(BasicState::ev2)); 
+	bs->dispatchEvents();
+	bs->raiseEvent(new Event(BasicState::ev4)); 
+	bs->dispatchEvents();
+	bs->raiseEvent(new Event(BasicState::ev1)); 
+	bs->dispatchEvents();
+	bs->raiseEvent(new Event(BasicState::ev4)); 
+	bs->dispatchEvents();
+	
+	/*
 	KeyDecoder *kd = new KeyDecoder(osPriorityHigh, &joys_A_Ok, &joys_B_Ok, &key_ARM, &key_LOC, &key_ALT, &key_RTH);
 	JoystickSampler *js = new JoystickSampler(osPriorityHigh, &joys_A1, &joys_A2, &joys_B1, &joys_B2);
 
-	#warning ACTIVAR PASO A PASO.....
-	/*
 	VirtualReceiver *vr = new VirtualReceiver(osPriorityAboveNormal, &lnk, &lnk_rst);
 	GpsReader *gr = new GpsReader(osPriorityAboveNormal, GpsReader::GPS_MODE_UBX, &gps);
 	SysManager *sm = new SysManager(osPriorityNormal, &led_arm, &led_loc, &led_alt, &led_rth, &buzzer);
