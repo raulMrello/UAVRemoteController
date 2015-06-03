@@ -428,6 +428,16 @@
               <FileType>5</FileType>
               <FilePath>.\user-modules\List_tpp.h</FilePath>
             </File>
+            <File>
+              <FileName>Hsm.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\user-modules\Hsm.h</FilePath>
+            </File>
+            <File>
+              <FileName>Hsm.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-modules\Hsm.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
