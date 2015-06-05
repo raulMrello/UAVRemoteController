@@ -18,6 +18,15 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 05.06.2015-001 
+- Rehaciendo la gestión interna de los estados. Depurar los últimos cambios.
+- Modifico main para probar el funcionamiento de las máquinas de estados.
+- POR HACER:
+  - Rehacer todas las tareas con las nuevas máquinas de estados.
+  - Verificar módulo GPSReader
+  - Definir máquina de control de VirtualReceiver o verificar su funcionamiento general.
+
+  
 ##### 03.06.2015-001 
 - Creo el directorio /hsm-api con el código de las nuevas máquinas de estados. EN DEPURACION!!
 	- DBG: Los estados se vuelven locos. Repasar la gestión de _state, _target y demás para que no se piren.

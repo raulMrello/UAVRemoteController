@@ -99,9 +99,9 @@ private:
 /***** State ***************************************************************************************/	
 /***************************************************************************************************/	
 
-#define HANDLED()		getTarget()
-#define IGNORED()		this
-#define TRAN(s)			{setTarget(s); return getTarget();}
+#define HANDLED()		{_fexit = false; return _state;}
+#define IGNORED()		{_fexit = false; return _state;}
+#define TRAN(s)			{_fexit = true; return(s);}
 	
 	
 /** \class State
@@ -111,8 +111,9 @@ class State{
  public:	 
 	 /** Constructor */
 	State(State * parent = (State*)0){ 
+		_fexit = false;
 		_parent = parent; 
-		_target = this;
+		_state = this;
 		_handlers = new List<EventHandler<State > >();
 	}
  
@@ -147,15 +148,15 @@ class State{
     /** Dispatches an event. If no handler found then delegates to parent
      *	@param e Event
      */
-	State* dispatch(Event * e){
+	State* dispatch(Event * e, bool delegated = false){
+		State* next;
 		// If no event then is Entry trigger 
 		if(!e){
-			State* next = entry();
-			if(next != this && next != 0){
-				_target = next;
-				exit();
+			next = entry();
+			if(!delegated){
+				_state = next;
 			}
-			return HANDLED();
+			return _state;
 		}
 		// else, search an event handler
 		EventHandler<State > * handler = getFirstHandler(); 
@@ -164,39 +165,33 @@ class State{
 				handler = getNextHandler();
 				continue;
 			}
-			State* next = handler->dispatch(e);
-			if(next != this && next != 0){
-				_target = next;
+			next = handler->dispatch(e);
+			if(!delegated){
+				_state = next;
+			}			
+			if(_fexit){
+				_fexit = false;
 				exit();
-				return HANDLED();
 			}
+			return _state;
 		}
 		// only reaches this point if no event handler found
 		if(_parent){
-			_target = _parent->dispatch(e);
-			if(_target == _parent){
-				_target = this;
-			}		
+			next = _parent->dispatch(e, true);
+			if(_fexit){
+				_state = next;
+			}
+			return _state;
 		}
-		return HANDLED();
+		return this;
 	}
+
 	
-	State* getTarget(){
-		return _target;
-	}
-	void setTarget(State* t){
-		_target = t;
-	}
-	
-	State* getParent(){
-		return _parent;
-	}
-	
-	
- private:
+ protected:
 	List<EventHandler<State > > *_handlers;
 	State* _parent;
-	State* _target;
+	State* _state;	// to be used by Hsm
+	bool   _fexit;
 };
 
 
@@ -230,23 +225,18 @@ public:
 			State* next = _state->dispatch(ev);
 			while(next != _state){
 				_state = next;
-				next = _state->dispatch(0);
-				_target = next;
+				next = _state->dispatch(0);				
 			}
 			_events->removeItem(ev);
 			ev = (Event*) _events->getFirstItem(); 	
 		}
-		_state = _target;
-		return HANDLED();
+		HANDLED();
 	}
 	
 	
- private:
+ protected:
 	 List<State > *_states;
 	List<Event > *_events;
-	State* _history;
-	State* _target;
-	State* _state;	
 };
 
 

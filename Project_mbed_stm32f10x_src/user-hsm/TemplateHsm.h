@@ -13,8 +13,8 @@ public:
 		S0(State * parent = (State*)0) : State(parent){}
 		// Implementaciones entry/exit
 		virtual State* entry(){
-			((BasicState*)getParent())->_data = 0;
-			return HANDLED();
+			((BasicState*)_parent)->_data = 0;
+			HANDLED();
 		}
 		virtual void exit(){
 		}	
@@ -26,8 +26,8 @@ public:
 		S1(State * parent = (State*)0) : State(parent){}
 		// Implementaciones entry/exit
 		virtual State* entry(){
-			((BasicState*)getParent())->_data += 100;
-			return HANDLED();
+			((BasicState*)_parent)->_data += 100;
+			HANDLED();
 		}
 		virtual void exit(){
 		}	
@@ -62,8 +62,8 @@ public:
 		
 	/** Interface for inheritance */
 	virtual State* entry(){
-		_state = s0;
-		return _state->init();
+		_state = s0->init();
+		HANDLED();
 	}
 	virtual void exit(){
 	}
@@ -79,15 +79,15 @@ public:
 	}
 	State* ev3S0(Event* e){
 		_data--;
-		return HANDLED();
+		HANDLED();
 	}
 	State* ev3S1(Event* e){
 		_data++;
-		return HANDLED();
+		HANDLED();
 	}
 	State* ev4Sx(Event* e){
 		_data =0;
-		return HANDLED();
+		HANDLED();
 	}
 			
 };
