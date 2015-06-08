@@ -37,11 +37,11 @@
 class KeyDecoder : public Hsm{
 public:
 	
-	class Inactive : public State{
+	class StInactive : public State{
 	public:
-		Inactive(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
+		StInactive(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
 			// inserto manejadores de evento
-			attach(KeyDecoder::evPressed, this, (State* (State::*)(Event*))&Inactive::onPressed);
+			attach(KeyDecoder::evPressed, this, (State* (State::*)(Event*))&StInactive::onPressed);
 		}
 		// Implementaciones entry/exit
 		virtual State* entry(){
@@ -54,14 +54,14 @@ public:
 			((KeyDecoder*)_parent)->_timeout = HOLD_TIMEOUT;
 			TRAN(((KeyDecoder*)_parent)->stPressed);
 		}
-	};friend class Inactive;
+	};friend class StInactive;
 	
-	class Pressed : public State{
+	class StPressed : public State{
 	public:
-		Pressed(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
+		StPressed(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
 			// inserto manejadores de evento
-			attach(KeyDecoder::evReleased, this, (State* (State::*)(Event*))&Pressed::onReleased);
-			attach(KeyDecoder::evTimer, this, (State* (State::*)(Event*))&Pressed::onTimeout);
+			attach(KeyDecoder::evReleased, this, (State* (State::*)(Event*))&StPressed::onReleased);
+			attach(KeyDecoder::evTimer, this, (State* (State::*)(Event*))&StPressed::onTimeout);
 		}
 		// Implementaciones entry/exit
 		virtual State* entry(){
@@ -82,13 +82,13 @@ public:
 			((KeyDecoder*)_parent)->publish (((KeyDecoder*)_parent)->readKeyboard(), true);
 			TRAN(((KeyDecoder*)_parent)->stHold);
 		}
-	};friend class Pressed;
+	};friend class StPressed;
 	
-	class Hold : public State{
+	class StHold : public State{
 	public:
-		Hold(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
+		StHold(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
 			// inserto manejadores de evento
-			attach(KeyDecoder::evReleased, this, (State* (State::*)(Event*))&Hold::onReleased);
+			attach(KeyDecoder::evReleased, this, (State* (State::*)(Event*))&StHold::onReleased);
 		}
 		// Implementaciones entry/exit
 		virtual State* entry(){
@@ -100,7 +100,7 @@ public:
 		State* onReleased(Event* e){
 			TRAN(((KeyDecoder*)_parent)->stInactive);
 		}
-	};friend class Hold;
+	};friend class StHold;
 	
 	// Implementaciones entry/exit
 	virtual State* entry(){
@@ -110,9 +110,9 @@ public:
 	}	
 	
 	// Estados
-	Inactive *stInactive;
-	Pressed *stPressed;
-	Hold *stHold;
+	StInactive *stInactive;
+	StPressed *stPressed;
+	StHold *stHold;
 	
 	// Eventos de la máquina de estados
 	static const uint32_t evPressed = (USER_SIG << 0);
@@ -126,6 +126,15 @@ public:
 	
 	/** Constructor, destructor, getter and setter */
 	KeyDecoder(	osPriority prio, InterruptIn *ii_A_Ok, InterruptIn *ii_B_Ok, InterruptIn *ii_ARM, InterruptIn *ii_LOC, InterruptIn *ii_ALT, InterruptIn *ii_RTH, bool enableRepeatedEvt = false) : Hsm(){
+		// creo estados
+		stInactive = new StInactive(this);
+		stPressed = new StPressed(this);
+		stHold = new StHold(this);
+		// Inserto estados
+		attachState(stInactive);
+		attachState(stPressed);
+		attachState(stHold);
+		
 		ii_A_Ok->fall(this, &KeyDecoder::KeyPressedISRCallback);
 		ii_A_Ok->rise(this, &KeyDecoder::KeyReleasedISRCallback);
 		ii_A_Ok->disable_irq();

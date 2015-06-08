@@ -83,7 +83,7 @@ public:
 		
 		// Manejadores de eventos
 		State* onOkA(Event* e){
-			tmp = (tmp < SysManager::MODE__RTH)? (tmp+1) : SysManager::MODE_DISARMED;
+			tmp = (tmp < SysManager::MODE_RTH)? (tmp+1) : SysManager::MODE_DISARMED;
 			((SysManager*)_xif)->beepKey();
 			((SysManager*)_xif)->ledsSelect();
 			DONE(this);
@@ -124,6 +124,7 @@ public:
 		
 		// Implementaciones entry/exit
 		virtual State* entry(){
+			((SysManager*)_xif)->history = this;
 			if(!((SysManager*)_xif)->_confirmed){
 				((SysManager*)_xif)->beepConfirm(0);
 				((SysManager*)_xif)->ledsMode();
@@ -146,6 +147,7 @@ public:
 		
 		// Implementaciones entry/exit
 		virtual State* entry(){
+			((SysManager*)_xif)->history = this;
 			if(!((SysManager*)_xif)->_confirmed){
 				((SysManager*)_xif)->beepConfirm(0);
 				((SysManager*)_xif)->ledsMode();
@@ -165,12 +167,91 @@ public:
 		}
 	};friend class StManual;		
 	
+	
+	class StFollow : public State{
+	public:
+		StFollow(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
+			// inserto manejadores de evento			
+			attach(SysManager::evJoysHoldB, this, (State* (State::*)(Event*))&StFollow::onJoysHoldB);
+		}
+		
+		// Implementaciones entry/exit
+		virtual State* entry(){
+			((SysManager*)_xif)->history = this;
+			if(!((SysManager*)_xif)->_confirmed){
+				((SysManager*)_xif)->beepConfirm(0);
+				((SysManager*)_xif)->ledsMode();
+				((SysManager*)_xif)->publishMode();
+				((SysManager*)_xif)->_timeout = ACK_TIMEOUT;				
+			}
+			DONE(this);
+		}
+		virtual void exit(){
+		}	
+		// Manejadores de eventos
+		State* onJoysHoldB(Event* e){
+			((SysManager*)_xif)->beepKey();
+			((SysManager*)_xif)->ledsMode(2);
+			((SysManager*)_xif)->publishProfile();
+			((SysManager*)_xif)->_timeout = ACK_TIMEOUT;
+			DONE(this);
+		}
+	};friend class StFollow;		
+	
+	
+	class StRth : public State{
+	public:
+		StRth(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
+			// inserto manejadores de evento			
+			attach(SysManager::evAck, this, (State* (State::*)(Event*))&StRth::onAck);
+		}
+		
+		// Implementaciones entry/exit
+		virtual State* entry(){
+			((SysManager*)_xif)->history = this;
+			if(!((SysManager*)_xif)->_confirmed){
+				((SysManager*)_xif)->beepConfirm(0);
+				((SysManager*)_xif)->ledsMode();
+				((SysManager*)_xif)->publishMode();
+				((SysManager*)_xif)->_timeout = ACK_TIMEOUT;				
+			}
+			DONE(this);
+		}
+		virtual void exit(){
+		}	
+		// Manejadores de eventos
+		State* onAck(Event* e){
+			((SysManager*)_xif)->beepConfirm(2);
+			((SysManager*)_xif)->ledsMode(2);
+			((SysManager*)_xif)->publishKAS();
+			((SysManager*)_xif)->_timeout = osWaitForever;
+			DONE(this);
+		}
+	};friend class StRth;		
+	
 	// Implementaciones entry/exit
-	virtual State* entry(){
-		DONE(this);
+	virtual State* entry(){		
+		_confirmed = false;
+		State* next = stDisarmed->init();
+		DONE(next);
 	}
-	virtual void exit(){
+	virtual void exit(){		
 	}	
+		
+	// Manejadores de eventos
+	State* onAck(Event* e){
+		_confirmed = true;
+		_timeout = osWaitForever;
+		beepConfirm(1);
+		ledsMode(1);
+		DONE(getActiveState());
+	}
+	State* onHoldB(Event* e){
+		TRAN(stSelect);
+	}
+	State* onTimeout(Event* e){
+		TRAN(stError);
+	}
 	
 	// Estados
 	StError *stError;
@@ -200,6 +281,25 @@ public:
 	
 	/** Constructor, destructor, getter and setter */
 	SysManager(	osPriority prio, DigitalOut *led_arm, DigitalOut *led_loc, DigitalOut *led_alt, DigitalOut *led_rth, PwmOut *buzzer) : BeepGenerator(buzzer), LedFlasher(4), Hsm() {
+		// creo estados
+		stDisarmed = new StDisarmed(this, this);
+		stManual = new StManual(this, this);
+		stFollow = new StFollow(this, this);
+		stRth = new StRth(this, this);
+		stError = new StError(0, this);
+		stSelect = new StSelect(0, this);
+		// Inserto estados
+		attachState(stDisarmed);
+		attachState(stManual);
+		attachState(stFollow);
+		attachState(stRth);
+		attachState(stError);
+		attachState(stSelect);
+		// Inserto manejadores de evento
+		attach(SysManager::evAck, this, (State* (State::*)(Event*))&SysManager::onAck);
+		attach(SysManager::evHoldB, this, (State* (State::*)(Event*))&SysManager::onHoldB);
+		attach(SysManager::evTimer, this, (State* (State::*)(Event*))&SysManager::onTimeout);
+		
 		// setup led flasher channels
 		_arm_ch = addLedChannel(led_arm);
 		_loc_ch = addLedChannel(led_loc);

@@ -18,6 +18,14 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 09.06.2015-001 
+- Terminado SysManager (DEPURAR KeyDecoder y luego SysManager)
+- POR HACER:
+  - Rehacer máquinas de estado pendientes y validar
+  - Verificar módulo GPSReader
+  - Definir máquina de control de VirtualReceiver o verificar su funcionamiento general.
+
+  
 ##### 08.06.2015-001 
 - Terminada la validación de las máquinas de estados.
 - Actualizo el modelo incluyendo TemplateHSM.
