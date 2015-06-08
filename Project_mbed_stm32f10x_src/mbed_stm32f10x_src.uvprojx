@@ -230,7 +230,7 @@
             <RoSelD>3</RoSelD>
             <RwSelD>3</RwSelD>
             <CodeSel>0</CodeSel>
-            <OptFeed>1</OptFeed>
+            <OptFeed>0</OptFeed>
             <NoZi1>0</NoZi1>
             <NoZi2>0</NoZi2>
             <NoZi3>0</NoZi3>
@@ -524,9 +524,9 @@
               <FilePath>.\user-hsm\KeyDecoderHSM\KeyDecoderHSM.cpp</FilePath>
             </File>
             <File>
-              <FileName>TemplateHsm.h</FileName>
+              <FileName>KeyDecoderHsm.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\user-hsm\TemplateHsm.h</FilePath>
+              <FilePath>.\user-hsm\KeyDecoderHsm.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -2515,9 +2515,9 @@
               <FilePath>.\user-hsm\KeyDecoderHSM\KeyDecoderHSM.cpp</FilePath>
             </File>
             <File>
-              <FileName>TemplateHsm.h</FileName>
+              <FileName>KeyDecoderHsm.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\user-hsm\TemplateHsm.h</FilePath>
+              <FilePath>.\user-hsm\KeyDecoderHsm.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -4,10 +4,12 @@
  *  Created on: 20/4/2015
  *      Author: raulMrello
  *
- *  KeyDecoder is an Active module (running as a Task) that will decode keyboard input
- *	combination by interrupts. Each time an interrupt is decode, a topic data structure
- *	(type "/keyb") is updated and published. It can recognise 3 different events: pressed,
- *	repeated and released.
+ *  KeyDecoder es un módulo activo (contiene su propio hilo de ejecución) además de 
+ *	ser una clase derivada de la clase Hsm (máquina de estados jerárquica).
+ *	Su modelo se corresponde con ./models/KeyDecoder.jpg
+ *	Cuando detecta una pulsación corta/larga publica un tópico relativo a la tecla que
+ *	se ha pulsado y cómo ha sido la duración de la pulsación.
+ *	
  */
 
 #ifndef SRC_ACTIVE_MODULES_KEYDECODER_H_
@@ -22,8 +24,7 @@
 #include "rtos.h"
 #include "MsgBroker.h"
 #include "Topics.h"
-#include "KeyDecoderHSM.h"
-#include "MbedTimerInterface.h"
+#include "State.h"
 
 //------------------------------------------------------------------------------------
 //-- TYPEDEFS ------------------------------------------------------------------------
@@ -33,20 +34,139 @@
 //-- CLASS ---------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-class KeyDecoder : public KeyDecoderHSM, public KeyDecoderHSM::DefaultSCI_OCB{
+class KeyDecoder : public Hsm{
 public:
 	
-	/** Constructor, destructor, getter and setter */
-	KeyDecoder(	osPriority prio, 
-				InterruptIn *ii_A_Ok,
-				InterruptIn *ii_B_Ok,
-				InterruptIn *ii_ARM,
-				InterruptIn *ii_LOC,
-				InterruptIn *ii_ALT,
-				InterruptIn *ii_RTH,
-				bool enableRepeatedEvt = false);
+	class Inactive : public State{
+	public:
+		Inactive(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
+			// inserto manejadores de evento
+			attach(KeyDecoder::evPressed, this, (State* (State::*)(Event*))&Inactive::onPressed);
+		}
+		// Implementaciones entry/exit
+		virtual State* entry(){
+			DONE(this);
+		}
+		virtual void exit(){
+		}	
+		// Manejadores de eventos
+		State* onPressed(Event* e){
+			((KeyDecoder*)_parent)->_timeout = HOLD_TIMEOUT;
+			TRAN(((KeyDecoder*)_parent)->stPressed);
+		}
+	};friend class Inactive;
 	
-	virtual ~KeyDecoder();
+	class Pressed : public State{
+	public:
+		Pressed(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
+			// inserto manejadores de evento
+			attach(KeyDecoder::evReleased, this, (State* (State::*)(Event*))&Pressed::onReleased);
+			attach(KeyDecoder::evTimer, this, (State* (State::*)(Event*))&Pressed::onTimeout);
+		}
+		// Implementaciones entry/exit
+		virtual State* entry(){
+			DONE(this);
+		}
+		
+		virtual void exit(){
+		}
+		
+		// Manejadores de eventos
+		State* onReleased(Event* e){
+			((KeyDecoder*)_parent)->_timeout = osWaitForever;
+			((KeyDecoder*)_parent)->publish (((KeyDecoder*)_parent)->readKeyboard(), false);
+			TRAN(((KeyDecoder*)_parent)->stInactive);
+		}
+		
+		State* onTimeout(Event* e){
+			((KeyDecoder*)_parent)->publish (((KeyDecoder*)_parent)->readKeyboard(), true);
+			TRAN(((KeyDecoder*)_parent)->stHold);
+		}
+	};friend class Pressed;
+	
+	class Hold : public State{
+	public:
+		Hold(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
+			// inserto manejadores de evento
+			attach(KeyDecoder::evReleased, this, (State* (State::*)(Event*))&Hold::onReleased);
+		}
+		// Implementaciones entry/exit
+		virtual State* entry(){
+			DONE(this);
+		}
+		virtual void exit(){
+		}	
+		// Manejadores de eventos
+		State* onReleased(Event* e){
+			TRAN(((KeyDecoder*)_parent)->stInactive);
+		}
+	};friend class Hold;
+	
+	// Implementaciones entry/exit
+	virtual State* entry(){
+		DONE(this);
+	}
+	virtual void exit(){
+	}	
+	
+	// Estados
+	Inactive *stInactive;
+	Pressed *stPressed;
+	Hold *stHold;
+	
+	// Eventos de la máquina de estados
+	static const uint32_t evPressed = (USER_SIG << 0);
+	static const uint32_t evReleased = (USER_SIG << 1);
+	static const uint32_t evTimer = (USER_SIG << 2);
+
+	// Constantes
+	static const uint32_t HOLD_TIMEOUT = 2000; //2 seconds
+	// Variables
+	int _key;
+	
+	/** Constructor, destructor, getter and setter */
+	KeyDecoder(	osPriority prio, InterruptIn *ii_A_Ok, InterruptIn *ii_B_Ok, InterruptIn *ii_ARM, InterruptIn *ii_LOC, InterruptIn *ii_ALT, InterruptIn *ii_RTH, bool enableRepeatedEvt = false) : Hsm(){
+		ii_A_Ok->fall(this, &KeyDecoder::KeyPressedISRCallback);
+		ii_A_Ok->rise(this, &KeyDecoder::KeyReleasedISRCallback);
+		ii_A_Ok->disable_irq();
+		ii_A_Ok->mode(PullUp);
+		_ii_A_Ok = ii_A_Ok;
+
+		ii_B_Ok->fall(this, &KeyDecoder::KeyPressedISRCallback);
+		ii_B_Ok->rise(this, &KeyDecoder::KeyReleasedISRCallback);
+		ii_B_Ok->disable_irq();
+		ii_B_Ok->mode(PullUp);
+		_ii_B_Ok = ii_B_Ok;
+								
+		ii_ARM->fall(this, &KeyDecoder::KeyPressedISRCallback);
+		ii_ARM->rise(this, &KeyDecoder::KeyReleasedISRCallback);
+		ii_ARM->disable_irq();
+		ii_ARM->mode(PullUp);
+		_ii_ARM = ii_ARM;
+
+		ii_LOC->fall(this, &KeyDecoder::KeyPressedISRCallback);
+		ii_LOC->rise(this, &KeyDecoder::KeyReleasedISRCallback);
+		ii_LOC->disable_irq();
+		ii_LOC->mode(PullUp);
+		_ii_LOC = ii_LOC;
+
+		ii_ALT->fall(this, &KeyDecoder::KeyPressedISRCallback);
+		ii_ALT->rise(this, &KeyDecoder::KeyReleasedISRCallback);
+		ii_ALT->disable_irq();
+		ii_ALT->mode(PullUp);
+		_ii_ALT = ii_ALT;
+
+		ii_RTH->fall(this, &KeyDecoder::KeyPressedISRCallback);
+		ii_RTH->rise(this, &KeyDecoder::KeyReleasedISRCallback);
+		ii_RTH->disable_irq();
+		ii_RTH->mode(PullUp);			
+		_ii_RTH = ii_RTH;
+		
+		_th = 0;
+		_th = new Thread(&KeyDecoder::task, this, prio);
+	}
+	
+	~KeyDecoder();
 	Thread *getThread();
 	
 	/** Input Interrupt callbacks */
@@ -58,11 +178,7 @@ public:
 		KeyDecoder *me = (KeyDecoder*)arg;
 		me->run();
 	}	
-
-	/** StateMachine callback interface */
-	virtual sc_integer readKey();
-	virtual void publish(sc_integer key, sc_boolean isHold);
-	
+		
 private:
 	Topic::KeyData_t _keydata;
 	Thread *_th;
@@ -73,11 +189,11 @@ private:
 	InterruptIn *_ii_ALT;
 	InterruptIn *_ii_RTH;
 	int32_t _signals;
-	uint32_t _currentkey;
 	uint32_t _timeout;
 
 	void run();
 	uint32_t readKeyboard();
+	void publish(uint32_t key, bool isHold);
 
 	/** Key event enumeration */
 	typedef enum {
@@ -86,7 +202,6 @@ private:
 		TIMMING_EV 		= (1 << 2)
 	}EventEnum;	
 	
-	MbedTimerInterface	*_titmr;
 };
 
 

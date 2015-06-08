@@ -99,9 +99,8 @@ private:
 /***** State ***************************************************************************************/	
 /***************************************************************************************************/	
 
-#define HANDLED()		{_fexit = false; return _state;}
-#define IGNORED()		{_fexit = false; return _state;}
-#define TRAN(s)			{_fexit = true; return(s);}
+#define DONE(s)			{_fexit = false; return(s);}
+#define TRAN(s)			{_fexit = true;  return(s);}
 	
 	
 /** \class State
@@ -110,10 +109,10 @@ private:
 class State{
  public:	 
 	 /** Constructor */
-	State(State * parent = (State*)0){ 
+	State(State * parent = (State*)0, void * xif = 0){ 
 		_fexit = false;
 		_parent = parent; 
-		_state = this;
+		_xif = xif;
 		_handlers = new List<EventHandler<State > >();
 	}
  
@@ -123,7 +122,8 @@ class State{
 
 	/** Starts Initialization */
 	State * init(){
-		return dispatch(0);
+		State* next = dispatch(0);
+		DONE(next);
 	}
 	
     /** Attach an event handler
@@ -154,9 +154,9 @@ class State{
 		if(!e){
 			next = entry();
 			if(!delegated){
-				_state = next;
+				DONE(next);
 			}
-			return _state;
+			DONE(this);
 		}
 		// else, search an event handler
 		EventHandler<State > * handler = getFirstHandler(); 
@@ -166,31 +166,30 @@ class State{
 				continue;
 			}
 			next = handler->dispatch(e);
-			if(!delegated){
-				_state = next;
-			}			
 			if(_fexit){
 				_fexit = false;
 				exit();
 			}
-			return _state;
+			if(!delegated){
+				DONE(next);
+			}						
+			DONE(this);
 		}
 		// only reaches this point if no event handler found
 		if(_parent){
 			next = _parent->dispatch(e, true);
 			if(_fexit){
-				_state = next;
+				DONE(next);
 			}
-			return _state;
 		}
-		return this;
+		DONE(this);
 	}
 
 	
  protected:
 	List<EventHandler<State > > *_handlers;
 	State* _parent;
-	State* _state;	// to be used by Hsm
+	void * _xif;	// External interface object
 	bool   _fexit;
 };
 
@@ -201,9 +200,10 @@ class State{
 
 class Hsm : public State {
 public:
-	Hsm() : State(){
+	Hsm(State* parent = (State*)0, void * xif = 0) : State(parent, xif){
 		_events = new List<Event >();
 		_states = new List<State >();
+		_state = this;
 	}
 	 
 	/** Interface for inheritance */
@@ -230,13 +230,22 @@ public:
 			_events->removeItem(ev);
 			ev = (Event*) _events->getFirstItem(); 	
 		}
-		HANDLED();
+		DONE(_state);
 	}
 	
+	void setActiveState(State* s){
+		_state = s;
+	}
+	State* getActiveState(){
+		return _state;
+	}
+
 	
  protected:
-	 List<State > *_states;
+	List<State > *_states;
 	List<Event > *_events;
+ private:
+ 	State* _state;	
 };
 
 

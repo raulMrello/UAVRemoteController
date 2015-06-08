@@ -18,6 +18,17 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 08.06.2015-001 
+- Terminada la validación de las máquinas de estados.
+- Actualizo el modelo incluyendo TemplateHSM.
+- Actualizo KeyDecoder
+- Actualizando SysManager (state StManual)
+- POR HACER:
+  - Rehacer máquinas de estado pendientes y validar
+  - Verificar módulo GPSReader
+  - Definir máquina de control de VirtualReceiver o verificar su funcionamiento general.
+
+  
 ##### 05.06.2015-001 
 - Rehaciendo la gestión interna de los estados. Depurar los últimos cambios.
 - Modifico main para probar el funcionamiento de las máquinas de estados.
