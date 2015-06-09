@@ -78,6 +78,7 @@ void KeyDecoder::run(){
 	// Starts execution 
 	_signals = (KEY_EV_PRESSED | KEY_EV_RELEASED | TIMMING_EV);
 	_th->signal_clr(_signals);
+	startScan();
 	this->init();
 	for(;;){
 		// executes state machine

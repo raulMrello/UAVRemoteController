@@ -104,8 +104,7 @@ private:
 	DigitalOut *_endis;
 	Thread *_th;
 	uint32_t _timeout;
-	Topic::AlarmData_t _alarmdata;
-	Topic::StatusData_t _statdata;
+	Topic::AckData_t _ackdata;
 
 	int8_t _status;
 	uint8_t _mode;

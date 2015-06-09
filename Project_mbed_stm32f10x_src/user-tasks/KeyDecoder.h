@@ -22,6 +22,7 @@
 
 #include "mbed.h"
 #include "rtos.h"
+#include "JoystickSampler.h"
 #include "MsgBroker.h"
 #include "Topics.h"
 #include "State.h"
@@ -34,7 +35,7 @@
 //-- CLASS ---------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-class KeyDecoder : public Hsm{
+class KeyDecoder : public JoystickSampler, Hsm{
 public:
 	
 	class StInactive : public State{
@@ -125,7 +126,11 @@ public:
 	int _key;
 	
 	/** Constructor, destructor, getter and setter */
-	KeyDecoder(	osPriority prio, InterruptIn *ii_A_Ok, InterruptIn *ii_B_Ok, InterruptIn *ii_ARM, InterruptIn *ii_LOC, InterruptIn *ii_ALT, InterruptIn *ii_RTH, bool enableRepeatedEvt = false) : Hsm(){
+	KeyDecoder(	osPriority prio, InterruptIn *ii_A_Ok, InterruptIn *ii_B_Ok, InterruptIn *ii_ARM, 
+				InterruptIn *ii_LOC, InterruptIn *ii_ALT, InterruptIn *ii_RTH, AnalogIn *joystick_A1, 
+				AnalogIn *joystick_A2, AnalogIn *joystick_B1, AnalogIn *joystick_B2, 
+				bool enableRepeatedEvt = false) : JoystickSampler(joystick_A1, joystick_A2, joystick_B1, joystick_B2), Hsm(){
+						
 		// creo estados
 		stInactive = new StInactive(this);
 		stPressed = new StPressed(this);
@@ -175,7 +180,7 @@ public:
 		_th = new Thread(&KeyDecoder::task, this, prio);
 	}
 	
-	~KeyDecoder();
+	virtual ~KeyDecoder();
 	Thread *getThread();
 	
 	/** Input Interrupt callbacks */

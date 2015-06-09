@@ -18,6 +18,18 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 09.06.2015-002 (rama state)
+- Modifico JoystickSampler para que se ejecute como un RtosTimer
+- Modifico KeyDecoder para que implemente la clase JoystickSampler
+- Añado nuevos topics y modifico algunos de los ya creados
+- Modifico SysManager y KeyDecoder para que la máquina de estados quede perfectamente definida.
+- Modifico el modelo .EAP
+- POR HACER:
+  - Habilitar únicamente KeyDecoder y ver la máquina de estados y generación de topics.
+  - Habilitar SysManager y ver el funcionamiento de LedFlasher, Beeper y la máquina de estados.
+  - Verificar módulo GPSReader y VirtualReceiver
+
+  
 ##### 09.06.2015-001 
 - Terminado SysManager (DEPURAR KeyDecoder y luego SysManager)
 - POR HACER:

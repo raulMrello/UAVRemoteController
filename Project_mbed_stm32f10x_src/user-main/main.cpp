@@ -38,8 +38,8 @@ int main() {
 	MsgBroker::installTopic("/gps", sizeof(Topic::GpsData_t));
 	MsgBroker::installTopic("/keyb", sizeof(Topic::KeyData_t));
 	MsgBroker::installTopic("/joys", sizeof(Topic::JoystickData_t));
-	MsgBroker::installTopic("/alarm", sizeof(Topic::AlarmData_t));
-	MsgBroker::installTopic("/stat", sizeof(Topic::StatusData_t));
+	MsgBroker::installTopic("/ack", sizeof(Topic::AckData_t));
+	MsgBroker::installTopic("/profile", sizeof(Topic::ProfileData_t));
 	
 	/** Start scheduling */
 	
@@ -49,14 +49,13 @@ int main() {
 	/** Start tasks */
 	
 	#warning ACTIVAR PASO A PASO.....
-	KeyDecoder *kd = new KeyDecoder(osPriorityHigh, &joys_A_Ok, &joys_B_Ok, &key_ARM, &key_LOC, &key_ALT, &key_RTH);
+	KeyDecoder *kd = new KeyDecoder(osPriorityHigh, &joys_A_Ok, &joys_B_Ok, &key_ARM, &key_LOC, &key_ALT, &key_RTH, &joys_A1, &joys_A2, &joys_B1, &joys_B2);
+	SysManager *sm = new SysManager(osPriorityNormal, &led_arm, &led_loc, &led_alt, &led_rth, &buzzer);
 
 	/*
-	JoystickSampler *js = new JoystickSampler(osPriorityHigh, &joys_A1, &joys_A2, &joys_B1, &joys_B2);
 
 	VirtualReceiver *vr = new VirtualReceiver(osPriorityAboveNormal, &lnk, &lnk_rst);
 	GpsReader *gr = new GpsReader(osPriorityAboveNormal, GpsReader::GPS_MODE_UBX, &gps);
-	SysManager *sm = new SysManager(osPriorityNormal, &led_arm, &led_loc, &led_alt, &led_rth, &buzzer);
 	*/
 	
 	

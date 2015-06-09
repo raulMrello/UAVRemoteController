@@ -34,36 +34,23 @@ class JoystickSampler{
 public:
 	
 	/** Constructor, destructor, getter and setter */
-	JoystickSampler(osPriority prio, AnalogIn *joystick_A1, AnalogIn *joystick_A2, AnalogIn *joystick_B1, AnalogIn *joystick_B2);
+	JoystickSampler(AnalogIn *joystick_A1, AnalogIn *joystick_A2, AnalogIn *joystick_B1, AnalogIn *joystick_B2);
 	
 	virtual ~JoystickSampler();
-	Thread *getThread();
 	
-		
-	/** Topic updates callbacks */
-	void notifyUpdate(uint32_t event);
-
-	/** Topic updates event enumeration */
-	typedef enum {
-		DISARM_EV 	= (1 << 0)
-	}EventEnum;	
-	
-	/** Task */
-	static void task(void const *arg){
-		JoystickSampler *me = (JoystickSampler*)arg;
-		me->run();
-	}	
+	void startScan();
+	void scan();
+	void stopScan();
 
 private:
 	Topic::JoystickData_t _joystickdata;
-	Thread *_th;
+	RtosTimer *_tmr;
 	AnalogIn * _joystick_A1;
 	AnalogIn * _joystick_A2;
 	AnalogIn * _joystick_B1;
 	AnalogIn * _joystick_B2;
-	int8_t 	   _throttle_rate;
-	int32_t 	 _signals;
-	void run();
+	int8_t 	   _throttle_rate;	
+	uint8_t    _stat;
 };
 
 

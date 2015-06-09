@@ -30,37 +30,31 @@ namespace Topic {
 
 
 	//------------------------------------------------------------------------------------
-	/** Alarm error code enumeration */
-	enum AlarmCodeEnum {
-		ALARM_MISSING_RESPONSE,		///< No response from wifi link
-		ALARM_WRONG_RESPONSE,			///< Response bad formed from wifi link
-		ALARM_FORCE_DISARM				///< Force a disarm action
+	/** Ack code enumeration */
+	enum AckCodeEnum {
+		ACK_OK = 0,					///< Ack response Ok
+		ACK_MISSING_RESPONSE,		///< No response from wifi link
+		ACK_WRONG_RESPONSE,			///< Response bad formed from wifi link
+		ACK_TIMEOUT					///< Ack timeout without response
+	};
+	enum AckReqEnum {
+		ACK_DISARMED = 0,			///< Ack to disarm mode request
+		ACK_MANUAL,					///< Ack to manual mode request
+		ACK_FOLLOW,					///< Ack to follow mode request
+		ACK_RTH,					///< Ack to rth mode request
+		ACK_RC,						///< Ack to RC publish request
+		ACK_PROFILE,				///< Ack to PROFILE publish request
+		ACK_KAS						///< Ack to KAS publish request
+		/* Add more request types */
 	};
 	
-	/** Alarm topic data structure */
-	struct AlarmData_t{
-		AlarmCodeEnum code;
-		uint8_t data[8];
+	/** Ack topic data structure */
+	struct AckData_t{
+		AckCodeEnum ackCode;		///< Code from AckCodeEnum
+		AckReqEnum  req;			///< Code from AckReqEnum
 	};
 
-	
 
-
-	//------------------------------------------------------------------------------------
-	/** Status topic data structure */
-	struct StatusData_t{
-		uint8_t mode;
-		GpsData_t location;
-	};
-	
-	/** Status mode enumeration */
-	enum StatusCodeEnum {
-		MODE_DISARMED 	= 0,
-		MODE_LOC 		= (1 << 0),
-		MODE_MANUAL		= (1 << 1),
-		MODE_ALT		= (1 << 2),
-		MODE_RTH		= (1 << 3)
-	};
 
 	//------------------------------------------------------------------------------------
 	/** Keyboard topic data structure */
@@ -88,6 +82,33 @@ namespace Topic {
 		int8_t throttle;	///< value 0=dynamic_down, 50, 100=dynamic_up
 		int8_t roll;		///< value 0=left, 50=center, 100=right
 		int8_t pitch;		///< value 0=down, 50=middle, 100=up
+	};
+
+
+	//------------------------------------------------------------------------------------
+	/** Profile code enumeration */
+	enum ProfileCodeEnum {
+		PROFILE_NONE = 0,	///< No profile defined
+		PROFILE_TRAIL,		///< Profile for trail sport
+		PROFILE_SKY,		///< Profile for sky sport
+		PROFILE_MBS			//< Profile for mountainboarding
+	};	
+	/** Profile position enumeration */
+	enum ProfilePosEnum {
+		POS_FRONT = 0,		
+		POS_FRONTRIGHT,		
+		POS_RIGHT,			
+		POS_RIGHTBACK,
+		POS_BACK,
+		POS_BACKLEFT,
+		POS_LEFT,
+		POS_LEFTFRONT
+	};	
+	
+	/** Profile topic data structure */
+	struct ProfileData_t{
+		ProfileCodeEnum profile;		
+		ProfilePosEnum  pos;			
 	};
 
 
