@@ -17,7 +17,15 @@
 #include "FunctionPointer.h"
 #include <stdint.h>
 
-//namespace hsm {
+/** Add here your porting code for Mutex-based applications */
+#include "rtos.h"
+
+namespace hsm {
+
+#define HSM_MUTEX_OBJ			 Mutex
+#define HSM_MUTEX_LOCK(m)        m.lock(osWaitForever)
+#define HSM_MUTEX_UNLOCK(m)      m.unlock()
+	
 
 /***************************************************************************************************/	
 /***** Event ***************************************************************************************/	
@@ -167,18 +175,18 @@ class State{
 			}
 			next = handler->dispatch(e);
 			if(_fexit){
-				_fexit = false;
+				if(!delegated){
+					_fexit = false;
+				}
 				exit();
 			}
-			if(!delegated){
-				DONE(next);
-			}						
-			DONE(this);
+			DONE(next);
 		}
 		// only reaches this point if no event handler found
 		if(_parent){
 			next = _parent->dispatch(e, true);
 			if(_fexit){
+				_fexit = false;
 				DONE(next);
 			}
 		}
@@ -200,22 +208,26 @@ class State{
 
 class Hsm : public State {
 public:
-	Hsm(State* parent = (State*)0, void * xif = 0) : State(parent, xif){
+	Hsm(State* parent = 0, void * xif = 0) : State(parent, xif){
 		_events = new List<Event >();
 		_states = new List<State >();
 		_state = this;
 	}
 	 
 	/** Interface for inheritance */
-	virtual State* entry()=0;
-	virtual void exit()=0;
+//	virtual State* entry()=0;
+//	virtual void exit()=0;
 
 	void attachState(State* st){
+		HSM_MUTEX_LOCK(_mutex);
 		_states->addItem(st);
+		HSM_MUTEX_UNLOCK(_mutex);
 	}
 	
 	void raiseEvent(Event * e){
+		HSM_MUTEX_LOCK(_mutex);
 		_events->addItem(e);
+		HSM_MUTEX_UNLOCK(_mutex);
 	}
 	
 	State* dispatchEvents(){
@@ -227,7 +239,9 @@ public:
 				_state = next;
 				next = _state->dispatch(0);				
 			}
+			HSM_MUTEX_LOCK(_mutex);
 			_events->removeItem(ev);
+			HSM_MUTEX_UNLOCK(_mutex);
 			ev = (Event*) _events->getFirstItem(); 	
 		}
 		DONE(_state);
@@ -245,11 +259,12 @@ public:
 	List<State > *_states;
 	List<Event > *_events;
  private:
- 	State* _state;	
+ 	State* 			_state;	
+	HSM_MUTEX_OBJ	_mutex;
 };
 
 
 
-//}  /* namespace */
+}  /* namespace */
 
 #endif

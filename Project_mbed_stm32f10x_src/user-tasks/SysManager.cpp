@@ -16,25 +16,6 @@
 //-- PRIVATE DEFINITIONS -------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-class GpsEvent : public Event{
-public:
-	GpsEvent(uint32_t sig) : Event(sig){}
-	Topic::GpsData_t gpsdata;
-};
-
-class NackEvent : public Event{
-public:
-	NackEvent(uint32_t sig) : Event(sig){}
-	Topic::AckData_t nack;
-};
-
-class JoystickEvent : public Event{
-public:
-	JoystickEvent(uint32_t sig) : Event(sig){}
-	Topic::JoystickData_t joysticks;
-};
-
-
 //------------------------------------------------------------------------------------
 //-- STATIC FUNCTIONS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
@@ -64,7 +45,7 @@ static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
 	// idem en el caso de recibir un topic /joys
 	if(strcmp(topicname, "/joys") == 0){
 		// creo un evento tipo Gps (ver arriba)
-		JoystickEvent * ev = new JoystickEvent(SysManager::evJoystick);
+		SysManager::JoystickEvent * ev = new SysManager::JoystickEvent(SysManager::evJoystick);
 		// obtengo puntero a los datos del topic
 		Topic::JoystickData_t * data = (Topic::JoystickData_t *)MsgBroker::getTopicData("/joys");
 		// chequea el tipo de topic y activa los eventos habilitados en este módulo
@@ -83,7 +64,7 @@ static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
 	// idem en el caso de recibir un topic /gps
 	if(strcmp(topicname, "/gps") == 0){
 		// creo un evento tipo Gps (ver arriba)
-		GpsEvent * ev = new GpsEvent(SysManager::evGps);
+		SysManager::GpsEvent * ev = new SysManager::GpsEvent(SysManager::evGps);
 		// obtengo puntero a los datos del topic
 		Topic::GpsData_t * data = (Topic::GpsData_t *)MsgBroker::getTopicData("/gps");
 		// chequea el tipo de topic y activa los eventos habilitados en este módulo
@@ -110,7 +91,7 @@ static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
 		}
 		else if(data && data->ackCode != Topic::ACK_OK){
 			// creo un evento tipo Nack (ver arriba)
-			NackEvent * ev = new NackEvent(SysManager::evNack);
+			SysManager::NackEvent * ev = new SysManager::NackEvent(SysManager::evNack);
 			// copio los datos al evento creado
 			memcpy(&ev->nack, data, sizeof(Topic::AckData_t));
 			// lanzo evento a la máquina de estados
@@ -255,10 +236,10 @@ void SysManager::setBeep(uint8_t beep_mode){
 void SysManager::setLeds(uint8_t leds_mode, uint8_t tmp_mode){
 	switch(leds_mode){
 		case LEDS_PENDING:
-			if(getActiveState() == stDisarmed){
+			if(getActiveState() == stDisarmed || getActiveState() == this){
 				ledStart(_arm_ch, LedFlasher::CONTINUOUS_FAST_FLASHING);
 			}
-			else if(getActiveState() == stManual){
+			if(getActiveState() == stManual){
 				ledStart(_alt_ch, LedFlasher::CONTINUOUS_FAST_FLASHING);	
 			}
 			else if(getActiveState() == stFollow){
@@ -269,7 +250,7 @@ void SysManager::setLeds(uint8_t leds_mode, uint8_t tmp_mode){
 			}
 			break;
 		case LEDS_CONFIRMED:
-			if(getActiveState() == stDisarmed){
+			if(getActiveState() == stDisarmed || getActiveState() == this){
 				ledStart(_arm_ch, LedFlasher::ON_FOREVER);
 			}
 			else if(getActiveState() == stManual){

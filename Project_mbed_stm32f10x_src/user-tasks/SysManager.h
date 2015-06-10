@@ -44,6 +44,7 @@
 #include "LedFlasher.h"
 #include "Topics.h"
 #include "State.h"
+using namespace hsm;
 
 //------------------------------------------------------------------------------------
 //-- TYPEDEFS ------------------------------------------------------------------------
@@ -56,6 +57,34 @@
 
 class SysManager : public BeepGenerator, LedFlasher, Hsm {
 public:
+	
+	//----------------------
+	//------- EVENTS -------
+	//----------------------
+	
+	class GpsEvent : public Event{
+	public:
+		GpsEvent(uint32_t sig) : Event(sig){}
+		Topic::GpsData_t gpsdata;
+	};
+
+	class NackEvent : public Event{
+	public:
+		NackEvent(uint32_t sig) : Event(sig){}
+		Topic::AckData_t nack;
+	};
+
+	class JoystickEvent : public Event{
+	public:
+		JoystickEvent(uint32_t sig) : Event(sig){}
+		Topic::JoystickData_t joysticks;
+	};
+	
+	
+	//-----------------------------
+	//------- STATE MACHINE -------
+	//-----------------------------
+	
 	
 	class StError : public State{
 	public:
@@ -249,8 +278,8 @@ public:
 	// Implementaciones entry/exit
 	virtual State* entry(){		
 		_confirmed = false;
-		State* next = stDisarmed->init();
-		DONE(next);
+		setActiveState(stDisarmed->init());
+		DONE(getActiveState());
 	}
 	virtual void exit(){		
 	}	
@@ -313,7 +342,27 @@ public:
 	
 	static const uint32_t ACK_TIMEOUT = 1000;
 	static const uint32_t KEY_TIMEOUT = 5000;
+
+protected:
+	// Variables
+	bool _confirmed;					///< Flag para indicar si un request ha sido confirmado por el quad
+	Topic::AckData_t _mode_req;			///< Topic para publicar mode request del topic "/mode"
+	Topic::JoystickData_t _joysticks;	///< Topic para publicar topics /rc
+	Topic::ProfileData_t _profile;		///< Topic para publicar topics /profile
+
 	
+	// Interfaces
+	void setBeep(uint8_t beep_mode);
+	void setJoystick(Event* e);
+	void setLeds(uint8_t leds_mode, uint8_t tmp_mode = 0);
+	void publish(uint8_t pub_mode);
+
+		
+	//--------------------------------
+	//------- SYSMANAGER CLASS -------
+	//--------------------------------
+	
+public:
 	/** Constructor, destructor, getter and setter */
 	SysManager(	osPriority prio, DigitalOut *led_arm, DigitalOut *led_loc, DigitalOut *led_alt, 
 				DigitalOut *led_rth, PwmOut *buzzer) : 
@@ -358,23 +407,15 @@ public:
 		me->run();
 	}	
 
-private:
+protected:
 	int8_t _arm_ch;				///< Canales led
 	int8_t _loc_ch;
 	int8_t _alt_ch;
 	int8_t _rth_ch;
 	Thread *_th;						///< Thread integrado
 	uint32_t _timeout;					///< Timeout para control del thread
-	bool _confirmed;					///< Flag para indicar si un request ha sido confirmado por el quad
-	Topic::AckData_t _mode_req;			///< Topic para publicar mode request del topic "/mode"
-	Topic::JoystickData_t _joysticks;	///< Topic para publicar topics /rc
-	Topic::ProfileData_t _profile;		///< Topic para publicar topics /profile
 
 	void run();
-	void setBeep(uint8_t beep_mode);
-	void setJoystick(Event* e);
-	void setLeds(uint8_t leds_mode, uint8_t tmp_mode = 0);
-	void publish(uint8_t pub_mode);
 
 };
 

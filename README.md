@@ -18,6 +18,14 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 10.06.2015-001 (rama state)
+- Modifico KeyDecoder (TERMINADO)
+- Verificando SysManager (primer evento HoldB). NO PITA EL BUZZER.
+- POR HACER:
+  - Habilitar SysManager y ver el funcionamiento de LedFlasher, Beeper y la máquina de estados.
+  - Verificar módulo GPSReader y VirtualReceiver
+
+  
 ##### 09.06.2015-002 (rama state)
 - Modifico JoystickSampler para que se ejecute como un RtosTimer
 - Modifico KeyDecoder para que implemente la clase JoystickSampler

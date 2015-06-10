@@ -76,7 +76,7 @@ void KeyDecoder::run(){
 	_ii_RTH->enable_irq();
 	_timeout = osWaitForever;
 	// Starts execution 
-	_signals = (KEY_EV_PRESSED | KEY_EV_RELEASED | TIMMING_EV);
+	_signals = (KEY_EV_PRESSED | KEY_EV_RELEASED);
 	_th->signal_clr(_signals);
 	startScan();
 	this->init();
@@ -86,20 +86,23 @@ void KeyDecoder::run(){
 		// Wait for events ... 
 		osEvent oe = _th->signal_wait_or(_signals, _timeout);
 		// on timming event, run state machine cycle
-		if(oe.status == osEventSignal && (oe.value.signals & TIMMING_EV) != 0){		
-			// clear flags
-			_th->signal_clr(TIMMING_EV);
-			this->raiseEvent(new Event(evTimer));
+		if(oe.status == osEventTimeout){		
+			this->raiseEvent(new hsm::Event(evTimer));
 			continue;
 		}
 		// if key pressed, debounce timer, clear flags and updates state machine
 		if(oe.status == osEventSignal && (oe.value.signals & KEY_EV_PRESSED) != 0){		
 			// debounce timer
 			Thread::wait(50);
+			uint32_t newkey = readKeyboard();
+			if(_currentKey == KEY_NONE && newkey != KEY_NONE){
+				_currentKey = newkey;
+				// raise state machine event
+				this->raiseEvent(new KeyEvent(evPressed, _currentKey));
+			}
 			// clear flags
 			_th->signal_clr(KEY_EV_PRESSED|KEY_EV_RELEASED);
-			// raise state machine event
-			this->raiseEvent(new Event(evPressed));
+			
 			continue;
 		}
 		
@@ -107,10 +110,15 @@ void KeyDecoder::run(){
 		if(oe.status == osEventSignal && (oe.value.signals & (KEY_EV_PRESSED|KEY_EV_RELEASED)) != 0){	
 			// debounce timer
 			Thread::wait(50);
+			uint32_t newkey = readKeyboard();
+			if(_currentKey != KEY_NONE && newkey == KEY_NONE){
+				// raise state machine event
+				this->raiseEvent(new KeyEvent(evReleased, _currentKey));
+				_currentKey = newkey;
+			}
 			// clear flags
 			_th->signal_clr(KEY_EV_PRESSED|KEY_EV_RELEASED);
-			// raise state machine event
-			this->raiseEvent(new Event(evReleased));
+			
 		}			
 	}	
 }

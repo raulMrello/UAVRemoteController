@@ -59,14 +59,20 @@ void JoystickSampler::stopScan() {
 
 //------------------------------------------------------------------------------------
 void JoystickSampler::scan(){
-	int8_t ja1z, ja2z, jb1z, jb2z, last_ja2, new_ja2;
+	static int8_t ja1z, ja2z, jb1z, jb2z, last_ja2;
+	int8_t new_ja2;
+	float raw_throttle, raw_yaw, raw_pitch, raw_roll;
+	raw_throttle = _joystick_A2->read();
+	raw_yaw = _joystick_A1->read();
+	raw_pitch = _joystick_B2->read();
+	raw_roll = _joystick_B1->read();
 	// get zero values
 	while(_stat < 3){
 		_stat++;
-		ja1z = 50-(int8_t)(100*_joystick_A1->read());
-		ja2z = 50-(int8_t)(100*_joystick_A2->read());
-		jb1z = 50-(int8_t)(100*_joystick_B1->read());
-		jb2z = 50-(int8_t)(100*_joystick_B2->read());
+		ja1z = 50-(int8_t)(100*raw_yaw);
+		ja2z = 50-(int8_t)(100*raw_throttle);
+		jb1z = 50-(int8_t)(100*raw_roll);
+		jb2z = 50-(int8_t)(100*raw_pitch);
 		if(_stat == 3){
 			// initializes data
 			last_ja2 = 50;
@@ -79,10 +85,10 @@ void JoystickSampler::scan(){
 	}
 	// read controls applying zero corrections
 	int8_t ja1, ja2, jb1, jb2;
-	ja1 = ja1z + (int8_t)(100*_joystick_A1->read());
-	ja2 = ja2z + (int8_t)(100*_joystick_A2->read());
-	jb1 = jb1z + (int8_t)(100*_joystick_B1->read());
-	jb2 = jb2z + (int8_t)(100*_joystick_B2->read());
+	ja1 = ja1z + (int8_t)(100*raw_yaw);
+	ja2 = ja2z + (int8_t)(100*raw_throttle);
+	jb1 = jb1z + (int8_t)(100*raw_roll);
+	jb2 = jb2z + (int8_t)(100*raw_pitch);
 	// set new data
 	_joystickdata.yaw = (ja1 <= 100)? ja1 : 100;		
 	_joystickdata.roll = (jb1 <= 100)? jb1 : 100;

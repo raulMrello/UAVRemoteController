@@ -26,10 +26,7 @@
 #include "MsgBroker.h"
 #include "Topics.h"
 #include "State.h"
-
-//------------------------------------------------------------------------------------
-//-- TYPEDEFS ------------------------------------------------------------------------
-//------------------------------------------------------------------------------------
+using namespace hsm;
 
 //------------------------------------------------------------------------------------
 //-- CLASS ---------------------------------------------------------------------------
@@ -37,6 +34,23 @@
 
 class KeyDecoder : public JoystickSampler, Hsm{
 public:
+	
+	//----------------------
+	//------- EVENTS -------
+	//----------------------
+	
+	class KeyEvent : public Event{
+	public:
+		KeyEvent(uint32_t sig, uint32_t key) : Event(sig){
+			_key = key;
+		}
+		uint32_t _key;
+	};
+	
+	
+	//-----------------------------
+	//------- STATE MACHINE -------
+	//-----------------------------
 	
 	class StInactive : public State{
 	public:
@@ -52,7 +66,8 @@ public:
 		}	
 		// Manejadores de eventos
 		State* onPressed(Event* e){
-			((KeyDecoder*)_parent)->_timeout = HOLD_TIMEOUT;
+			((KeyDecoder*)_xif)->_pressedKey = ((KeyEvent*)e)->_key;
+			((KeyDecoder*)_xif)->_timeout = KeyDecoder::HOLD_TIMEOUT;
 			TRAN(((KeyDecoder*)_parent)->stPressed);
 		}
 	};friend class StInactive;
@@ -74,13 +89,14 @@ public:
 		
 		// Manejadores de eventos
 		State* onReleased(Event* e){
-			((KeyDecoder*)_parent)->_timeout = osWaitForever;
-			((KeyDecoder*)_parent)->publish (((KeyDecoder*)_parent)->readKeyboard(), false);
+			((KeyDecoder*)_xif)->_timeout = osWaitForever;
+			((KeyDecoder*)_parent)->publish (((KeyDecoder*)_xif)->_pressedKey, false);
 			TRAN(((KeyDecoder*)_parent)->stInactive);
 		}
 		
 		State* onTimeout(Event* e){
-			((KeyDecoder*)_parent)->publish (((KeyDecoder*)_parent)->readKeyboard(), true);
+			((KeyDecoder*)_xif)->_timeout = osWaitForever;
+			((KeyDecoder*)_xif)->publish (((KeyDecoder*)_xif)->_pressedKey, true);
 			TRAN(((KeyDecoder*)_parent)->stHold);
 		}
 	};friend class StPressed;
@@ -105,11 +121,13 @@ public:
 	
 	// Implementaciones entry/exit
 	virtual State* entry(){
-		DONE(this);
+		setActiveState(stInactive->init());
+		DONE(getActiveState());
 	}
 	virtual void exit(){
 	}	
-	
+
+protected:	
 	// Estados
 	StInactive *stInactive;
 	StPressed *stPressed;
@@ -122,9 +140,20 @@ public:
 
 	// Constantes
 	static const uint32_t HOLD_TIMEOUT = 2000; //2 seconds
-	// Variables
-	int _key;
 	
+	// Variables
+	int _pressedKey;
+	
+	// Interfaces
+	void publish(uint32_t key, bool isHold);
+
+	
+	
+	//--------------------------------
+	//------- KEYDECODER CLASS -------
+	//--------------------------------
+	
+public:
 	/** Constructor, destructor, getter and setter */
 	KeyDecoder(	osPriority prio, InterruptIn *ii_A_Ok, InterruptIn *ii_B_Ok, InterruptIn *ii_ARM, 
 				InterruptIn *ii_LOC, InterruptIn *ii_ALT, InterruptIn *ii_RTH, AnalogIn *joystick_A1, 
@@ -132,9 +161,9 @@ public:
 				bool enableRepeatedEvt = false) : JoystickSampler(joystick_A1, joystick_A2, joystick_B1, joystick_B2), Hsm(){
 						
 		// creo estados
-		stInactive = new StInactive(this);
-		stPressed = new StPressed(this);
-		stHold = new StHold(this);
+		stInactive = new StInactive(this, this);
+		stPressed = new StPressed(this, this);
+		stHold = new StHold(this, this);
 		// Inserto estados
 		attachState(stInactive);
 		attachState(stPressed);
@@ -193,7 +222,7 @@ public:
 		me->run();
 	}	
 		
-private:
+protected:
 	Topic::KeyData_t _keydata;
 	Thread *_th;
 	InterruptIn *_ii_A_Ok;
@@ -204,16 +233,15 @@ private:
 	InterruptIn *_ii_RTH;
 	int32_t _signals;
 	uint32_t _timeout;
+	uint32_t _currentKey;
 
 	void run();
 	uint32_t readKeyboard();
-	void publish(uint32_t key, bool isHold);
 
 	/** Key event enumeration */
 	typedef enum {
 		KEY_EV_PRESSED 	= (1 << 0),
-		KEY_EV_RELEASED = (1 << 1),
-		TIMMING_EV 		= (1 << 2)
+		KEY_EV_RELEASED = (1 << 1)
 	}EventEnum;	
 	
 };

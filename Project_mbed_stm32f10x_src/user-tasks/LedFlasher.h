@@ -36,9 +36,9 @@ public:
 	enum ShotModeEnum{
 		ON_FOREVER,					///< Always lighting
 		SLOW_FLASHING,				///< Slow (1sec,1sec) flashing
-		SINGLE_FAST_FLASHING,		///< Rapid (500ms, 1s) flashing
-		DUAL_FAST_FLASHING,			///< Rapid (500ms, 500ms) dual-shot flashing
-		CONTINUOUS_FAST_FLASHING	///< Rapid continuous flashing 500ms
+		SINGLE_FAST_FLASHING,		///< Rapid (250ms, 1s) flashing
+		DUAL_FAST_FLASHING,			///< Rapid (250ms, 250ms) dual-shot flashing
+		CONTINUOUS_FAST_FLASHING	///< Rapid continuous flashing 250ms
 	};
 	
 	/** Shot status enumeration */
@@ -52,7 +52,7 @@ public:
 	/** Shot time enumeration */
 	enum ShotTimeEnum{
 		TIME_DISABLED = 0,
-		TIME_FAST = 500,		///< 500ms
+		TIME_FAST = 250,		///< 250ms
 		TIME_SLOW = 1000,		///< 1s
 		TIME_WAIT = 1500		///< 1.5
 	};
