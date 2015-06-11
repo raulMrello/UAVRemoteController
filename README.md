@@ -18,6 +18,14 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 11.06.2015-002 
+- Modificado y verificado módulo [State](https://github.com/raulMrello/Cpp_HierarchicalStateMachines)
+- Verificando SysManager (primer evento HoldB). NO PITA EL BUZZER.
+- POR HACER:
+  - Habilitar SysManager y ver el funcionamiento de LedFlasher, Beeper y la máquina de estados.
+  - Verificar módulo GPSReader y VirtualReceiver
+
+  
 ##### 10.06.2015-001 (rama state)
 - Modifico KeyDecoder (TERMINADO)
 - Verificando SysManager (primer evento HoldB). NO PITA EL BUZZER.
