@@ -18,6 +18,13 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 11.06.2015-003 
+- Verificando SysManager (eventos KeyTimeout, ya funcionan seguir probando teclas). 
+- POR HACER:
+  - NO PITA EL BUZZER.
+  - Verificar módulo GPSReader y VirtualReceiver
+
+  
 ##### 11.06.2015-002 
 - Modificado y verificado módulo [State](https://github.com/raulMrello/Cpp_HierarchicalStateMachines)
 - Verificando SysManager (primer evento HoldB). NO PITA EL BUZZER.

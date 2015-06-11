@@ -35,10 +35,11 @@ namespace Topic {
 		ACK_OK = 0,					///< Ack response Ok
 		ACK_MISSING_RESPONSE,		///< No response from wifi link
 		ACK_WRONG_RESPONSE,			///< Response bad formed from wifi link
-		ACK_TIMEOUT					///< Ack timeout without response
+		ACK_TIMEOUT,				///< Ack timeout without response
 	};
 	enum AckReqEnum {
-		ACK_DISARMED = 0,			///< Ack to disarm mode request
+		ACK_START = 0,				///< Ack to start operation
+		ACK_DISARMED,				///< Ack to disarm mode request
 		ACK_MANUAL,					///< Ack to manual mode request
 		ACK_FOLLOW,					///< Ack to follow mode request
 		ACK_RTH,					///< Ack to rth mode request

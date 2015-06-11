@@ -60,7 +60,7 @@ public:
 		}
 		// Implementaciones entry/exit
 		virtual State* entry(){
-			DONE();//DONE(this);
+			DONE();
 		}
 		virtual void exit(){
 		}	
@@ -81,7 +81,7 @@ public:
 		}
 		// Implementaciones entry/exit
 		virtual State* entry(){
-			DONE();//DONE(this);
+			DONE();
 		}
 		
 		virtual void exit(){
@@ -109,7 +109,7 @@ public:
 		}
 		// Implementaciones entry/exit
 		virtual State* entry(){
-			DONE();//DONE(this);
+			DONE();
 		}
 		virtual void exit(){
 		}	

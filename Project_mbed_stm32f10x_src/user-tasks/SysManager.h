@@ -70,9 +70,12 @@ public:
 
 	class NackEvent : public Event{
 	public:
-		NackEvent(uint32_t sig) : Event(sig){}
+		NackEvent(uint32_t sig, Topic::AckData_t* data) : Event(sig){
+			nack.ackCode = data->ackCode;
+			nack.req = data->req;
+		}
 		Topic::AckData_t nack;
-	};
+	}; typedef NackEvent AckEvent;
 
 	class JoystickEvent : public Event{
 	public:
@@ -97,7 +100,7 @@ public:
 		virtual State* entry(){
 			((SysManager*)_xif)->setBeep(SysManager::BEEP_ERROR);
 			((SysManager*)_xif)->setLeds(SysManager::LEDS_ERROR);
-			DONE();//DONE(this);
+			DONE();
 		}
 		virtual void exit(){
 		}	
@@ -120,11 +123,19 @@ public:
 		
 		// Implementaciones entry/exit
 		virtual State* entry(){
-			tmp = ((SysManager*)_xif)->_mode;
+			if(((SysManager*)_xif)->history ==((SysManager*)_xif)->stManual)
+				tmp = SysManager::MODE_MANUAL;
+			else if(((SysManager*)_xif)->history ==((SysManager*)_xif)->stFollow)
+				tmp = SysManager::MODE_FOLLOW;
+			else if(((SysManager*)_xif)->history ==((SysManager*)_xif)->stRth)
+				tmp = SysManager::MODE_RTH;
+			else
+				tmp = SysManager::MODE_DISARMED;
+			
 			((SysManager*)_xif)->setBeep(SysManager::BEEP_KEY);
 			((SysManager*)_xif)->setLeds(SysManager::LEDS_SELECT, tmp);
-			((SysManager*)_xif)->_timeout = SysManager::KEY_TIMEOUT;
-			DONE();//DONE(this);
+			((SysManager*)_xif)->startKeyTimeout(SysManager::KEY_TIMEOUT);
+			DONE();
 		}
 		virtual void exit(){
 		}	
@@ -132,32 +143,30 @@ public:
 		// Manejadores de eventos
 		State* onOkA(Event* e){
 			tmp = (tmp < SysManager::MODE_RTH)? (tmp+1) : SysManager::MODE_DISARMED;
+			((SysManager*)_xif)->startKeyTimeout(SysManager::KEY_TIMEOUT);
 			((SysManager*)_xif)->setBeep(SysManager::BEEP_KEY);
 			((SysManager*)_xif)->setLeds(SysManager::LEDS_SELECT, tmp);
-			DONE();//DONE(this);
+			DONE();
 		}
 		
 		State* onOkB(Event* e){		
-			((SysManager*)_xif)->_timeout = osWaitForever;			
-			if(tmp == ((SysManager*)_xif)->_mode){
-				TRAN(((SysManager*)_xif)->history);
-			}
+			((SysManager*)_xif)->stopKeyTimeout();			
 			((SysManager*)_xif)->_confirmed = false;
 			switch(tmp){
 				default:
 				case SysManager::MODE_DISARMED:
 					TRAN(((SysManager*)_xif)->stDisarmed);
-				case SysManager::MODE_MANUAL:
-					TRAN(((SysManager*)_xif)->stManual);
 				case SysManager::MODE_FOLLOW:
 					TRAN(((SysManager*)_xif)->stFollow);
+				case SysManager::MODE_MANUAL:
+					TRAN(((SysManager*)_xif)->stManual);
 				case SysManager::MODE_RTH:
 					TRAN(((SysManager*)_xif)->stRth);
 			}			
 		}
 		
 		State* onTimeout(Event* e){
-			((SysManager*)_xif)->_timeout = osWaitForever;
+			((SysManager*)_xif)->stopKeyTimeout();
 			TRAN(((SysManager*)_xif)->history);
 		}
 
@@ -180,38 +189,12 @@ public:
 				((SysManager*)_xif)->setLeds(SysManager::LEDS_PENDING);
 				((SysManager*)_xif)->publish(SysManager::PUB_MODE);
 			}
-			DONE();//DONE(this);
+			DONE();
 		}
 		virtual void exit(){
 		}	
 	};friend class StDisarmed;		
 	
-	
-	class StManual : public State{
-	public:
-		StManual(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
-			// inserto manejadores de evento			
-			attach(SysManager::evJoystick, this, (State* (State::*)(Event*))&StManual::onJoystick);
-		}
-		
-		// Implementaciones entry/exit
-		virtual State* entry(){
-			((SysManager*)_xif)->history = this;
-			if(!((SysManager*)_xif)->_confirmed){
-				((SysManager*)_xif)->setBeep(SysManager::BEEP_PENDING);
-				((SysManager*)_xif)->setLeds(SysManager::LEDS_PENDING);
-				((SysManager*)_xif)->publish(SysManager::PUB_MODE);
-			}
-			DONE();//DONE(this);
-		}
-		virtual void exit(){
-		}	
-		// Manejadores de eventos
-		State* onJoystick(Event* e){
-			((SysManager*)_xif)->publish(SysManager::PUB_RC);
-			DONE();//DONE(this);
-		}
-	};friend class StManual;		
 	
 	
 	class StFollow : public State{
@@ -247,6 +230,33 @@ public:
 	};friend class StFollow;		
 	
 	
+	class StManual : public State{
+	public:
+		StManual(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
+			// inserto manejadores de evento			
+			attach(SysManager::evJoystick, this, (State* (State::*)(Event*))&StManual::onJoystick);
+		}
+		
+		// Implementaciones entry/exit
+		virtual State* entry(){
+			((SysManager*)_xif)->history = this;
+			if(!((SysManager*)_xif)->_confirmed){
+				((SysManager*)_xif)->setBeep(SysManager::BEEP_PENDING);
+				((SysManager*)_xif)->setLeds(SysManager::LEDS_PENDING);
+				((SysManager*)_xif)->publish(SysManager::PUB_MODE);
+			}
+			DONE();
+		}
+		virtual void exit(){
+		}	
+		// Manejadores de eventos
+		State* onJoystick(Event* e){
+			((SysManager*)_xif)->publish(SysManager::PUB_RC);
+			DONE();
+		}
+	};friend class StManual;	
+	
+	
 	class StRth : public State{
 	public:
 		StRth(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
@@ -262,7 +272,7 @@ public:
 				((SysManager*)_xif)->setLeds(SysManager::LEDS_PENDING);
 				((SysManager*)_xif)->publish(SysManager::PUB_MODE);
 			}
-			DONE();//DONE(this);
+			DONE();
 		}
 		virtual void exit(){
 		}	
@@ -271,24 +281,31 @@ public:
 			((SysManager*)_xif)->setBeep(SysManager::BEEP_CONFIRMED);
 			((SysManager*)_xif)->setLeds(SysManager::LEDS_CONFIRMED);
 			((SysManager*)_xif)->_timeout = ACK_TIMEOUT;
-			DONE();//DONE(this);
+			DONE();
 		}
 	};friend class StRth;		
 	
 	// Implementaciones entry/exit
 	virtual State* entry(){		
 		_confirmed = false;
-		TRAN(stDisarmed);
+		setBeep(BEEP_KEY);
+		setLeds(LEDS_OFF);		
+		DONE();
 	}
+	
 	virtual void exit(){		
 	}	
 		
 	// Manejadores de eventos
+	State* onStart(Event* e){
+		_confirmed = false;
+		TRAN(stDisarmed);		
+	}
 	State* onAck(Event* e){
 		_confirmed = true;
 		setBeep(BEEP_CONFIRMED);
 		setLeds(LEDS_CONFIRMED);
-		DONE();//DONE(getActiveState());
+		DONE();
 	}
 	State* onHoldB(Event* e){
 		TRAN(stSelect);
@@ -316,6 +333,7 @@ public:
 	static const uint32_t evNack 		= (USER_SIG << 6);
 	static const uint32_t evTimer 		= (USER_SIG << 7);
 	static const uint32_t evGps 		= (USER_SIG << 8);
+	static const uint32_t evStart 		= (USER_SIG << 9);
 
 	// Constantes
 	static const uint8_t MODE_DISARMED = 0;
@@ -333,6 +351,7 @@ public:
 	static const uint8_t LEDS_CONFIRMED = 1;
 	static const uint8_t LEDS_SELECT = 3;
 	static const uint8_t LEDS_ERROR = 4;
+	static const uint8_t LEDS_OFF = 5;
 	
 	static const uint8_t PUB_MODE = 0;
 	static const uint8_t PUB_RC = 1;
@@ -354,6 +373,8 @@ protected:
 	void setBeep(uint8_t beep_mode);
 	void setJoystick(Event* e);
 	void setLeds(uint8_t leds_mode, uint8_t tmp_mode = 0);
+	void startKeyTimeout(uint32_t milis);
+	void stopKeyTimeout();
 	void publish(uint8_t pub_mode);
 
 		
@@ -387,6 +408,7 @@ public:
 		attach(SysManager::evAck, this, (State* (State::*)(Event*))&SysManager::onAck);
 		attach(SysManager::evHoldB, this, (State* (State::*)(Event*))&SysManager::onHoldB);
 		attach(SysManager::evNack, this, (State* (State::*)(Event*))&SysManager::onNack);
+		attach(SysManager::evStart, this, (State* (State::*)(Event*))&SysManager::onStart);
 		
 		// setup led flasher channels
 		_arm_ch = addLedChannel(led_arm);
@@ -413,8 +435,10 @@ protected:
 	int8_t _rth_ch;
 	Thread *_th;						///< Thread integrado
 	uint32_t _timeout;					///< Timeout para control del thread
-
+	RtosTimer *_tmr;
 	void run();
+
+private:
 
 };
 

@@ -99,7 +99,8 @@ void JoystickSampler::scan(){
 	last_ja2 = new_ja2;
 	
 	// publish topic update			
-	MsgBroker::publish("/joys", &_joystickdata, sizeof(Topic::JoystickData_t));
+	#warning ACTIVAR LA PUBLICACION DE MENSAJES AQUI
+	//MsgBroker::publish("/joys", &_joystickdata, sizeof(Topic::JoystickData_t));
 		
 }
 

@@ -20,6 +20,13 @@
 //-- STATIC FUNCTIONS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
+static void onKeyTimeout(void const * obj){
+	SysManager *me = (SysManager*)obj;
+	((Hsm*)me)->raiseEvent(new Event(SysManager::evTimer));
+	// activa la señal del thread para procesar el evento marcado
+	me->getThread()->signal_set(1);
+}
+
 static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
 	SysManager *me = (SysManager*)subscriber;
 	// si se recibe un update del topic /keyb...
@@ -83,15 +90,19 @@ static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
 	// idem en el caso de recibir un topic /ack
 	if(strcmp(topicname, "/ack") == 0){
 		// obtengo puntero a los datos del topic
-		Topic::AckData_t * data = (Topic::AckData_t *)MsgBroker::getTopicData("/gps");
+		Topic::AckData_t * data = (Topic::AckData_t *)MsgBroker::getTopicData("/ack");
 		// chequea el tipo de topic y activa los eventos habilitados en este módulo
-		if(data && data->ackCode == Topic::ACK_OK){
+		if(data && data->ackCode == Topic::ACK_OK && data->req != Topic::ACK_START){
 			// lanzo evento a la máquina de estados
-			((Hsm*)me)->raiseEvent(new Event(SysManager::evAck));			
+			((Hsm*)me)->raiseEvent(new SysManager::AckEvent(SysManager::evAck, data));			
+		}
+		else if(data && data->ackCode == Topic::ACK_OK && data->req == Topic::ACK_START){
+			// lanzo evento a la máquina de estados
+			((Hsm*)me)->raiseEvent(new Event(SysManager::evStart));			
 		}
 		else if(data && data->ackCode != Topic::ACK_OK){
 			// creo un evento tipo Nack (ver arriba)
-			SysManager::NackEvent * ev = new SysManager::NackEvent(SysManager::evNack);
+			SysManager::NackEvent * ev = new SysManager::NackEvent(SysManager::evNack, data);
 			// copio los datos al evento creado
 			memcpy(&ev->nack, data, sizeof(Topic::AckData_t));
 			// lanzo evento a la máquina de estados
@@ -137,6 +148,7 @@ void SysManager::run(){
 	ledStop(_alt_ch);
 	ledStop(_rth_ch);
 	beepStop();
+	_tmr = new RtosTimer(onKeyTimeout, osTimerOnce, this);
 	
 	// Starts execution 
 	_th->signal_clr(0xffff);
@@ -216,6 +228,17 @@ void SysManager::setJoystick(Event* e){
 }
 
 //------------------------------------------------------------------------------------
+void SysManager::startKeyTimeout(uint32_t millis){
+	_tmr->stop();
+	_tmr->start(millis);
+}
+
+//------------------------------------------------------------------------------------
+void SysManager::stopKeyTimeout(){
+	_tmr->stop();
+}
+
+//------------------------------------------------------------------------------------
 void SysManager::setBeep(uint8_t beep_mode){
 	switch(beep_mode){
 		case BEEP_PENDING:
@@ -235,6 +258,12 @@ void SysManager::setBeep(uint8_t beep_mode){
 //------------------------------------------------------------------------------------
 void SysManager::setLeds(uint8_t leds_mode, uint8_t tmp_mode){
 	switch(leds_mode){
+		case LEDS_OFF:
+			ledStop(_arm_ch);
+			ledStop(_loc_ch);
+			ledStop(_alt_ch);
+			ledStop(_rth_ch);	
+			break;
 		case LEDS_PENDING:
 			if(_state == stDisarmed || _state == this){
 				ledStart(_arm_ch, LedFlasher::CONTINUOUS_FAST_FLASHING);

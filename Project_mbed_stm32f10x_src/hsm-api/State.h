@@ -234,6 +234,7 @@ public:
 			HSM_MUTEX_LOCK(_mutex);
 			_events->removeItem(ev);
 			HSM_MUTEX_UNLOCK(_mutex);
+			delete(ev);
 			ev = (Event*) _events->getFirstItem(); 	
 		}
 		return _state;
