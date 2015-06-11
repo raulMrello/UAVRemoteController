@@ -7,6 +7,7 @@
 #include "VirtualReceiver.h"
 #include "MsgBroker.h"
 #include "Topics.h"
+#include "TemplateHsm.h"
 
 InterruptIn joys_A_Ok(PB_1);	
 InterruptIn joys_B_Ok(PB_2);	
@@ -51,9 +52,7 @@ int main() {
 	#warning ACTIVAR PASO A PASO.....
 	KeyDecoder *kd = new KeyDecoder(osPriorityHigh, &joys_A_Ok, &joys_B_Ok, &key_ARM, &key_LOC, &key_ALT, &key_RTH, &joys_A1, &joys_A2, &joys_B1, &joys_B2);
 	SysManager *sm = new SysManager(osPriorityNormal, &led_arm, &led_loc, &led_alt, &led_rth, &buzzer);
-
 	/*
-
 	VirtualReceiver *vr = new VirtualReceiver(osPriorityAboveNormal, &lnk, &lnk_rst);
 	GpsReader *gr = new GpsReader(osPriorityAboveNormal, GpsReader::GPS_MODE_UBX, &gps);
 	*/

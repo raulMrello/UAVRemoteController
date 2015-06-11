@@ -97,7 +97,7 @@ public:
 		virtual State* entry(){
 			((SysManager*)_xif)->setBeep(SysManager::BEEP_ERROR);
 			((SysManager*)_xif)->setLeds(SysManager::LEDS_ERROR);
-			DONE(this);
+			DONE();//DONE(this);
 		}
 		virtual void exit(){
 		}	
@@ -124,7 +124,7 @@ public:
 			((SysManager*)_xif)->setBeep(SysManager::BEEP_KEY);
 			((SysManager*)_xif)->setLeds(SysManager::LEDS_SELECT, tmp);
 			((SysManager*)_xif)->_timeout = SysManager::KEY_TIMEOUT;
-			DONE(this);
+			DONE();//DONE(this);
 		}
 		virtual void exit(){
 		}	
@@ -134,7 +134,7 @@ public:
 			tmp = (tmp < SysManager::MODE_RTH)? (tmp+1) : SysManager::MODE_DISARMED;
 			((SysManager*)_xif)->setBeep(SysManager::BEEP_KEY);
 			((SysManager*)_xif)->setLeds(SysManager::LEDS_SELECT, tmp);
-			DONE(this);
+			DONE();//DONE(this);
 		}
 		
 		State* onOkB(Event* e){		
@@ -180,7 +180,7 @@ public:
 				((SysManager*)_xif)->setLeds(SysManager::LEDS_PENDING);
 				((SysManager*)_xif)->publish(SysManager::PUB_MODE);
 			}
-			DONE(this);
+			DONE();//DONE(this);
 		}
 		virtual void exit(){
 		}	
@@ -202,14 +202,14 @@ public:
 				((SysManager*)_xif)->setLeds(SysManager::LEDS_PENDING);
 				((SysManager*)_xif)->publish(SysManager::PUB_MODE);
 			}
-			DONE(this);
+			DONE();//DONE(this);
 		}
 		virtual void exit(){
 		}	
 		// Manejadores de eventos
 		State* onJoystick(Event* e){
 			((SysManager*)_xif)->publish(SysManager::PUB_RC);
-			DONE(this);
+			DONE();//DONE(this);
 		}
 	};friend class StManual;		
 	
@@ -230,7 +230,7 @@ public:
 				((SysManager*)_xif)->setLeds(SysManager::LEDS_PENDING);
 				((SysManager*)_xif)->publish(SysManager::PUB_MODE);
 			}
-			DONE(this);
+			DONE();//DONE(this);
 		}
 		virtual void exit(){
 		}	
@@ -238,11 +238,11 @@ public:
 		State* onOkA(Event* e){
 			((SysManager*)_xif)->setBeep(SysManager::BEEP_KEY);
 			((SysManager*)_xif)->publish(SysManager::PUB_PROFILE);
-			DONE(this);
+			DONE();//DONE(this);
 		}
 		State* onJoystick(Event* e){
 			((SysManager*)_xif)->setJoystick(e);
-			DONE(this);
+			DONE();//DONE(this);
 		}
 	};friend class StFollow;		
 	
@@ -262,7 +262,7 @@ public:
 				((SysManager*)_xif)->setLeds(SysManager::LEDS_PENDING);
 				((SysManager*)_xif)->publish(SysManager::PUB_MODE);
 			}
-			DONE(this);
+			DONE();//DONE(this);
 		}
 		virtual void exit(){
 		}	
@@ -271,15 +271,14 @@ public:
 			((SysManager*)_xif)->setBeep(SysManager::BEEP_CONFIRMED);
 			((SysManager*)_xif)->setLeds(SysManager::LEDS_CONFIRMED);
 			((SysManager*)_xif)->_timeout = ACK_TIMEOUT;
-			DONE(this);
+			DONE();//DONE(this);
 		}
 	};friend class StRth;		
 	
 	// Implementaciones entry/exit
 	virtual State* entry(){		
 		_confirmed = false;
-		setActiveState(stDisarmed->init());
-		DONE(getActiveState());
+		TRAN(stDisarmed);
 	}
 	virtual void exit(){		
 	}	
@@ -289,7 +288,7 @@ public:
 		_confirmed = true;
 		setBeep(BEEP_CONFIRMED);
 		setLeds(LEDS_CONFIRMED);
-		DONE(getActiveState());
+		DONE();//DONE(getActiveState());
 	}
 	State* onHoldB(Event* e){
 		TRAN(stSelect);

@@ -236,30 +236,30 @@ void SysManager::setBeep(uint8_t beep_mode){
 void SysManager::setLeds(uint8_t leds_mode, uint8_t tmp_mode){
 	switch(leds_mode){
 		case LEDS_PENDING:
-			if(getActiveState() == stDisarmed || getActiveState() == this){
+			if(_state == stDisarmed || _state == this){
 				ledStart(_arm_ch, LedFlasher::CONTINUOUS_FAST_FLASHING);
 			}
-			if(getActiveState() == stManual){
+			if(_state == stManual){
 				ledStart(_alt_ch, LedFlasher::CONTINUOUS_FAST_FLASHING);	
 			}
-			else if(getActiveState() == stFollow){
+			else if(_state == stFollow){
 				ledStart(_loc_ch, LedFlasher::CONTINUOUS_FAST_FLASHING);	
 			}
-			else if(getActiveState() == stRth){
+			else if(_state == stRth){
 				ledStart(_rth_ch, LedFlasher::CONTINUOUS_FAST_FLASHING);	
 			}
 			break;
 		case LEDS_CONFIRMED:
-			if(getActiveState() == stDisarmed || getActiveState() == this){
+			if(_state == stDisarmed || _state == this){
 				ledStart(_arm_ch, LedFlasher::ON_FOREVER);
 			}
-			else if(getActiveState() == stManual){
+			else if(_state == stManual){
 				ledStart(_alt_ch, LedFlasher::ON_FOREVER);	
 			}
-			else if(getActiveState() == stFollow){
+			else if(_state == stFollow){
 				ledStart(_loc_ch, LedFlasher::ON_FOREVER);	
 			}
-			else if(getActiveState() == stRth){
+			else if(_state == stRth){
 				ledStart(_rth_ch, LedFlasher::ON_FOREVER);	
 			}
 			break;
@@ -315,22 +315,22 @@ void SysManager::setLeds(uint8_t leds_mode, uint8_t tmp_mode){
 void SysManager::publish(uint8_t pub_mode){
 	switch(pub_mode){
 		case PUB_MODE:
-			if(getActiveState() == stDisarmed){
+			if(_state == stDisarmed){
 				_mode_req.ackCode = Topic::ACK_OK;
 				_mode_req.req = Topic::ACK_DISARMED;
 				MsgBroker::publish("/mode", &_mode_req, sizeof(Topic::AckData_t));
 			}
-			else if(getActiveState() == stManual){
+			else if(_state == stManual){
 				_mode_req.ackCode = Topic::ACK_OK;
 				_mode_req.req = Topic::ACK_MANUAL;
 				MsgBroker::publish("/mode", &_mode_req, sizeof(Topic::AckData_t));
 			}
-			else if(getActiveState() == stFollow){
+			else if(_state == stFollow){
 				_mode_req.ackCode = Topic::ACK_OK;
 				_mode_req.req = Topic::ACK_FOLLOW;
 				MsgBroker::publish("/mode", &_mode_req, sizeof(Topic::AckData_t));
 			}
-			else if(getActiveState() == stRth){
+			else if(_state == stRth){
 				_mode_req.ackCode = Topic::ACK_OK;
 				_mode_req.req = Topic::ACK_RTH;
 				MsgBroker::publish("/mode", &_mode_req, sizeof(Topic::AckData_t));

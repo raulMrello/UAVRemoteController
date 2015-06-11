@@ -4,10 +4,17 @@
  *  Created on: 06/06/2015
  *      Author: raulMrello
  *
- *  State define a simple StateMachine which handles different events. An event can be handled or
- *	delegated to a parent State if provided.
- *	Entering a State implies to execute "entry" action.
- *	Event handling can result in a State transition, in that case "exit" action must be executed.
+ *  State es un módulo que permite la implementación de máquinas de estados jerárquicas (HSM). Para crear
+ *  una máquina de estados es necesario implementar la clase abstracta Hsm y añadir tantos estados como se
+ *  deseen. Cada estado debe implementarse como una clase derivada de la clase abstracta State. Además tanto
+ *  la máquina de estados como los propios estados deben activar los eventos a los que reaccionarán.
+ *  Los eventos son objetos de la clase Event que además pueden especializarse creando clases derivadas para
+ *  añadir más parámetros a un evento de un tipo concreto.
+ *  
+ *  Para que un estado pueda funcionar de forma correcta es necesario crearlo con dos parámetros fundamentales:
+ *	- State *parent : estado padre que procesará los eventos que él mismo no tenga registrados.
+ *  - void  *xif    : un interface que proporciona acceso a datos y métodos comunes con los que trabajar.
+ *
  */
 
 #ifndef STATE_H_
@@ -31,15 +38,12 @@ namespace hsm {
 /***** Event ***************************************************************************************/	
 /***************************************************************************************************/	
 
+
 /** \enum Signals
  *  \brief Signal enumeration. Users can extend them from USER_SIG value. These are reserved.
  */
 enum Signals {
-	INIT_SIG = 0,
-	ENTRY_SIG,		        /**< evento de entrada */
-	EXIT_SIG,               /**< evento de salida */
-	TIMEOUT_SIG,			/**< evento de timeout */
-	USER_SIG                /**< primer evento libre para el usuario */
+	USER_SIG=1                /**< primer evento libre para el usuario */
 };	
 	
 /** \class Event
@@ -98,7 +102,6 @@ public:
 	}
 private:
 	uint32_t _sig;	
-
 	mbed::FunctionPointerArg1<S*, Event* > *_handler;
 };
 
@@ -107,8 +110,8 @@ private:
 /***** State ***************************************************************************************/	
 /***************************************************************************************************/	
 
-#define DONE(s)			{_fexit = false; return(s);}
-#define TRAN(s)			{_fexit = true;  return(s);}
+#define DONE()			return((State*)0)
+#define TRAN(s)			return(s)
 	
 	
 /** \class State
@@ -118,7 +121,6 @@ class State{
  public:	 
 	 /** Constructor */
 	State(State * parent = (State*)0, void * xif = 0){ 
-		_fexit = false;
 		_parent = parent; 
 		_xif = xif;
 		_handlers = new List<EventHandler<State > >();
@@ -127,12 +129,6 @@ class State{
 	/** Interface for inheritance */
 	virtual State* entry()=0;
 	virtual void exit()=0;
-
-	/** Starts Initialization */
-	State * init(){
-		State* next = dispatch(0);
-		DONE(next);
-	}
 	
     /** Attach an event handler
      *	@param sig Event signal
@@ -156,15 +152,17 @@ class State{
     /** Dispatches an event. If no handler found then delegates to parent
      *	@param e Event
      */
-	State* dispatch(Event * e, bool delegated = false){
-		State* next;
+	State* dispatch(Event * e){
+		State *next, *st = this;
 		// If no event then is Entry trigger 
 		if(!e){
 			next = entry();
-			if(!delegated){
-				DONE(next);
+			while(next && next != st){
+				st->exit();
+				st = next;
+				next = st->entry();
 			}
-			DONE(this);
+			return st;
 		}
 		// else, search an event handler
 		EventHandler<State > * handler = getFirstHandler(); 
@@ -174,23 +172,14 @@ class State{
 				continue;
 			}
 			next = handler->dispatch(e);
-			if(_fexit){
-				if(!delegated){
-					_fexit = false;
-				}
-				exit();
-			}
-			DONE(next);
+			return next;
 		}
 		// only reaches this point if no event handler found
 		if(_parent){
-			next = _parent->dispatch(e, true);
-			if(_fexit){
-				_fexit = false;
-				DONE(next);
-			}
+			next = _parent->dispatch(e);
+			return next;
 		}
-		DONE(this);
+		return (State*)0;
 	}
 
 	
@@ -198,7 +187,6 @@ class State{
 	List<EventHandler<State > > *_handlers;
 	State* _parent;
 	void * _xif;	// External interface object
-	bool   _fexit;
 };
 
 
@@ -214,10 +202,6 @@ public:
 		_state = this;
 	}
 	 
-	/** Interface for inheritance */
-//	virtual State* entry()=0;
-//	virtual void exit()=0;
-
 	void attachState(State* st){
 		HSM_MUTEX_LOCK(_mutex);
 		_states->addItem(st);
@@ -228,6 +212,13 @@ public:
 		HSM_MUTEX_LOCK(_mutex);
 		_events->addItem(e);
 		HSM_MUTEX_UNLOCK(_mutex);
+	}	
+
+	/** Starts Initialization */
+	State * init(){
+		State* next = dispatch(0);
+		_state = (next)? next : this;
+		return _state;
 	}
 	
 	State* dispatchEvents(){
@@ -235,30 +226,22 @@ public:
 		Event* ev = (Event*) _events->getFirstItem(); 
 		while(ev){
 			State* next = _state->dispatch(ev);
-			while(next != _state){
+			while(next && next != _state){
+				_state->exit();
 				_state = next;
-				next = _state->dispatch(0);				
+				next = _state->entry();				
 			}
 			HSM_MUTEX_LOCK(_mutex);
 			_events->removeItem(ev);
 			HSM_MUTEX_UNLOCK(_mutex);
 			ev = (Event*) _events->getFirstItem(); 	
 		}
-		DONE(_state);
-	}
-	
-	void setActiveState(State* s){
-		_state = s;
-	}
-	State* getActiveState(){
 		return _state;
 	}
-
 	
  protected:
 	List<State > *_states;
 	List<Event > *_events;
- private:
  	State* 			_state;	
 	HSM_MUTEX_OBJ	_mutex;
 };

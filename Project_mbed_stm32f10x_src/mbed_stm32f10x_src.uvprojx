@@ -616,6 +616,11 @@
               <FileType>5</FileType>
               <FilePath>.\hsm-api\State.h</FilePath>
             </File>
+            <File>
+              <FileName>TemplateHsm.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hsm-api\TemplateHsm.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2581,6 +2586,11 @@
               <FileName>State.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\hsm-api\State.h</FilePath>
+            </File>
+            <File>
+              <FileName>TemplateHsm.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hsm-api\TemplateHsm.h</FilePath>
             </File>
           </Files>
         </Group>

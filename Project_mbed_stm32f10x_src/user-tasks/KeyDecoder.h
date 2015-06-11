@@ -60,7 +60,7 @@ public:
 		}
 		// Implementaciones entry/exit
 		virtual State* entry(){
-			DONE(this);
+			DONE();//DONE(this);
 		}
 		virtual void exit(){
 		}	
@@ -81,7 +81,7 @@ public:
 		}
 		// Implementaciones entry/exit
 		virtual State* entry(){
-			DONE(this);
+			DONE();//DONE(this);
 		}
 		
 		virtual void exit(){
@@ -109,7 +109,7 @@ public:
 		}
 		// Implementaciones entry/exit
 		virtual State* entry(){
-			DONE(this);
+			DONE();//DONE(this);
 		}
 		virtual void exit(){
 		}	
@@ -121,8 +121,7 @@ public:
 	
 	// Implementaciones entry/exit
 	virtual State* entry(){
-		setActiveState(stInactive->init());
-		DONE(getActiveState());
+		TRAN(stInactive);
 	}
 	virtual void exit(){
 	}	
