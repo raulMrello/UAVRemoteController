@@ -22,7 +22,6 @@ Las funciones principales del equipo son:
 - El cambio de modo en SysManager funciona bien.
 - Actualizo el modelo y el código fuente para que sólo envíe publicaciones (StManual, StFollow) si el flag confirmed es true.
 - POR HACER:
-  - Tengo que definir bien los tópicos y eventos, que tengo un buen cacao montado.
   - NO PITA EL BUZZER.
   - Verificar módulo GPSReader y VirtualReceiver
 
