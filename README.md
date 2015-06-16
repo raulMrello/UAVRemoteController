@@ -18,6 +18,15 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 16.06.2015-001 
+- El cambio de modo en SysManager funciona bien.
+- Actualizo el modelo y el código fuente para que sólo envíe publicaciones (StManual, StFollow) si el flag confirmed es true.
+- POR HACER:
+  - Tengo que definir bien los tópicos y eventos, que tengo un buen cacao montado.
+  - NO PITA EL BUZZER.
+  - Verificar módulo GPSReader y VirtualReceiver
+
+  
 ##### 11.06.2015-003 
 - Verificando SysManager (eventos KeyTimeout, ya funcionan seguir probando teclas). 
 - POR HACER:

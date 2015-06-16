@@ -265,6 +265,10 @@ void SysManager::setLeds(uint8_t leds_mode, uint8_t tmp_mode){
 			ledStop(_rth_ch);	
 			break;
 		case LEDS_PENDING:
+			ledStop(_arm_ch);
+			ledStop(_loc_ch);
+			ledStop(_alt_ch);
+			ledStop(_rth_ch);	
 			if(_state == stDisarmed || _state == this){
 				ledStart(_arm_ch, LedFlasher::CONTINUOUS_FAST_FLASHING);
 			}
@@ -279,6 +283,10 @@ void SysManager::setLeds(uint8_t leds_mode, uint8_t tmp_mode){
 			}
 			break;
 		case LEDS_CONFIRMED:
+			ledStop(_arm_ch);
+			ledStop(_loc_ch);
+			ledStop(_alt_ch);
+			ledStop(_rth_ch);	
 			if(_state == stDisarmed || _state == this){
 				ledStart(_arm_ch, LedFlasher::ON_FOREVER);
 			}
@@ -293,49 +301,35 @@ void SysManager::setLeds(uint8_t leds_mode, uint8_t tmp_mode){
 			}
 			break;
 		case LEDS_SELECT:
+			ledStart(_arm_ch, LedFlasher::ON_FOREVER);
+			ledStart(_loc_ch, LedFlasher::ON_FOREVER);
+			ledStart(_alt_ch, LedFlasher::ON_FOREVER);
+			ledStart(_rth_ch, LedFlasher::ON_FOREVER);
 			if(tmp_mode == MODE_DISARMED){
 				ledStart(_arm_ch, LedFlasher::SLOW_FLASHING);	
-				ledStart(_loc_ch, LedFlasher::ON_FOREVER);
-				ledStart(_alt_ch, LedFlasher::ON_FOREVER);
-				ledStart(_rth_ch, LedFlasher::ON_FOREVER);
 			}
 			else if(tmp_mode == MODE_MANUAL){
 				ledStart(_alt_ch, LedFlasher::SLOW_FLASHING);	
-				ledStart(_loc_ch, LedFlasher::ON_FOREVER);
-				ledStart(_arm_ch, LedFlasher::ON_FOREVER);
-				ledStart(_rth_ch, LedFlasher::ON_FOREVER);	
 			}
 			else if(tmp_mode == MODE_FOLLOW){
 				ledStart(_loc_ch, LedFlasher::SLOW_FLASHING);	
-				ledStart(_alt_ch, LedFlasher::ON_FOREVER);
-				ledStart(_arm_ch, LedFlasher::ON_FOREVER);
-				ledStart(_rth_ch, LedFlasher::ON_FOREVER);	
 			}
 			else if(tmp_mode == MODE_RTH){
 				ledStart(_rth_ch, LedFlasher::SLOW_FLASHING);	
-				ledStart(_alt_ch, LedFlasher::ON_FOREVER);
-				ledStart(_arm_ch, LedFlasher::ON_FOREVER);
-				ledStart(_loc_ch, LedFlasher::ON_FOREVER);	
 			}
 			break;
 		case LEDS_ERROR:
-			if(tmp_mode == Topic::ACK_MISSING_RESPONSE){
-				ledStart(_rth_ch, LedFlasher::SLOW_FLASHING);	
-				ledStart(_alt_ch, LedFlasher::SLOW_FLASHING);
-				ledStart(_arm_ch, LedFlasher::SLOW_FLASHING);
-				ledStart(_loc_ch, LedFlasher::SLOW_FLASHING);				
-			}
-			else if(tmp_mode == Topic::ACK_WRONG_RESPONSE){
-				ledStart(_rth_ch, LedFlasher::SINGLE_FAST_FLASHING);	
-				ledStart(_alt_ch, LedFlasher::SINGLE_FAST_FLASHING);
-				ledStart(_arm_ch, LedFlasher::SINGLE_FAST_FLASHING);
-				ledStart(_loc_ch, LedFlasher::SINGLE_FAST_FLASHING);	
-			}
-			else if(tmp_mode == Topic::ACK_TIMEOUT){
+			if(tmp_mode == Topic::ACK_TIMEOUT){
 				ledStart(_rth_ch, LedFlasher::DUAL_FAST_FLASHING);	
 				ledStart(_alt_ch, LedFlasher::DUAL_FAST_FLASHING);
 				ledStart(_arm_ch, LedFlasher::DUAL_FAST_FLASHING);
 				ledStart(_loc_ch, LedFlasher::DUAL_FAST_FLASHING);	
+			}
+			else{
+				ledStart(_rth_ch, LedFlasher::SINGLE_FAST_FLASHING);	
+				ledStart(_alt_ch, LedFlasher::SINGLE_FAST_FLASHING);
+				ledStart(_arm_ch, LedFlasher::SINGLE_FAST_FLASHING);
+				ledStart(_loc_ch, LedFlasher::SINGLE_FAST_FLASHING);	
 			}
 			break;
 	}

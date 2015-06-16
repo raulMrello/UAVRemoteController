@@ -213,19 +213,21 @@ public:
 				((SysManager*)_xif)->setLeds(SysManager::LEDS_PENDING);
 				((SysManager*)_xif)->publish(SysManager::PUB_MODE);
 			}
-			DONE();//DONE(this);
+			DONE();
 		}
 		virtual void exit(){
 		}	
 		// Manejadores de eventos
 		State* onOkA(Event* e){
-			((SysManager*)_xif)->setBeep(SysManager::BEEP_KEY);
-			((SysManager*)_xif)->publish(SysManager::PUB_PROFILE);
-			DONE();//DONE(this);
+			if(((SysManager*)_xif)->_confirmed){
+				((SysManager*)_xif)->setBeep(SysManager::BEEP_KEY);
+				((SysManager*)_xif)->publish(SysManager::PUB_PROFILE);
+			}
+			DONE();
 		}
 		State* onJoystick(Event* e){
 			((SysManager*)_xif)->setJoystick(e);
-			DONE();//DONE(this);
+			DONE();
 		}
 	};friend class StFollow;		
 	
@@ -251,7 +253,9 @@ public:
 		}	
 		// Manejadores de eventos
 		State* onJoystick(Event* e){
-			((SysManager*)_xif)->publish(SysManager::PUB_RC);
+			if(((SysManager*)_xif)->_confirmed){
+				((SysManager*)_xif)->publish(SysManager::PUB_RC);
+			}
 			DONE();
 		}
 	};friend class StManual;	
@@ -337,8 +341,8 @@ public:
 
 	// Constantes
 	static const uint8_t MODE_DISARMED = 0;
-	static const uint8_t MODE_MANUAL = 1;
-	static const uint8_t MODE_FOLLOW = 2;
+	static const uint8_t MODE_FOLLOW = 1;
+	static const uint8_t MODE_MANUAL = 2;
 	static const uint8_t MODE_RTH = 3;
 	
 	static const uint8_t BEEP_PENDING = 0;
