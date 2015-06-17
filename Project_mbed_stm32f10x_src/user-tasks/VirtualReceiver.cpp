@@ -7,6 +7,7 @@
 
 #include "VirtualReceiver.h"
 
+
 //------------------------------------------------------------------------------------
 //-- PRIVATE TYPEDEFS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
@@ -23,9 +24,7 @@ enum Status{
 	START_AP_SERVER,
 	SET_AP_TIMEOUT,
 	GET_AP_LIST,
-	CHECK_AP_EXISTS,
 	CONNECT_TO_AP,
-	CHECK_AP_CONNECTION,
 	START_TCP_CLIENT,
 	CLOSE_TCP_CONNECTION,
 	CHECK_TCP_STATUS,
@@ -86,34 +85,24 @@ static ProtocolAction actions[] = {
 	 SET_AP_TIMEOUT},
 	
 	{"AT+CWLAP", 		
-	 "", 		 
-	 CHECK_AP_EXISTS, 
-	 GET_AP_LIST},
-	
-	{"", 		
 	 "EAGLE-TELEMETRY", 		 
 	 CONNECT_TO_AP, 
 	 GET_AP_LIST},
-	
+		
 	{"AT+CWJAP=\"EAGLE-TELEMETRY\",\"eagleQUAD\"", 		
-	 "", 		 
-	 CHECK_AP_CONNECTION, 
-	 CONNECT_TO_AP},
-	
-	{"AT+CWJAP?", 		
-	 "+CWJAP:\"EAGLE-TELEMETRY\"", 		 
+	 "AT+CWJAP=\"EAGLE-TELEMETRY\",\"eagleQUAD\"", 		 
 	 START_TCP_CLIENT, 
-	 CHECK_AP_CONNECTION},
+	 CONNECT_TO_AP},
 	
 	{"AT+CIPSTART=4,\"TCP\",\"192.168.7.10\",80", 		
 	 "4,CONNECT", 		 
 	 CHECK_TCP_STATUS, 
-	 START_TCP_CLIENT},
+	 CLOSE_TCP_CONNECTION},
 	
 	{"AT+CIPCLOSE=4", 		
 	 "CLOSE", 		 
-	 CHECK_AP_CONNECTION, 
-	 CHECK_AP_CONNECTION},
+	 CONNECT_TO_AP, 
+	 GET_AP_LIST},
 	
 	{"AT+CIPSTATUS", 		
 	 "+CIPSTATUS:4,\"TCP\",\"192.168.7.10\",80,0", 		 
@@ -279,7 +268,7 @@ void VirtualReceiver::run(){
 		osEvent oe = _th->signal_wait_or(_signals, _timeout);
 		// if timeout...
 		if(oe.status == osEventTimeout){
-			#warning TODO........
+			//TODO
 		}
 		if(oe.status == osEventSignal && (oe.value.signals & TIMER_EV_READY) != 0){	
 			_th->signal_clr(TIMER_EV_READY);
@@ -359,10 +348,6 @@ int8_t VirtualReceiver::updateStatus(int8_t stat){
 	uint8_t next_mode = INITIALIZING;
 	_status = stat;
 	switch(_status){
-		case CHECK_AP_EXISTS:{
-			_th->signal_set(VR_EV_DATAEND);
-			return _status;
-		}
 		case FINISH_TCP_DATA:
 			send();
 			// continue below...
@@ -378,6 +363,10 @@ int8_t VirtualReceiver::updateStatus(int8_t stat){
 				strcat(cmd, len);
 				send(cmd);
 			}
+			// espera a recibir todas las wifis
+			else if((_status == GET_AP_LIST && _errcount > 0) || (_status == CHECK_TCP_STATUS && _mode == READY)){
+				return _status;
+			}
 			else{
 				send(actions[_status].at_cmd);
 			}
@@ -387,9 +376,15 @@ int8_t VirtualReceiver::updateStatus(int8_t stat){
 	
 	// update waiting signals according with operational mode
 	if(_mode == INITIALIZING && next_mode == READY){
-		_mode = READY;
+		_mode = READY;		
 		_signals |= (GPS_EV_READY | KEY_EV_READY | TIMER_EV_READY);
 		_th->signal_clr(GPS_EV_READY | KEY_EV_READY | TIMER_EV_READY);
+		// notifica sistema enlazado y listo.
+		Topic::AckData_t topic;
+		topic.ackCode = Topic::ACK_OK;
+		topic.req = Topic::ACK_START;
+		MsgBroker::publish("/ack", &topic, sizeof(Topic::AckData_t));
+		
 		_tcptmr->start(TIME_TO_CHECK_TCP_STAT);
 	}
 	else if(_mode == READY && next_mode == INITIALIZING){

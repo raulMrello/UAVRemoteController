@@ -18,6 +18,14 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 17.06.2015-001 
+- Módulo KeyDecoder, GpsReader, SysManager terminados!!!
+- Módulo VirtualReceiver funciona bien hasta el arranque del socket TCP y envía el topic /ack la primera vez que establece conexión.
+- POR HACER:
+  - NO PITA EL BUZZER.
+  - Modificar VirtualReceiver para que se comporte como una máquina de estados y pueda gestionar el funcionamiento de forma más sencilla (hacer modelo).
+
+  
 ##### 16.06.2015-001 
 - El cambio de modo en SysManager funciona bien.
 - Actualizo el modelo y el código fuente para que sólo envíe publicaciones (StManual, StFollow) si el flag confirmed es true.

@@ -46,6 +46,7 @@
 #include "State.h"
 using namespace hsm;
 
+
 //------------------------------------------------------------------------------------
 //-- TYPEDEFS ------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
@@ -88,6 +89,7 @@ public:
 	//------- STATE MACHINE -------
 	//-----------------------------
 	
+	//-------------------------------------------------------------------------
 	
 	class StError : public State{
 	public:
@@ -111,6 +113,7 @@ public:
 		}
 	};friend class StError;	
 	
+	//-------------------------------------------------------------------------
 	
 	class StSelect : public State{
 	public:
@@ -174,6 +177,7 @@ public:
 		uint8_t tmp;
 	};friend class StSelect;		
 	
+	//-------------------------------------------------------------------------
 	
 	class StDisarmed : public State{
 	public:
@@ -195,7 +199,7 @@ public:
 		}	
 	};friend class StDisarmed;		
 	
-	
+	//-------------------------------------------------------------------------
 	
 	class StFollow : public State{
 	public:
@@ -231,6 +235,7 @@ public:
 		}
 	};friend class StFollow;		
 	
+	//-------------------------------------------------------------------------
 	
 	class StManual : public State{
 	public:
@@ -260,6 +265,7 @@ public:
 		}
 	};friend class StManual;	
 	
+	//-------------------------------------------------------------------------
 	
 	class StRth : public State{
 	public:
@@ -289,6 +295,8 @@ public:
 		}
 	};friend class StRth;		
 	
+	//-------------------------------------------------------------------------
+	
 	// Implementaciones entry/exit
 	virtual State* entry(){		
 		_confirmed = false;
@@ -316,6 +324,11 @@ public:
 	}
 	State* onNack(Event* e){
 		TRAN(stError);
+	}
+	State* onGps(Event* e){
+		GpsEvent * ev = (GpsEvent*)e;
+		memcpy(&_gpsdata, &ev->gpsdata, sizeof(Topic::GpsData_t));
+		DONE();
 	}
 	
 	// Estados
@@ -371,6 +384,7 @@ protected:
 	Topic::AckData_t _mode_req;			///< Topic para publicar mode request del topic "/mode"
 	Topic::JoystickData_t _joysticks;	///< Topic para publicar topics /rc
 	Topic::ProfileData_t _profile;		///< Topic para publicar topics /profile
+	Topic::GpsData_t _gpsdata;			///< Topic recibido con la última localización
 
 	
 	// Interfaces
@@ -413,6 +427,7 @@ public:
 		attach(SysManager::evHoldB, this, (State* (State::*)(Event*))&SysManager::onHoldB);
 		attach(SysManager::evNack, this, (State* (State::*)(Event*))&SysManager::onNack);
 		attach(SysManager::evStart, this, (State* (State::*)(Event*))&SysManager::onStart);
+		attach(SysManager::evGps, this, (State* (State::*)(Event*))&SysManager::onGps);
 		
 		// setup led flasher channels
 		_arm_ch = addLedChannel(led_arm);

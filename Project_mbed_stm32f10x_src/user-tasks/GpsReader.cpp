@@ -47,7 +47,18 @@ Thread * GpsReader::getThread() {
 
 //------------------------------------------------------------------------------------
 void GpsReader::RxISRCallback(void){
-	_th->signal_set(GPS_EV_DATAREADY);
+	// reads data and pass to gps processor
+	uint8_t data = (uint8_t) _serial->getc();
+	if(_mode == GPS_MODE_UBX){
+		if(ublox.Read(data) == GPS_UBLOX::OK){
+			_th->signal_set(GPS_EV_DATAREADY);
+		}
+	}
+	else if(_mode == GPS_MODE_NMEA){
+		if(nmea.Read(data) == GPS_NMEA::OK){
+			_th->signal_set(GPS_EV_DATAREADY);
+		}
+	}
 }
 
 //------------------------------------------------------------------------------------
@@ -62,12 +73,14 @@ void GpsReader::run(){
 	}
 	// Attaches to installed serial peripheral
 	_serial->attach(this, &GpsReader::RxISRCallback, (SerialBase::IrqType)RxIrq);
-	_serial->attach(this, &GpsReader::TxISRCallback, (SerialBase::IrqType)TxIrq);
+//	_serial->attach(this, &GpsReader::TxISRCallback, (SerialBase::IrqType)TxIrq);
 	
 	// Starts execution 
 	for(;;){
 		// Wait incoming data forever ... 
-		osEvent oe = _th->signal_wait(GPS_EV_DATAREADY, GPS_TIMEOUT);
+		// máxima cadencia de envío 5s.
+		Thread::wait(5000);
+		osEvent oe = _th->signal_wait_or(GPS_EV_DATAREADY, GPS_TIMEOUT);
 		// on timeout notify gps error
 		if(oe.status == osEventTimeout){
 			MsgBroker::Exception e = MsgBroker::NO_ERRORS;
@@ -79,11 +92,12 @@ void GpsReader::run(){
 			continue;
 		}
 		_th->signal_clr(GPS_EV_DATAREADY);
-		while(_serial->readable()){
-			uint8_t data;
-			// reads data and pass to gps processor
-			data = (uint8_t) _serial->getc();
-			if(ublox.Read(data) == GPS_UBLOX::OK){
+//		while(_serial->readable()){
+//			uint8_t data;
+//			// reads data and pass to gps processor
+//			data = (uint8_t) _serial->getc();
+//			if(ublox.Read(data) == GPS_UBLOX::OK){
+			if(_mode == GPS_MODE_UBX){
 				MsgBroker::Exception e = MsgBroker::NO_ERRORS;
 				_gpsdata.time = (float)ublox.Time;
 				_gpsdata.lat = (float)ublox.Lattitude;
@@ -101,7 +115,8 @@ void GpsReader::run(){
 				}
 				continue;
 			}
-			if(nmea.Read(data) == GPS_NMEA::OK){
+//			if(nmea.Read(data) == GPS_NMEA::OK){
+			else {
 				MsgBroker::Exception e = MsgBroker::NO_ERRORS;
 				_gpsdata.time = (float)nmea.Time;
 				_gpsdata.lat = (float)nmea.Lattitude;
@@ -117,7 +132,7 @@ void GpsReader::run(){
 				if(e != MsgBroker::NO_ERRORS){
 					// TODO: add error handling ...
 				}
-			}
+//			}
 		}
 	}	
 }

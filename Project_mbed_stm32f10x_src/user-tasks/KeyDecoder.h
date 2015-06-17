@@ -52,6 +52,8 @@ public:
 	//------- STATE MACHINE -------
 	//-----------------------------
 	
+	//-------------------------------------------------------------------------
+	
 	class StInactive : public State{
 	public:
 		StInactive(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
@@ -71,6 +73,8 @@ public:
 			TRAN(((KeyDecoder*)_parent)->stPressed);
 		}
 	};friend class StInactive;
+	
+	//-------------------------------------------------------------------------
 	
 	class StPressed : public State{
 	public:
@@ -101,6 +105,8 @@ public:
 		}
 	};friend class StPressed;
 	
+	//-------------------------------------------------------------------------
+	
 	class StHold : public State{
 	public:
 		StHold(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
@@ -118,6 +124,8 @@ public:
 			TRAN(((KeyDecoder*)_parent)->stInactive);
 		}
 	};friend class StHold;
+	
+	//-------------------------------------------------------------------------
 	
 	// Implementaciones entry/exit
 	virtual State* entry(){
