@@ -18,6 +18,15 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 17.06.2015-002 
+- Creo rama virtual_telem para modificar el comportamiento de VirtualTelemetry como una máquina de estados. 
+- Módulo KeyDecoder, GpsReader, SysManager terminados!!!
+- Módulo VirtualReceiver funciona bien hasta el arranque del socket TCP y envía el topic /ack la primera vez que establece conexión.
+- POR HACER:
+  - NO PITA EL BUZZER.
+  - Modificar VirtualReceiver para que se comporte como una máquina de estados y pueda gestionar el funcionamiento de forma más sencilla (hacer modelo).
+
+  
 ##### 17.06.2015-001 
 - Módulo KeyDecoder, GpsReader, SysManager terminados!!!
 - Módulo VirtualReceiver funciona bien hasta el arranque del socket TCP y envía el topic /ack la primera vez que establece conexión.
