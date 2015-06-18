@@ -39,6 +39,7 @@ namespace Topic {
 	};
 	enum AckReqEnum {
 		ACK_START = 0,				///< Ack to start operation
+		ACK_FINISH,					///< Ack to stop operation
 		ACK_DISARMED,				///< Ack to disarm mode request
 		ACK_FOLLOW,					///< Ack to follow mode request
 		ACK_MANUAL,					///< Ack to manual mode request

@@ -41,6 +41,10 @@ int main() {
 	MsgBroker::installTopic("/joys", sizeof(Topic::JoystickData_t));
 	MsgBroker::installTopic("/ack", sizeof(Topic::AckData_t));
 	MsgBroker::installTopic("/profile", sizeof(Topic::ProfileData_t));
+	// topics published by SysManager (and consumed by VirtualReceiver)
+	MsgBroker::installTopic("/mode", sizeof(Topic::AckData_t));
+	MsgBroker::installTopic("/loc", sizeof(Topic::GpsData_t));
+	MsgBroker::installTopic("/rc", sizeof(Topic::JoystickData_t));
 	
 	/** Start scheduling */
 	

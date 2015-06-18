@@ -18,6 +18,13 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 18.06.2015-001 
+- Modificado VirtualReceiver y realizando depuración paso a paso. Hay veces que lo resetea y pasa de _status 1 a 5. Ver por qué. 
+- Modificados los tópicos. Revisarlos todos y hacer un croquis.
+- POR HACER:
+  - NO PITA EL BUZZER.
+
+  
 ##### 17.06.2015-002 
 - Creo rama virtual_telem para modificar el comportamiento de VirtualTelemetry como una máquina de estados. 
 - Módulo KeyDecoder, GpsReader, SysManager terminados!!!
