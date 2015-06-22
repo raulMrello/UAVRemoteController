@@ -18,6 +18,14 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 22.06.2015-001 
+- VirtualReceiver envía y recibe datos. Modifico su protocolo de reinicio tras evError.
+- Activo todo el código. 
+- POR HACER:
+  - NO PITA EL BUZZER.
+  - Revisar los topics entre los módulos haciendo un croquis en models.
+
+  
 ##### 18.06.2015-001 
 - Modificado VirtualReceiver y realizando depuración paso a paso. Hay veces que lo resetea y pasa de _status 1 a 5. Ver por qué. 
 - Modificados los tópicos. Revisarlos todos y hacer un croquis.

@@ -53,20 +53,11 @@ int main() {
 	
 	/** Start tasks */
 	
-	#warning ACTIVAR PASO A PASO.....
-	/*
 	KeyDecoder *kd = new KeyDecoder(osPriorityHigh, &joys_A_Ok, &joys_B_Ok, &key_ARM, &key_LOC, &key_ALT, &key_RTH, &joys_A1, &joys_A2, &joys_B1, &joys_B2);
 	SysManager *sm = new SysManager(osPriorityNormal, &led_arm, &led_loc, &led_alt, &led_rth, &buzzer);
 	GpsReader *gr = new GpsReader(osPriorityAboveNormal, GpsReader::GPS_MODE_UBX, &gps);
-	Thread::wait(2000);
-	Topic::AckData_t topic;
-	topic.ackCode = Topic::ACK_OK;
-	topic.req = Topic::ACK_START;
-	MsgBroker::publish("/ack", &topic, sizeof(Topic::AckData_t));
-	*/
 	VirtualReceiver *vr = new VirtualReceiver(osPriorityAboveNormal, &lnk, &lnk_rst);
-	
-	
+		
 	/** main is lowest priority task, hence manage low power conditions */
     while(1) {
         /** Low power management */

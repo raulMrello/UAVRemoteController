@@ -177,7 +177,7 @@ public:
 		
 		// Implementaciones entry/exit
 		virtual State* entry(){
-			((VirtualReceiver*)_xif)->updateStatusOk();
+			((VirtualReceiver*)_xif)->updateStatus(VirtualReceiver::CLOSE_TCP_CONNECTION);
 			DONE();
 		}
 		
@@ -205,6 +205,8 @@ public:
 		// Implementaciones entry/exit
 		virtual State* entry(){
 			((VirtualReceiver*)_xif)->enableTopics();
+			strcpy((char*)((VirtualReceiver*)_xif)->_txbuf.data, "HOLA");
+			((VirtualReceiver*)_xif)->saveData(((VirtualReceiver*)_xif)->_txbuf.data, strlen((const char*)((VirtualReceiver*)_xif)->_txbuf.data), true);
 			TRAN(((VirtualReceiver*)_xif)->stWaitingData);
 		}
 		
@@ -224,7 +226,7 @@ public:
 		State* onError(Event* e){
 			((VirtualReceiver*)_xif)->_errcount = 0;
 			((VirtualReceiver*)_xif)->disableTopics();
-			TRAN(((VirtualReceiver*)_xif)->stConnectTcp);			
+			TRAN(((VirtualReceiver*)_xif)->stDisconnectTcp);			
 		}
 		
 	};friend class StConnected;	
@@ -320,14 +322,20 @@ public:
 		
 		// Manejadores de eventos
 		State* onAck(Event* e){
-			((VirtualReceiver*)_xif)->eraseData();
+			// if data sent, then finish
+			if(((VirtualReceiver*)_xif)->_txbuf.count > 0){
+				((VirtualReceiver*)_xif)->_txbuf.count = 0;
+				((VirtualReceiver*)_xif)->updateStatusOk();
+				DONE();
+			}
+			// si los datos se han finalizado, notificar envío
 			((VirtualReceiver*)_xif)->notifyAck();
 			TRAN(((VirtualReceiver*)_xif)->stWaitingData);
 		}
 		State* onNack(Event* e){
 			if(((VirtualReceiver*)_xif)->_errcount < VirtualReceiver::ERR_COUNT_LIMIT){
 				((VirtualReceiver*)_xif)->_errcount++;
-				((VirtualReceiver*)_xif)->sendData();
+				((VirtualReceiver*)_xif)->updateStatus();
 				DONE();
 			}
 			((Hsm*)((VirtualReceiver*)_xif))->raiseEvent(new Event(VirtualReceiver::evError));
@@ -411,7 +419,7 @@ protected:
 
 	// interfaces
 	bool getData();
-	void saveData(void * data, int size);
+	void saveData(void * data, int size, bool pre_filled=false);
 	void updateStatus(int8_t stat = THIS_MODE);
 	void updateStatusOk();
 	void setTimeout(uint32_t timeout = ACK_TIMEOUT);

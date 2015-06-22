@@ -181,9 +181,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>140</LineNumber>
+          <LineNumber>359</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134234882</Address>
+          <Address>134234926</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -192,87 +192,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>user-tasks\VirtualReceiver.h</Filename>
           <ExecCommand></ExecCommand>
-          <Expression></Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>355</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134234828</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>user-tasks\VirtualReceiver.h</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\mbed_stm32f10x_src\user-tasks/VirtualReceiver.h\355</Expression>
-        </Bp>
-        <Bp>
-          <Number>2</Number>
-          <Type>0</Type>
-          <LineNumber>281</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134234228</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\user-tasks\VirtualReceiver.cpp</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\\user-tasks/VirtualReceiver.cpp\281</Expression>
-        </Bp>
-        <Bp>
-          <Number>3</Number>
-          <Type>0</Type>
-          <LineNumber>306</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134234430</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\user-tasks\VirtualReceiver.cpp</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\\user-tasks/VirtualReceiver.cpp\306</Expression>
-        </Bp>
-        <Bp>
-          <Number>4</Number>
-          <Type>0</Type>
-          <LineNumber>312</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134234484</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\user-tasks\VirtualReceiver.cpp</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\\user-tasks/VirtualReceiver.cpp\312</Expression>
-        </Bp>
-        <Bp>
-          <Number>5</Number>
-          <Type>0</Type>
-          <LineNumber>315</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134234488</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\user-tasks\VirtualReceiver.cpp</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\\user-tasks/VirtualReceiver.cpp\315</Expression>
+          <Expression>\\mbed_stm32f10x_src\user-tasks/VirtualReceiver.h\359</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -291,12 +211,17 @@
           <WinNumber>1</WinNumber>
           <ItemText>sm</ItemText>
         </Ww>
+        <Ww>
+          <count>3</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>end</ItemText>
+        </Ww>
       </WatchWindow1>
       <MemoryWindow1>
         <Mm>
           <WinNumber>1</WinNumber>
-          <SubType>8</SubType>
-          <ItemText>_rxbuf.data</ItemText>
+          <SubType>0</SubType>
+          <ItemText>0x2000152c</ItemText>
           <AccSizeX>0</AccSizeX>
         </Mm>
       </MemoryWindow1>
@@ -304,10 +229,18 @@
         <Mm>
           <WinNumber>2</WinNumber>
           <SubType>8</SubType>
-          <ItemText>sbuf</ItemText>
+          <ItemText>_rxbuf.data</ItemText>
           <AccSizeX>0</AccSizeX>
         </Mm>
       </MemoryWindow2>
+      <MemoryWindow3>
+        <Mm>
+          <WinNumber>3</WinNumber>
+          <SubType>8</SubType>
+          <ItemText>end</ItemText>
+          <AccSizeX>0</AccSizeX>
+        </Mm>
+      </MemoryWindow3>
       <Tracepoint>
         <THDelay>0</THDelay>
       </Tracepoint>
@@ -791,6 +724,22 @@
           <Number>18</Number>
           <Type>0</Type>
           <LineNumber>355</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>user-tasks\VirtualReceiver.h</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>19</Number>
+          <Type>0</Type>
+          <LineNumber>359</LineNumber>
           <EnabledFlag>1</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>

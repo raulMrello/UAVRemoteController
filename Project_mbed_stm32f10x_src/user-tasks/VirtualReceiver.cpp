@@ -40,9 +40,9 @@ ProtocolAction actions[] = {
 	
 	
 	{"AT+RST", 		//RESET_LINK
-	 "", 		 
+	 "ready", 		 
 	 VirtualReceiver::CHECK_MODE, 
-	 VirtualReceiver::CHECK_MODE},
+	 VirtualReceiver::RESET_LNK},
 	
 	
 	{"AT+CIPAP=\"192.168.8.10\",\"192.168.8.10\",\"255.255.255.0\"", 	// SET_AP_IP	
@@ -95,8 +95,8 @@ ProtocolAction actions[] = {
 	
 	{"AT+CIPCLOSE=4", 		// CLOSE_TCP_CONNECTION
 	 "CLOSE", 		 
-	 VirtualReceiver::CONNECT_TO_AP, 
-	 VirtualReceiver::GET_AP_LIST},
+	 VirtualReceiver::START_TCP_CLIENT, 
+	 VirtualReceiver::START_TCP_CLIENT},
 	
 	
 	{"AT+CIPSTATUS", 	// CHECK_TCP_STATUS	
@@ -285,7 +285,12 @@ void VirtualReceiver::run(){
 			if(strstr((char*)_rxbuf.data, "ready")){
 				raiseEvent(new Event(evReset));
 				continue;
-			}	
+			}
+			else if(strstr((char*)_rxbuf.data, "busy s")){
+				// wait completion
+				_rxbuf.count = 0;
+				continue;
+			}			
 			result = strstr((char*)_rxbuf.data, "+IPD,");
 			if(result){
 				char * end = strchr((char*)result, ':');
@@ -296,6 +301,7 @@ void VirtualReceiver::run(){
 				while(*end != ','){
 					_rdatasize = mult * (*end - 48);
 					mult *= 10;
+					end--;
 				}
 				raiseEvent(new Event(evRecv));
 				continue;
@@ -320,6 +326,8 @@ void VirtualReceiver::run(){
 
 //------------------------------------------------------------------------------------
 void VirtualReceiver::send(const char * atcmd){
+	// waits 500ms between transmissions
+	Thread::wait(500);
 	if(atcmd){
 		int size = strlen(atcmd);
 		_rxbuf.count = 0;_rxbuf.ovf = false;
@@ -342,6 +350,7 @@ void VirtualReceiver::send(const char * atcmd){
 
 //------------------------------------------------------------------------------------
 void VirtualReceiver::updateStatusOk(){
+	_errcount = 0;
 	updateStatus(actions[_status].next_stat_ok);
 }
 
@@ -363,7 +372,7 @@ void VirtualReceiver::updateStatus(int8_t stat){
 				send(cmd);
 			}
 			// espera a recibir todas las wifis
-			else if((_status == GET_AP_LIST && _errcount > 0) || (_status == CHECK_TCP_STATUS && _isConnected)){
+			else if((_status == GET_AP_LIST && _errcount > 0)){
 				return;
 			}
 			else{
@@ -409,15 +418,22 @@ void VirtualReceiver::notifyError(){
 
 //------------------------------------------------------------------------------------
 bool VirtualReceiver::getData(){
+	if(_txbuf.count > 0){
+		return true;
+	}
 	return false;
 }
 
 //------------------------------------------------------------------------------------
-void VirtualReceiver::saveData(void * data, int size){
+void VirtualReceiver::saveData(void * data, int size, bool pre_filled){
+	if(pre_filled && size > 0 && data == _txbuf.data){
+		_txbuf.count = size;
+	}
 }
 
 //------------------------------------------------------------------------------------
 void VirtualReceiver::sendData(){
+	updateStatus(SEND_TCP_DATA);
 }
 
 //------------------------------------------------------------------------------------
