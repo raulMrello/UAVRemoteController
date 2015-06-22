@@ -314,7 +314,7 @@ void SysManager::publish(uint8_t pub_mode){
 			}
 			break;
 		case PUB_RC:
-			MsgBroker::publish("/joys", &_joysticks, sizeof(Topic::JoystickData_t));
+			MsgBroker::publish("/rc", &_joysticks, sizeof(Topic::JoystickData_t));
 			break;
 		case PUB_PROFILE:
 			_profile.profile = Topic::PROFILE_NONE;
