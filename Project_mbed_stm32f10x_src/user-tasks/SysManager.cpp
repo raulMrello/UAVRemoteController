@@ -29,6 +29,7 @@ static void onKeyTimeout(void const * obj){
 
 static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
 	SysManager *me = (SysManager*)subscriber;
+	bool raised = false;
 	// si se recibe un update del topic /keyb...
 	if(strcmp(topicname, "/keyb") == 0){
 		// obtiene un puntero a los datos del topic con el formato correspondiente
@@ -36,17 +37,22 @@ static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
 		// chequea el tipo de topic y activa los eventos habilitados en este módulo
 		if(topic && topic->isHold && topic->data.keys.key_B_Ok){
 			((Hsm*)me)->raiseEvent(new Event(SysManager::evHoldB));
+			raised = true;
 		}
 		else if(topic && !topic->isHold && topic->data.keys.key_A_Ok){
 			((Hsm*)me)->raiseEvent(new Event(SysManager::evOkA));
+			raised = true;
 		}
 		else if(topic && !topic->isHold && topic->data.keys.key_B_Ok){
 			((Hsm*)me)->raiseEvent(new Event(SysManager::evOkB));
+			raised = true;
 		}
 		// marca el topic como consumido
 		MsgBroker::consumed("/keyb");
-		// activa la señal del thread para procesar el evento marcado
-		me->getThread()->signal_set(1);
+		if(raised){
+			// activa la señal del thread para procesar el evento marcado
+			me->getThread()->signal_set(1);
+		}
 		return;
 	}
 	// idem en el caso de recibir un topic /joys
@@ -60,10 +66,13 @@ static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
 			// copio los datos al evento creado
 			memcpy(&ev->joysticks, data, sizeof(Topic::JoystickData_t));
 			// lanzo evento a la máquina de estados
-			((Hsm*)me)->raiseEvent(ev);
-			// marco topic como consumido
-			MsgBroker::consumed("/joys");
-			// activo flag para para activar el thread
+			((Hsm*)me)->raiseEvent(ev);			
+			raised = true;
+		}
+		// marco topic como consumido
+		MsgBroker::consumed("/joys");		
+		if(raised){
+			// activa la señal del thread para procesar el evento marcado
 			me->getThread()->signal_set(1);
 		}
 		return;
@@ -79,10 +88,13 @@ static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
 			// copio los datos al evento creado
 			memcpy(&ev->gpsdata, data, sizeof(Topic::GpsData_t));
 			// lanzo evento a la máquina de estados
-			((Hsm*)me)->raiseEvent(ev);
-			// marco topic como consumido
-			MsgBroker::consumed("/gps");
-			// activo flag para para activar el thread
+			((Hsm*)me)->raiseEvent(ev);		
+			raised = true;			
+		}
+		// marco topic como consumido
+		MsgBroker::consumed("/gps");
+		if(raised){
+			// activa la señal del thread para procesar el evento marcado
 			me->getThread()->signal_set(1);
 		}
 		return;
@@ -95,10 +107,12 @@ static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
 		if(data && data->ackCode == Topic::ACK_OK && data->req != Topic::ACK_START){
 			// lanzo evento a la máquina de estados
 			((Hsm*)me)->raiseEvent(new SysManager::AckEvent(SysManager::evAck, data));			
+			raised = true;
 		}
 		else if(data && data->ackCode == Topic::ACK_OK && data->req == Topic::ACK_START){
 			// lanzo evento a la máquina de estados
 			((Hsm*)me)->raiseEvent(new Event(SysManager::evStart));			
+			raised = true;
 		}
 		else if(data && data->ackCode != Topic::ACK_OK){
 			// creo un evento tipo Nack (ver arriba)
@@ -107,11 +121,14 @@ static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
 			memcpy(&ev->nack, data, sizeof(Topic::AckData_t));
 			// lanzo evento a la máquina de estados
 			((Hsm*)me)->raiseEvent(ev);
+			raised = true;
 		}
 		// marco topic como consumido
 		MsgBroker::consumed("/ack");
-		// activo flag para para activar el thread
-		me->getThread()->signal_set(1);
+		if(raised){
+			// activa la señal del thread para procesar el evento marcado
+			me->getThread()->signal_set(1);
+		}
 		return;
 	}
 }
@@ -178,7 +195,7 @@ void SysManager::run(){
 //------------------------------------------------------------------------------------
 
 void SysManager::setJoystick(Event* e){
-	memcpy(&_joysticks, &((JoystickEvent*)e)->joysticks, sizeof(Topic::JoystickData_t));
+	memcpy(&_navdata.rcdata, &((JoystickEvent*)e)->joysticks, sizeof(Topic::JoystickData_t));
 }
 
 //------------------------------------------------------------------------------------
@@ -293,48 +310,56 @@ void SysManager::publish(uint8_t pub_mode){
 	switch(pub_mode){
 		case PUB_MODE:
 			if(_state == stDisarmed){
-				_mode_req.ackCode = Topic::ACK_OK;
-				_mode_req.req = Topic::ACK_DISARMED;
-				MsgBroker::publish("/mode", &_mode_req, sizeof(Topic::AckData_t));
+				_navdata.modedata.ackCode = Topic::ACK_OK;
+				_navdata.modedata.req = Topic::ACK_DISARMED;
+				_navdata.modeupd = true;
 			}
 			else if(_state == stManual){
-				_mode_req.ackCode = Topic::ACK_OK;
-				_mode_req.req = Topic::ACK_MANUAL;
-				MsgBroker::publish("/mode", &_mode_req, sizeof(Topic::AckData_t));
+				_navdata.modedata.ackCode = Topic::ACK_OK;
+				_navdata.modedata.req = Topic::ACK_MANUAL;
+				_navdata.modeupd = true;
 			}
 			else if(_state == stFollow){
-				_mode_req.ackCode = Topic::ACK_OK;
-				_mode_req.req = Topic::ACK_FOLLOW;
-				MsgBroker::publish("/mode", &_mode_req, sizeof(Topic::AckData_t));
+				_navdata.modedata.ackCode = Topic::ACK_OK;
+				_navdata.modedata.req = Topic::ACK_FOLLOW;
+				_navdata.modeupd = true;
 			}
 			else if(_state == stRth){
-				_mode_req.ackCode = Topic::ACK_OK;
-				_mode_req.req = Topic::ACK_RTH;
-				MsgBroker::publish("/mode", &_mode_req, sizeof(Topic::AckData_t));
+				_navdata.modedata.ackCode = Topic::ACK_OK;
+				_navdata.modedata.req = Topic::ACK_RTH;
+				_navdata.modeupd = true;
 			}
 			break;
+			
 		case PUB_RC:
-			MsgBroker::publish("/rc", &_joysticks, sizeof(Topic::JoystickData_t));
+			_navdata.rcdata.profile = 0;
+			_navdata.rcupd = true;
 			break;
+		
 		case PUB_PROFILE:
-			_profile.profile = Topic::PROFILE_NONE;
-			if(_joysticks.pitch > 75 && (_joysticks.roll > 35 && _joysticks.roll < 65))
-				_profile.pos = Topic::POS_FRONT;
-			else if((_joysticks.pitch > 50 && _joysticks.pitch < 90) && (_joysticks.roll > 50 && _joysticks.roll < 90))
-				_profile.pos = Topic::POS_FRONTRIGHT;
-			else if((_joysticks.pitch > 35 && _joysticks.pitch < 65) && (_joysticks.roll > 75))
-				_profile.pos = Topic::POS_RIGHT;
-			else if((_joysticks.pitch > 15 && _joysticks.pitch < 35) && (_joysticks.roll > 50 && _joysticks.roll < 90))
-				_profile.pos = Topic::POS_RIGHTBACK;
-			else if((_joysticks.pitch < 15) && (_joysticks.roll > 35 && _joysticks.roll < 65))
-				_profile.pos = Topic::POS_BACK;
-			else if((_joysticks.pitch > 15 && _joysticks.pitch < 35) && (_joysticks.roll > 15 && _joysticks.roll < 35))
-				_profile.pos = Topic::POS_BACKLEFT;
-			else if((_joysticks.pitch > 35 && _joysticks.pitch < 65) && (_joysticks.roll < 15))
-				_profile.pos = Topic::POS_LEFT;
-			else if((_joysticks.pitch > 65 && _joysticks.pitch < 90) && (_joysticks.roll > 15 && _joysticks.roll < 35))
-				_profile.pos = Topic::POS_LEFTFRONT;
-			MsgBroker::publish("/profile", &_profile, sizeof(Topic::JoystickData_t));
+			_navdata.rcdata.profile = 0;
+			if(_navdata.rcdata.pitch > 75 && (_navdata.rcdata.roll > 35 && _navdata.rcdata.roll < 65))
+				_navdata.rcdata.profile = 60;
+			else if((_navdata.rcdata.pitch > 50 && _navdata.rcdata.pitch < 90) && (_navdata.rcdata.roll > 50 && _navdata.rcdata.roll < 90))
+				_navdata.rcdata.profile = 7;
+			else if((_navdata.rcdata.pitch > 35 && _navdata.rcdata.pitch < 65) && (_navdata.rcdata.roll > 75))
+				_navdata.rcdata.profile = 15;
+			else if((_navdata.rcdata.pitch > 15 && _navdata.rcdata.pitch < 35) && (_navdata.rcdata.roll > 50 && _navdata.rcdata.roll < 90))
+				_navdata.rcdata.profile = 22;
+			else if((_navdata.rcdata.pitch < 15) && (_navdata.rcdata.roll > 35 && _navdata.rcdata.roll < 65))
+				_navdata.rcdata.profile = 30;
+			else if((_navdata.rcdata.pitch > 15 && _navdata.rcdata.pitch < 35) && (_navdata.rcdata.roll > 15 && _navdata.rcdata.roll < 35))
+				_navdata.rcdata.profile = 37;
+			else if((_navdata.rcdata.pitch > 35 && _navdata.rcdata.pitch < 65) && (_navdata.rcdata.roll < 15))
+				_navdata.rcdata.profile = 45;
+			else if((_navdata.rcdata.pitch > 65 && _navdata.rcdata.pitch < 90) && (_navdata.rcdata.roll > 15 && _navdata.rcdata.roll < 35))
+				_navdata.rcdata.profile = 52;
+			_navdata.rcupd = true;
 			break;
+			
+		default:
+			return;
 	}
+	MsgBroker::publish("/nav", &_navdata, sizeof(Topic::NavigationData_t));
+	if(_logger){ _logger->print((char*)"SYS: NAV! # ", 12);}
 }

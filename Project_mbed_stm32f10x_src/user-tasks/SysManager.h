@@ -43,6 +43,7 @@
 #include "BeepGenerator.h"
 #include "LedFlasher.h"
 #include "Topics.h"
+#include "Logger.h"
 #include "State.h"
 using namespace hsm;
 
@@ -311,12 +312,13 @@ public:
 	// Manejadores de eventos
 	State* onStart(Event* e){
 		_confirmed = false;
+		if(_logger){ _logger->print((char*)"SYS: RDY! # ", 12);}
 		TRAN(stDisarmed);		
 	}
 	State* onAck(Event* e){
 		_confirmed = true;
 		setBeep(BEEP_CONFIRMED);
-		setLeds(LEDS_CONFIRMED);
+		setLeds(LEDS_CONFIRMED);		
 		DONE();
 	}
 	State* onHoldB(Event* e){
@@ -327,7 +329,8 @@ public:
 	}
 	State* onGps(Event* e){
 		GpsEvent * ev = (GpsEvent*)e;
-		memcpy(&_gpsdata, &ev->gpsdata, sizeof(Topic::GpsData_t));
+		memcpy(&_navdata.gpsdata, &ev->gpsdata, sizeof(Topic::GpsData_t));
+		_navdata.gpsupd = true;
 		DONE();
 	}
 	
@@ -381,10 +384,7 @@ public:
 protected:
 	// Variables
 	bool _confirmed;					///< Flag para indicar si un request ha sido confirmado por el quad
-	Topic::AckData_t _mode_req;			///< Topic para publicar mode request del topic "/mode"
-	Topic::JoystickData_t _joysticks;	///< Topic para publicar topics /rc
-	Topic::ProfileData_t _profile;		///< Topic para publicar topics /profile
-	Topic::GpsData_t _gpsdata;			///< Topic recibido con la última localización
+	Topic::NavigationData_t _navdata;	///< Topic para publicar topics /nav
 
 	
 	// Interfaces
@@ -403,7 +403,7 @@ protected:
 public:
 	/** Constructor, destructor, getter and setter */
 	SysManager(	osPriority prio, DigitalOut *led_arm, DigitalOut *led_loc, DigitalOut *led_alt, 
-				DigitalOut *led_rth, PwmOut *buzzer) : 
+				DigitalOut *led_rth, PwmOut *buzzer, Logger * logger = 0) : 
 				BeepGenerator(buzzer), 
 				LedFlasher(4), 
 				Hsm() {
@@ -434,6 +434,7 @@ public:
 		_loc_ch = addLedChannel(led_loc);
 		_alt_ch = addLedChannel(led_alt);
 		_rth_ch = addLedChannel(led_rth);		
+		_logger = logger;
 		_th = 0;
 		_th = new Thread(&SysManager::task, this, prio);
 	}
@@ -452,6 +453,7 @@ protected:
 	int8_t _loc_ch;
 	int8_t _alt_ch;
 	int8_t _rth_ch;
+	Logger * _logger;
 	Thread *_th;						///< Thread integrado
 	uint32_t _timeout;					///< Timeout para control del thread
 	RtosTimer *_tmr;

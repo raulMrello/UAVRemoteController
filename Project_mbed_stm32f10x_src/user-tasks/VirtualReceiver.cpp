@@ -146,30 +146,20 @@ static bool checkCRC(uint8_t * buffer, uint8_t crc, uint8_t size){
 //------------------------------------------------------------------------------------
 static void OnTopicUpdateCallback(void *subscriber, const char * topicname){
 	VirtualReceiver *me = static_cast<VirtualReceiver *> (subscriber);
-	if(strcmp(topicname, "/mode") == 0){		
-		Topic::AckData_t * topic = (Topic::AckData_t *)MsgBroker::getTopicData("/mode");
+	bool raised = false;
+	if(strcmp(topicname, "/nav") == 0){		
+		Topic::NavigationData_t * topic = (Topic::NavigationData_t *)MsgBroker::getTopicData("/nav");
 		if(topic){
-			((Hsm*)me)->raiseEvent(new VirtualReceiver::DataEvent(VirtualReceiver::evSend, topic, sizeof(Topic::AckData_t)));
+			((Hsm*)me)->raiseEvent(new VirtualReceiver::DataEvent(VirtualReceiver::evSend, topic, sizeof(Topic::NavigationData_t)));
+			raised = true;			
+		}
+		// marca el topic como consumido
+		MsgBroker::consumed("/nav");
+		if(raised){
 			me->getThread()->signal_set(VirtualReceiver::VR_EV_TOPICS);
 		}
-		return;
 	}
-	if(strcmp(topicname, "/loc") == 0){
-		Topic::GpsData_t * topic = (Topic::GpsData_t *)MsgBroker::getTopicData("/loc");
-		if(topic){
-			(static_cast<Hsm *> (me))->raiseEvent(new VirtualReceiver::DataEvent(VirtualReceiver::evSend, topic, sizeof(Topic::GpsData_t)));
-			me->getThread()->signal_set(VirtualReceiver::VR_EV_TOPICS);
-		}
-		return;
-	}
-	if(strcmp(topicname, "/rc") == 0){
-		Topic::JoystickData_t * topic = (Topic::JoystickData_t *)MsgBroker::getTopicData("/rc");
-		if(topic){
-			((Hsm*)me)->raiseEvent(new VirtualReceiver::DataEvent(VirtualReceiver::evSend, topic, sizeof(Topic::JoystickData_t)));
-			me->getThread()->signal_set(VirtualReceiver::VR_EV_TOPICS);
-		}
-		return;
-	}
+	
 }
 
 //------------------------------------------------------------------------------------
@@ -205,11 +195,6 @@ void VirtualReceiver::RxISRCallback(void){
 }
 
 //------------------------------------------------------------------------------------
-void VirtualReceiver::TxISRCallback(void){
-	_th->signal_set(VR_EV_DATASENT);
-}
-
-//------------------------------------------------------------------------------------
 //-- PROTECTED/PRIVATE FUNCTIONS -----------------------------------------------------
 //------------------------------------------------------------------------------------
 
@@ -223,7 +208,6 @@ void VirtualReceiver::run(){
 	
 	// Attaches to serial peripheral
 	_serial->attach(this, &VirtualReceiver::RxISRCallback, (SerialBase::IrqType)RxIrq);
-	//	_serial->attach(this, &VirtualReceiver::TxISRCallback, (SerialBase::IrqType)TxIrq);
 	
 	// Enables link device
 	_endis->write(VirtualReceiver::DISABLE);
@@ -233,9 +217,7 @@ void VirtualReceiver::run(){
 		
 	// Attaches to topic updates
 	MsgBroker::Exception e;
-	MsgBroker::attach("/mode", this, OnTopicUpdateCallback, &e);
-	MsgBroker::attach("/loc", this, OnTopicUpdateCallback, &e);
-	MsgBroker::attach("/rc", this, OnTopicUpdateCallback, &e);
+	MsgBroker::attach("/nav", this, OnTopicUpdateCallback, &e);
 	
 	// start execution context
 	_rxtmr = new RtosTimer(OnRxIdleCallback, osTimerOnce, (void *)this);
@@ -341,8 +323,9 @@ void VirtualReceiver::send(const char * atcmd){
 	else{
 		_rxbuf.count = 0;_rxbuf.ovf = false;
 		// sends 
-		for(int i=0;i<_txbuf.count;i++){
-			_serial->putc(_txbuf.data[i]);
+		char * data = (char*)&_navdata;
+		for(int i=0;i<sizeof(Topic::NavigationData_t);i++){
+			_serial->putc(data[i]);
 		}
 	}
 	_timeout = ACK_TIMEOUT;
@@ -357,6 +340,7 @@ void VirtualReceiver::updateStatusOk(){
 void VirtualReceiver::updateStatus(int8_t stat){
 	if(stat != THIS_MODE){
 		_status = stat;
+		if(_logger){ _logger->sprintf((char*)"VIR: stat=%d # ", _status);}
 	}
 	switch(_status){
 		case FINISH_TCP_DATA:
@@ -366,7 +350,7 @@ void VirtualReceiver::updateStatus(int8_t stat){
 			if(_status == SEND_TCP_DATA){
 				char len[4];
 				char cmd[32];
-				sprintf(len, "%d", _txbuf.count+1);
+				sprintf(len, "%d", sizeof(Topic::NavigationData_t)+1);
 				strcpy(cmd, actions[_status].at_cmd);
 				strcat(cmd, len);
 				send(cmd);
@@ -388,11 +372,11 @@ void VirtualReceiver::enableTopics(){
 	_signals |= VR_EV_TOPICS;
 	_th->signal_clr(VR_EV_TOPICS);
 	// notifica sistema enlazado y listo.	
-	_isConnected = true;
 	Topic::AckData_t topic;
 	topic.ackCode = Topic::ACK_OK;
 	topic.req = Topic::ACK_START;
 	MsgBroker::publish("/ack", &topic, sizeof(Topic::AckData_t));
+	if(_logger){ _logger->print((char*)"VIR: RDY! # ", 12);}
 }
 
 //------------------------------------------------------------------------------------
@@ -401,11 +385,11 @@ void VirtualReceiver::disableTopics(){
 	_th->signal_clr(VR_EV_TOPICS);
 	// notifica sistema desconectado.
 	_timeout = osWaitForever;
-	_isConnected = false;
 	Topic::AckData_t topic;
 	topic.ackCode = Topic::ACK_OK;
 	topic.req = Topic::ACK_FINISH;
 	MsgBroker::publish("/ack", &topic, sizeof(Topic::AckData_t));
+	if(_logger){ _logger->print((char*)"VIR: DIS! # ", 12);}
 }
 
 //------------------------------------------------------------------------------------
@@ -418,30 +402,39 @@ void VirtualReceiver::notifyError(){
 
 //------------------------------------------------------------------------------------
 bool VirtualReceiver::getData(){
-	if(_txbuf.count > 0){
+	if(_navdata.gpsupd || _navdata.rcupd ||_navdata.modeupd){
 		return true;
 	}
 	return false;
 }
 
 //------------------------------------------------------------------------------------
-void VirtualReceiver::saveData(void * data, int size, bool pre_filled){
-	if(pre_filled && size > 0 && data == _txbuf.data){
-		_txbuf.count = size;
-	}
+void VirtualReceiver::saveData(void * data, int size){
+	if(size != sizeof(Topic::NavigationData_t))
+		return;
+	memcpy(&_navdata, data, size);
+	if(_logger){ _logger->print((char*)"VIR: SAVE! # ", 13);}
 }
 
 //------------------------------------------------------------------------------------
 void VirtualReceiver::sendData(){
+	if(_logger){ _logger->print((char*)"VIR: SEND! # ", 13);}
 	updateStatus(SEND_TCP_DATA);
 }
 
 //------------------------------------------------------------------------------------
 void VirtualReceiver::eraseData(){
+	_navdata.gpsupd = false;
+	_navdata.rcupd = false;
+	_navdata.modeupd = false;
 }
 
 //------------------------------------------------------------------------------------
 void VirtualReceiver::notifyAck(){
+	_ackdata.ackCode = Topic::ACK_OK;
+	_ackdata.req = _navdata.modedata.req;
+	MsgBroker::publish("/ack", &_ackdata, sizeof(Topic::AckData_t));
+	if(_logger){ _logger->print((char*)"VIR: ACKD! # ", 13);}
 }
 
 //------------------------------------------------------------------------------------

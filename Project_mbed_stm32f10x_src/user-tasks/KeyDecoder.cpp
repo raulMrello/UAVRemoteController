@@ -131,7 +131,8 @@ void KeyDecoder::publish(uint32_t key, bool isHold) {
 	MsgBroker::publish("/keyb", &_keydata, sizeof(Topic::KeyData_t), &e);
 	if(e != MsgBroker::NO_ERRORS){
 		// TODO: add error handling ...
-	}    
+	}  
+	if(_logger){ _logger->print((char*)"KEY: NEW! # ", 12);}
 }
 				
 //------------------------------------------------------------------------------------

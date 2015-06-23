@@ -23,6 +23,7 @@
 #include "Topics.h"
 #include "GPS_UBLOX.h"
 #include "GPS_NMEA.h"
+#include "Logger.h"
 
 //------------------------------------------------------------------------------------
 //-- TYPEDEFS ------------------------------------------------------------------------
@@ -41,7 +42,7 @@ public:
 	}ModeEnum;
 		
 	/** Constructor, destructor, getter and setter */
-	GpsReader(osPriority prio, GpsReader::ModeEnum mode, RawSerial *serial);
+	GpsReader(osPriority prio, GpsReader::ModeEnum mode, RawSerial *serial, Logger * logger = 0);
 	virtual ~GpsReader();
 	Thread *getThread();
 	
@@ -61,6 +62,7 @@ private:
 	GPS_UBLOX ublox;
 	GPS_NMEA nmea;
 	RawSerial *_serial;
+	Logger * _logger;
 	Thread *_th;
 	void run();
 

@@ -2,12 +2,11 @@
 #include "rtos.h"
 #include "GpsReader.h"
 #include "KeyDecoder.h"
-#include "JoystickSampler.h"
 #include "SysManager.h"
 #include "VirtualReceiver.h"
 #include "MsgBroker.h"
+#include "Logger.h"
 #include "Topics.h"
-#include "TemplateHsm.h"
 
 InterruptIn joys_A_Ok(PB_1);	
 InterruptIn joys_B_Ok(PB_2);	
@@ -29,9 +28,14 @@ RawSerial lnk(PA_9,PA_10);
 DigitalOut lnk_rst(PB_4); // 0-enables esp8266, 1-reset
 
 Mutex broker_mutex;
+Logger *logger;
+char logger_pool[512];
 
 	
 int main() {
+	
+	/** Prepare logging capabilites*/
+	logger = new Logger(logger_pool, 512);
 		
 	/** Setup Message Broker and topics */
 	
@@ -40,11 +44,7 @@ int main() {
 	MsgBroker::installTopic("/keyb", sizeof(Topic::KeyData_t));
 	MsgBroker::installTopic("/joys", sizeof(Topic::JoystickData_t));
 	MsgBroker::installTopic("/ack", sizeof(Topic::AckData_t));
-	MsgBroker::installTopic("/profile", sizeof(Topic::ProfileData_t));
-	// topics published by SysManager (and consumed by VirtualReceiver)
-	MsgBroker::installTopic("/mode", sizeof(Topic::AckData_t));
-	MsgBroker::installTopic("/loc", sizeof(Topic::GpsData_t));
-	MsgBroker::installTopic("/rc", sizeof(Topic::JoystickData_t));
+	MsgBroker::installTopic("/nav", sizeof(Topic::NavigationData_t));
 	
 	/** Start scheduling */
 	
@@ -53,10 +53,10 @@ int main() {
 	
 	/** Start tasks */
 	
-	KeyDecoder *kd = new KeyDecoder(osPriorityHigh, &joys_A_Ok, &joys_B_Ok, &key_ARM, &key_LOC, &key_ALT, &key_RTH, &joys_A1, &joys_A2, &joys_B1, &joys_B2);
-	SysManager *sm = new SysManager(osPriorityNormal, &led_arm, &led_loc, &led_alt, &led_rth, &buzzer);
-	GpsReader *gr = new GpsReader(osPriorityAboveNormal, GpsReader::GPS_MODE_UBX, &gps);
-	VirtualReceiver *vr = new VirtualReceiver(osPriorityAboveNormal, &lnk, &lnk_rst);
+	KeyDecoder *kd = new KeyDecoder(osPriorityHigh, &joys_A_Ok, &joys_B_Ok, &key_ARM, &key_LOC, &key_ALT, &key_RTH, &joys_A1, &joys_A2, &joys_B1, &joys_B2, logger);
+	SysManager *sm = new SysManager(osPriorityNormal, &led_arm, &led_loc, &led_alt, &led_rth, &buzzer, logger);
+	GpsReader *gr = new GpsReader(osPriorityAboveNormal, GpsReader::GPS_MODE_UBX, &gps, logger);
+	VirtualReceiver *vr = new VirtualReceiver(osPriorityAboveNormal, &lnk, &lnk_rst, logger);
 		
 	/** main is lowest priority task, hence manage low power conditions */
     while(1) {

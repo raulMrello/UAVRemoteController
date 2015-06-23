@@ -488,6 +488,11 @@
               <FileType>5</FileType>
               <FilePath>.\user-modules\List_tpp.h</FilePath>
             </File>
+            <File>
+              <FileName>Logger.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-modules\Logger.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2496,6 +2501,11 @@
               <FileName>List_tpp.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\user-modules\List_tpp.h</FilePath>
+            </File>
+            <File>
+              <FileName>Logger.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\user-modules\Logger.cpp</FilePath>
             </File>
           </Files>
         </Group>

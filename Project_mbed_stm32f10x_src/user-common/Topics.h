@@ -84,33 +84,20 @@ namespace Topic {
 		int8_t throttle;	///< value 0=dynamic_down, 5, 10=dynamic_up
 		int8_t roll;		///< value 0=left, 5=center, 10=right
 		int8_t pitch;		///< value 0=down, 5=middle, 10=up
+		int8_t profile;		///< profileId: 7-60(follow with values: 7,15,22,30,37,45,52,60), 0=disabled
 	};
 
 
 	//------------------------------------------------------------------------------------
-	/** Profile code enumeration */
-	enum ProfileCodeEnum {
-		PROFILE_NONE = 0,	///< No profile defined
-		PROFILE_TRAIL,		///< Profile for trail sport
-		PROFILE_SKY,		///< Profile for sky sport
-		PROFILE_MBS			//< Profile for mountainboarding
-	};	
-	/** Profile position enumeration */
-	enum ProfilePosEnum {
-		POS_FRONT = 0,		
-		POS_FRONTRIGHT,		
-		POS_RIGHT,			
-		POS_RIGHTBACK,
-		POS_BACK,
-		POS_BACKLEFT,
-		POS_LEFT,
-		POS_LEFTFRONT
-	};	
 	
-	/** Profile topic data structure */
-	struct ProfileData_t{
-		ProfileCodeEnum profile;		
-		ProfilePosEnum  pos;			
+	/** Navigation topic data structure */
+	struct NavigationData_t{
+		GpsData_t gpsdata;
+		bool gpsupd;
+		AckData_t modedata;
+		bool modeupd;
+		JoystickData_t rcdata;
+		bool rcupd;
 	};
 
 

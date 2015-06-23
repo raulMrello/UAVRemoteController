@@ -18,6 +18,15 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 23.06.2015-001 
+- Código terminado. Depurando funcionamiento general.
+- POR HACER:
+  - NO PITA EL BUZZER.
+  - Hay mucha espera en el estado VirtualReceiver::WaitingData. Ver la forma de que al recibir datos se cancele la espera.
+  - La tarea GPS hay que modificarla para que sólo envíe datos cuando haya algún cambio significativo.
+  - A veces el socket se queda pillado. Una vez que esté todo terminado, hacer una variante para abrir_socket+enviar+recibir_ack+cerrar.
+
+  
 ##### 22.06.2015-001 
 - VirtualReceiver envía y recibe datos. Modifico su protocolo de reinicio tras evError.
 - Activo todo el código. 

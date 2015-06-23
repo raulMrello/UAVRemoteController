@@ -26,6 +26,7 @@
 #include "MsgBroker.h"
 #include "Topics.h"
 #include "State.h"
+#include "Logger.h"
 using namespace hsm;
 
 //------------------------------------------------------------------------------------
@@ -164,7 +165,7 @@ public:
 	/** Constructor, destructor, getter and setter */
 	KeyDecoder(	osPriority prio, InterruptIn *ii_A_Ok, InterruptIn *ii_B_Ok, InterruptIn *ii_ARM, 
 				InterruptIn *ii_LOC, InterruptIn *ii_ALT, InterruptIn *ii_RTH, AnalogIn *joystick_A1, 
-				AnalogIn *joystick_A2, AnalogIn *joystick_B1, AnalogIn *joystick_B2, 
+				AnalogIn *joystick_A2, AnalogIn *joystick_B1, AnalogIn *joystick_B2, Logger * logger = 0, 
 				bool enableRepeatedEvt = false) : JoystickSampler(joystick_A1, joystick_A2, joystick_B1, joystick_B2), Hsm(){
 						
 		// creo estados
@@ -212,6 +213,7 @@ public:
 		ii_RTH->mode(PullUp);			
 		_ii_RTH = ii_RTH;
 		
+		_logger = logger;
 		_th = 0;
 		_th = new Thread(&KeyDecoder::task, this, prio);
 	}
@@ -232,6 +234,7 @@ public:
 protected:
 	Topic::KeyData_t _keydata;
 	Thread *_th;
+	Logger * _logger;
 	InterruptIn *_ii_A_Ok;
 	InterruptIn *_ii_B_Ok;
 	InterruptIn *_ii_ARM;

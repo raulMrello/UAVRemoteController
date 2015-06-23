@@ -25,6 +25,7 @@
 #include "rtos.h"
 #include "MsgBroker.h"
 #include "Topics.h"
+#include "Logger.h"
 #include "State.h"
 using namespace hsm;
 
@@ -205,8 +206,6 @@ public:
 		// Implementaciones entry/exit
 		virtual State* entry(){
 			((VirtualReceiver*)_xif)->enableTopics();
-			strcpy((char*)((VirtualReceiver*)_xif)->_txbuf.data, "HOLA");
-			((VirtualReceiver*)_xif)->saveData(((VirtualReceiver*)_xif)->_txbuf.data, strlen((const char*)((VirtualReceiver*)_xif)->_txbuf.data), true);
 			TRAN(((VirtualReceiver*)_xif)->stWaitingData);
 		}
 		
@@ -323,12 +322,12 @@ public:
 		// Manejadores de eventos
 		State* onAck(Event* e){
 			// if data sent, then finish
-			if(((VirtualReceiver*)_xif)->_txbuf.count > 0){
-				((VirtualReceiver*)_xif)->_txbuf.count = 0;
+			if(((VirtualReceiver*)_xif)->_status == VirtualReceiver::SEND_TCP_DATA){
 				((VirtualReceiver*)_xif)->updateStatusOk();
 				DONE();
 			}
 			// si los datos se han finalizado, notificar envío
+			((VirtualReceiver*)_xif)->eraseData();
 			((VirtualReceiver*)_xif)->notifyAck();
 			TRAN(((VirtualReceiver*)_xif)->stWaitingData);
 		}
@@ -356,7 +355,13 @@ public:
 		
 	// Manejadores de eventos
 	State* onError(Event* e){
-		updateStatus(RESET_LNK);
+		// Reset link device
+		_endis->write(VirtualReceiver::DISABLE);
+		Thread::wait(250);
+		_endis->write(VirtualReceiver::ENABLE);	
+		Thread::wait(1000);
+		_rxbuf.count = 0;_rxbuf.ovf = false;
+		_errcount = 0;
 		TRAN(stSetup);		
 	}
 	State* onReset(Event* e){
@@ -419,7 +424,7 @@ protected:
 
 	// interfaces
 	bool getData();
-	void saveData(void * data, int size, bool pre_filled=false);
+	void saveData(void * data, int size);
 	void updateStatus(int8_t stat = THIS_MODE);
 	void updateStatusOk();
 	void setTimeout(uint32_t timeout = ACK_TIMEOUT);
@@ -440,7 +445,7 @@ protected:
 public:
 
 	/** Constructor, destructor, getter and setter */
-	VirtualReceiver(osPriority prio, RawSerial *serial, DigitalOut *endis) : Hsm(){				
+	VirtualReceiver(osPriority prio, RawSerial *serial, DigitalOut *endis, Logger * logger = 0) : Hsm(){				
 		// creo estados
 		stSetup = new StSetup(this, this);
 		stConfig = new StConfig(stSetup, this);
@@ -467,7 +472,7 @@ public:
 		_endis = endis;
 		_endis->write(VirtualReceiver::DISABLE);
 		_status = 0;
-		_isConnected = false;
+		_logger = logger;
 		_th = 0;
 		_th = new Thread(&VirtualReceiver::task, this, prio);
 	}
@@ -485,8 +490,7 @@ public:
 		VR_EV_TOPICS 	= (1 << 0),
 		TIMER_EV_READY	= (1 << 1),
 		VR_EV_DATAREADY = (1 << 2),
-		VR_EV_DATAEND	= (1 << 3),
-		VR_EV_DATASENT  = (1 << 4)
+		VR_EV_DATAEND	= (1 << 3)
 	}EventEnum;	
 		
 	/** Task */
@@ -508,33 +512,16 @@ private:
 		uint8_t data[BUFF_SIZE];	
 		bool ovf;
 	};
-
-
-//	/** Data protocol command types */
-//	static const uint8_t CMD_SET_GPS 	= 0x01;
-//	static const uint8_t CMD_SET_KEY 	= 0x02;
-//	static const uint8_t CMD_DECODING	= 0x03;
-//	static const uint8_t CMD_ERROR		= 0x04;
-//	static const uint8_t CMD_READY		= 0x05;
-//	static const uint8_t CMD_RESET		= 0x06;
-//	static const uint8_t CMD_ACK		= 0x07;	
-//	static const uint8_t CMD_NACK		= 0x08;	
-//	static const uint8_t CMD_DATA		= 0x09;	
-		
 	
 	/** Private variables */
 	DataBuffer _rxbuf;
-	DataBuffer _txbuf;
 	RawSerial *_serial;
 	DigitalOut *_endis;
+	Logger * _logger;
 	Thread *_th;
 	uint32_t _timeout;
+	Topic::NavigationData_t _navdata;
 	Topic::AckData_t _ackdata;
-	bool _isConnected;
-
-//	int8_t _status;
-//	uint8_t _mode;
-//	int8_t _errcount;
 	int32_t _signals;
 	RtosTimer * _rxtmr;
 	

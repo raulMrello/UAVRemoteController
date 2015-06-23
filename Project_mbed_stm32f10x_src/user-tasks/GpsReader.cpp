@@ -25,12 +25,13 @@
 //-- PUBLIC FUNCTIONS ----------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-GpsReader::GpsReader(osPriority prio, GpsReader::ModeEnum mode, RawSerial *serial) {
+GpsReader::GpsReader(osPriority prio, GpsReader::ModeEnum mode, RawSerial *serial, Logger * logger) {
 	_mode = (uint32_t)mode;
 	_serial = serial;
 	_serial->baud(38400);
 	ublox.Init();
 	nmea.Init();
+	_logger = logger;
 	_th = 0;
 	_th = new Thread(&GpsReader::task, this, prio);
 }

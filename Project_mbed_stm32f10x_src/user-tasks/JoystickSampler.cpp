@@ -59,8 +59,8 @@ void JoystickSampler::stopScan() {
 
 //------------------------------------------------------------------------------------
 void JoystickSampler::scan(){
-	static int8_t ja1z, ja2z, jb1z, jb2z, last_ja2;
-	int8_t new_ja2;
+	bool updateIt = false;
+	static int8_t ja1z, ja2z, jb1z, jb2z;
 	float raw_throttle, raw_yaw, raw_pitch, raw_roll;
 	raw_throttle = _joystick_A2->read();
 	raw_yaw = _joystick_A1->read();
@@ -75,11 +75,10 @@ void JoystickSampler::scan(){
 		jb2z = 50-(int8_t)(100*raw_pitch);
 		if(_stat == 3){
 			// initializes data
-			last_ja2 = 50;
-			_joystickdata.yaw = 50;	
+			_joystickdata.yaw = 5;	
 			_joystickdata.throttle = 0;
-			_joystickdata.roll = 50;
-			_joystickdata.pitch = 50;
+			_joystickdata.roll = 5;
+			_joystickdata.pitch = 5;
 		}		
 		return;
 	}
@@ -90,16 +89,35 @@ void JoystickSampler::scan(){
 	jb1 = jb1z + (int8_t)(100*raw_roll);
 	jb2 = jb2z + (int8_t)(100*raw_pitch);
 	// set new data
-	_joystickdata.yaw = (ja1 <= 100)? ja1 : 100;		
-	_joystickdata.roll = (jb1 <= 100)? jb1 : 100;
-	_joystickdata.pitch = (jb2 <= 100)? jb2 : 100;
-	new_ja2 = (ja2 <= 100)? ja2 : 100;
-	// read dynamic control
-	_joystickdata.throttle += (new_ja2 - last_ja2)/_throttle_rate;
-	last_ja2 = new_ja2;
-	
-	// publish topic update			
-	MsgBroker::publish("/joys", &_joystickdata, sizeof(Topic::JoystickData_t));
+	int8_t newyaw, newroll, newpitch, newthrottle;
+	newyaw = (ja1 <= 100)? (ja1+5)/10 : 10;			
+	newroll = (jb1 <= 100)? (jb1+5)/10 : 10;
+	newpitch = (jb2 <= 100)? (jb2+5)/10 : 10;
+	newthrottle = (ja2 <= 100)? (ja2+5)/10 : 10;
+	if(newyaw != _joystickdata.yaw){
+		_joystickdata.yaw = newyaw;
+		updateIt = true;
+	}
+	if(newroll != _joystickdata.roll){
+		_joystickdata.roll = newroll;
+		updateIt = true;
+	}
+	if(newpitch != _joystickdata.pitch){
+		_joystickdata.pitch = newpitch;
+		updateIt = true;
+	}
+	if(newthrottle > _joystickdata.throttle){
+		_joystickdata.throttle = (_joystickdata.throttle < 10)? (_joystickdata.throttle+1) : 10;
+		updateIt = true;
+	}
+	else if(newthrottle < _joystickdata.throttle){
+		_joystickdata.throttle = (_joystickdata.throttle > 0)? (_joystickdata.throttle-1) : 0;
+		updateIt = true;
+	}
+	if(updateIt){
+		// publish topic update			
+		MsgBroker::publish("/joys", &_joystickdata, sizeof(Topic::JoystickData_t));
+	}
 		
 }
 
