@@ -237,16 +237,29 @@ public:
 		StWaitingData(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
 			// inserto manejadores de evento
 			attach(VirtualReceiver::evTimeout, this, (State* (State::*)(Event*))&StWaitingData::onTimeout);
+			attach(VirtualReceiver::evSend, this, (State* (State::*)(Event*))&StWaitingData::onSend);
 		}
 		
 		// Implementaciones entry/exit
 		virtual State* entry(){
 			((VirtualReceiver*)_xif)->_timeout = VirtualReceiver::TCP_TIMEOUT;
+			if(((VirtualReceiver*)_xif)->getData()){
+				((VirtualReceiver*)_xif)->sendData();	
+				TRAN(((VirtualReceiver*)_xif)->stProcessing);
+			}
 			DONE();
 		}
 		
 		virtual void exit(){
 		}			
+		
+		// Manejadores de eventos
+		State* onSend(Event* e){
+			VirtualReceiver::DataEvent * de = (VirtualReceiver::DataEvent *)e;
+			((VirtualReceiver*)_xif)->saveData(de->_data, de->_size);			
+			((VirtualReceiver*)_xif)->sendData();	
+			TRAN(((VirtualReceiver*)_xif)->stProcessing);
+		}
 		
 		// Manejadores de eventos
 		State* onTimeout(Event* e){

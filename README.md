@@ -18,6 +18,15 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 25.06.2015-001 
+- Código terminado. Depurando funcionamiento general.
+- Reduzco la espera en VirtualReceiver::WaitingData.
+- Corrijo error en el driver del Buzzer. Ya funciona!!
+- POR HACER:
+  - [opcional] La tarea GPS hay que modificarla para que sólo envíe datos cuando haya algún cambio significativo.
+  - A veces el socket se queda pillado. Una vez que esté todo terminado, hacer una variante para abrir_socket+enviar+recibir_ack+cerrar.
+
+  
 ##### 23.06.2015-001 
 - Código terminado. Depurando funcionamiento general.
 - POR HACER:

@@ -28,7 +28,7 @@ static void beepTimer(void const *handler){
 			break;
 		}
 		case BeepGenerator::BEEP:{
-			me->_buzzer->period_us(0);
+			me->_buzzer->pulsewidth_us(0);
 			me->_status = BeepGenerator::SILENCE;
 			break;
 		}
@@ -51,7 +51,7 @@ static void beepTimer(void const *handler){
 		case BeepGenerator::WAIT_CYCLE:{
 			me->_shots = me->_mode;
 			me->_status = BeepGenerator::BEEP;
-			me->_buzzer->period_us(125);
+			me->_buzzer->pulsewidth_us(200);
 			me->_tmr->start(me->_time);
 			break;
 		}
@@ -64,7 +64,7 @@ static void beepTimer(void const *handler){
 
 BeepGenerator::BeepGenerator(PwmOut *buzzer) {
 	_buzzer = buzzer;
-	_buzzer->period_us(250);
+	_buzzer->period_us(400);
 	_buzzer->pulsewidth_us(0);
 	_status = STOPPED;
 	_tmr = new RtosTimer(beepTimer, osTimerPeriodic, this);
@@ -82,7 +82,7 @@ void BeepGenerator::beepStart(ShotModeEnum mode, ShotTimeEnum time, ShotRepeatEn
 	_mode = mode;
 	_time = time;
 	_repeat = repeat;
-	_buzzer->period_us(125);
+	_buzzer->pulsewidth_us(200);
 	_status = BEEP;
 	_shots = _mode;
 	_tmr->start(_time);
@@ -92,7 +92,7 @@ void BeepGenerator::beepStart(ShotModeEnum mode, ShotTimeEnum time, ShotRepeatEn
 //------------------------------------------------------------------------------------
 void BeepGenerator::beepStop() {
 	_tmr->stop();
-	_buzzer->period_us(0);
+	_buzzer->pulsewidth_us(0);
 	_status = STOPPED;
 	_shots = 0;
 }
