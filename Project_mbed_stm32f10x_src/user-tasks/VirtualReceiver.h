@@ -134,26 +134,77 @@ public:
 		
 		// Manejadores de eventos
 		State* onAck(Event* e){
-			if(((VirtualReceiver*)_xif)->_status < VirtualReceiver::START_TCP_CLIENT){
+			if(((VirtualReceiver*)_xif)->_status < VirtualReceiver::CONNECT_TO_AP){
 				((VirtualReceiver*)_xif)->updateStatusOk();
 				DONE();				
 			}
-			TRAN(((VirtualReceiver*)_xif)->stConnectTcp);			
+			((VirtualReceiver*)_xif)->enableTopics();
+			TRAN(((VirtualReceiver*)_xif)->stReady);			
 		}		
 	};friend class StConfig;	
 	
 	//-------------------------------------------------------------------------
+	class StReady : public State{
+	public:
+		StReady(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
+			// inserto manejadores de evento
+			attach(VirtualReceiver::evNack, this, (State* (State::*)(Event*))&StReady::onNack);
+			attach(VirtualReceiver::evSend, this, (State* (State::*)(Event*))&StReady::onSend);
+			attach(VirtualReceiver::evTimeout, this, (State* (State::*)(Event*))&StReady::onTimeout);
+		}
+		
+		// Implementaciones entry/exit
+		virtual State* entry(){
+			((VirtualReceiver*)_xif)->_errcount = 0;
+			if(((VirtualReceiver*)_xif)->getData()){
+				TRAN(((VirtualReceiver*)_xif)->stConnectTcp);
+			}
+			((VirtualReceiver*)_xif)->_timeout = VirtualReceiver::TCP_TIMEOUT;	
+			DONE();						
+		}
+		
+		virtual void exit(){
+		}			
+		
+		// Manejadores de eventos
+		State* onNack(Event* e){
+			if(((VirtualReceiver*)_xif)->_errcount < VirtualReceiver::ERR_COUNT_LIMIT){
+				((VirtualReceiver*)_xif)->_errcount++;
+				((VirtualReceiver*)_xif)->updateStatus();
+				DONE();
+			}
+			((VirtualReceiver*)_xif)->disableTopics();
+			((VirtualReceiver*)_xif)->notifyError();
+			((Hsm*)((VirtualReceiver*)_xif))->raiseEvent(new Event(VirtualReceiver::evError));
+			DONE();
+		}		
+		
+		// Manejadores de eventos
+		State* onSend(Event* e){
+			VirtualReceiver::DataEvent * de = (VirtualReceiver::DataEvent *)e;
+			((VirtualReceiver*)_xif)->saveData(de->_data, de->_size);			
+			TRAN(((VirtualReceiver*)_xif)->stConnectTcp);			
+		}		
+		
+		// Manejadores de eventos
+		State* onTimeout(Event* e){
+			TRAN(((VirtualReceiver*)_xif)->stConnectTcp);			
+		}		
+	};friend class StReady;	
 	
+	//-------------------------------------------------------------------------
+		
 	class StConnectTcp : public State{
 	public:
 		StConnectTcp(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
 			// inserto manejadores de evento
 			attach(VirtualReceiver::evAck, this, (State* (State::*)(Event*))&StConnectTcp::onAck);
+			attach(VirtualReceiver::evSend, this, (State* (State::*)(Event*))&StConnectTcp::onSend);
 		}
 		
 		// Implementaciones entry/exit
 		virtual State* entry(){
-			((VirtualReceiver*)_xif)->updateStatusOk();
+			((VirtualReceiver*)_xif)->updateStatus(VirtualReceiver::START_TCP_CLIENT);			
 			DONE();
 		}
 		
@@ -162,8 +213,19 @@ public:
 		
 		// Manejadores de eventos
 		State* onAck(Event* e){
-			TRAN(((VirtualReceiver*)_xif)->stConnected);			
+			if(((VirtualReceiver*)_xif)->getData()){
+				((VirtualReceiver*)_xif)->sendData();
+				TRAN(((VirtualReceiver*)_xif)->stProcessing);
+			}
+			TRAN(((VirtualReceiver*)_xif)->stCheckConnection);			
 		}
+		
+		// Manejadores de eventos
+		State* onSend(Event* e){
+			VirtualReceiver::DataEvent * de = (VirtualReceiver::DataEvent *)e;
+			((VirtualReceiver*)_xif)->saveData(de->_data, de->_size);			
+			DONE();			
+		}		
 		
 	};friend class StConnectTcp;	
 	
@@ -174,6 +236,7 @@ public:
 		StDisconnectTcp(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
 			// inserto manejadores de evento
 			attach(VirtualReceiver::evAck, this, (State* (State::*)(Event*))&StDisconnectTcp::onAck);
+			attach(VirtualReceiver::evSend, this, (State* (State::*)(Event*))&StDisconnectTcp::onSend);
 		}
 		
 		// Implementaciones entry/exit
@@ -187,8 +250,15 @@ public:
 		
 		// Manejadores de eventos
 		State* onAck(Event* e){
-			TRAN(((VirtualReceiver*)_xif)->stConnectTcp);			
+			TRAN(((VirtualReceiver*)_xif)->stReady);			
 		}
+		
+		// Manejadores de eventos
+		State* onSend(Event* e){
+			VirtualReceiver::DataEvent * de = (VirtualReceiver::DataEvent *)e;
+			((VirtualReceiver*)_xif)->saveData(de->_data, de->_size);			
+			DONE();			
+		}		
 		
 	};friend class StDisconnectTcp;	
 	
@@ -384,10 +454,10 @@ public:
 	// Estados
 	StSetup *stSetup;
 	StConfig *stConfig;
+	StReady * stReady;
 	StConnectTcp *stConnectTcp;
 	StDisconnectTcp *stDisconnectTcp;
 	StConnected *stConnected;
-	StWaitingData *stWaitingData;
 	StCheckConnection *stCheckConnection;
 	StProcessing *stProcessing;
 	
@@ -462,19 +532,19 @@ public:
 		// creo estados
 		stSetup = new StSetup(this, this);
 		stConfig = new StConfig(stSetup, this);
-		stConnectTcp = new StConnectTcp(stSetup, this);
-		stDisconnectTcp = new StDisconnectTcp(stSetup, this);
+		stReady = new StReady(this, this);
+		stConnectTcp = new StConnectTcp(stReady, this);
+		stDisconnectTcp = new StDisconnectTcp(stReady, this);
 		stConnected = new StConnected(this, this);
-		stWaitingData = new StWaitingData(stConnected, this);
 		stCheckConnection = new StCheckConnection(stConnected, this);
 		stProcessing = new StProcessing(stConnected, this);
 		// Inserto estados
 		attachState(stSetup);
 		attachState(stConfig);
+		attachState(stReady);
 		attachState(stConnectTcp);
 		attachState(stDisconnectTcp);
 		attachState(stConnected);
-		attachState(stWaitingData);
 		attachState(stProcessing);
 		// Inserto manejadores de evento
 		attach(VirtualReceiver::evError, this, (State* (State::*)(Event*))&VirtualReceiver::onError);
