@@ -268,80 +268,31 @@ public:
 	public:
 		StConnected(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
 			// inserto manejadores de evento
-			attach(VirtualReceiver::evSend, this, (State* (State::*)(Event*))&StConnected::onSend);
 			attach(VirtualReceiver::evRecv, this, (State* (State::*)(Event*))&StConnected::onRecv);
 			attach(VirtualReceiver::evError, this, (State* (State::*)(Event*))&StConnected::onError);
+			attach(VirtualReceiver::evTimeout, this, (State* (State::*)(Event*))&StConnected::onError);
 		}
 		
 		// Implementaciones entry/exit
 		virtual State* entry(){
-			((VirtualReceiver*)_xif)->enableTopics();
-			TRAN(((VirtualReceiver*)_xif)->stWaitingData);
+			DONE();
 		}
 		
 		virtual void exit(){
 		}			
 		
 		// Manejadores de eventos
-		State* onSend(Event* e){
-			VirtualReceiver::DataEvent * de = (VirtualReceiver::DataEvent *)e;
-			((VirtualReceiver*)_xif)->saveData(de->_data, de->_size);			
-			DONE();
-		}
 		State* onRecv(Event* e){
 			((VirtualReceiver*)_xif)->notifyData();			
-			DONE();
+			TRAN(((VirtualReceiver*)_xif)->stDisconnectTcp);
 		}
 		State* onError(Event* e){
 			((VirtualReceiver*)_xif)->_errcount = 0;
-			((VirtualReceiver*)_xif)->disableTopics();
 			TRAN(((VirtualReceiver*)_xif)->stDisconnectTcp);			
 		}
 		
 	};friend class StConnected;	
 	
-	//-------------------------------------------------------------------------	
-	
-	class StWaitingData : public State{
-	public:
-		StWaitingData(State * parent = (State*)0, void * xif = 0) : State(parent, xif){
-			// inserto manejadores de evento
-			attach(VirtualReceiver::evTimeout, this, (State* (State::*)(Event*))&StWaitingData::onTimeout);
-			attach(VirtualReceiver::evSend, this, (State* (State::*)(Event*))&StWaitingData::onSend);
-		}
-		
-		// Implementaciones entry/exit
-		virtual State* entry(){
-			((VirtualReceiver*)_xif)->_timeout = VirtualReceiver::TCP_TIMEOUT;
-			if(((VirtualReceiver*)_xif)->getData()){
-				((VirtualReceiver*)_xif)->sendData();	
-				TRAN(((VirtualReceiver*)_xif)->stProcessing);
-			}
-			DONE();
-		}
-		
-		virtual void exit(){
-		}			
-		
-		// Manejadores de eventos
-		State* onSend(Event* e){
-			VirtualReceiver::DataEvent * de = (VirtualReceiver::DataEvent *)e;
-			((VirtualReceiver*)_xif)->saveData(de->_data, de->_size);			
-			((VirtualReceiver*)_xif)->sendData();	
-			TRAN(((VirtualReceiver*)_xif)->stProcessing);
-		}
-		
-		// Manejadores de eventos
-		State* onTimeout(Event* e){
-			if(((VirtualReceiver*)_xif)->getData()){
-				((VirtualReceiver*)_xif)->sendData();	
-				TRAN(((VirtualReceiver*)_xif)->stProcessing);
-			}			
-			// si no hay datos, conmuta al chequeo de conexión
-			TRAN(((VirtualReceiver*)_xif)->stCheckConnection);
-		}
-		
-	};friend class StWaitingData;	
 	
 	//-------------------------------------------------------------------------	
 	
@@ -366,7 +317,7 @@ public:
 		
 		// Manejadores de eventos
 		State* onAck(Event* e){
-			TRAN(((VirtualReceiver*)_xif)->stWaitingData);			
+			TRAN(((VirtualReceiver*)_xif)->stDisconnectTcp);			
 		}
 		State* onNack(Event* e){
 			if(((VirtualReceiver*)_xif)->_errcount < VirtualReceiver::ERR_COUNT_LIMIT){
@@ -412,7 +363,7 @@ public:
 			// si los datos se han finalizado, notificar envío
 			((VirtualReceiver*)_xif)->eraseData();
 			((VirtualReceiver*)_xif)->notifyAck();
-			TRAN(((VirtualReceiver*)_xif)->stWaitingData);
+			TRAN(((VirtualReceiver*)_xif)->stConnected);
 		}
 		State* onNack(Event* e){
 			if(((VirtualReceiver*)_xif)->_errcount < VirtualReceiver::ERR_COUNT_LIMIT){
