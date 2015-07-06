@@ -18,6 +18,15 @@ Las funciones principales del equipo son:
 
 ## Changelog
 
+##### 06.07.2015-001 
+- Creo proyecto en Keil con mbed+rtos+cmsis y el procesador STM32F405RGT6.
+- Depurar funcionamiento con socket dinámico cuando tenga montado el UAVTelemetryReceiver.
+- Modifico la conexión TCP de forma que se conecte y desconecte el socket en cada envío de datos para evitar que se quede pillado.
+- POR HACER:
+  - Estudiar la forma de integrar UAVTalk en mbed y ver qué objetos necesito para poder teleoperar el UAV.
+  - [opcional] La tarea GPS hay que modificarla para que sólo envíe datos cuando haya algún cambio significativo.
+
+  
 ##### 01.07.2015-001 
 - Depurar funcionamiento con socket dinámico cuando tenga montado el UAVTelemetryReceiver.
 - Modifico la conexión TCP de forma que se conecte y desconecte el socket en cada envío de datos para evitar que se quede pillado.
